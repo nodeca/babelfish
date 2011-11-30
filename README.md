@@ -1,8 +1,10 @@
 BabelFish
 =========
 
-Internationaliation with easy syntax for Node.JS
-See docs for more details about inline functions.
+Internationaliation with easy syntax for Node.JS. In comparison to classic
+solutions we do not split single phrase and plural phrses into different
+instances. Instead you del with phrases where you can use special macros for
+plurals. See explanation and examples below.
 
 
 ## Phrases Syntax
