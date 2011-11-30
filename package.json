@@ -1,0 +1,20 @@
+{
+  "name"            : "babelfish",
+  "version"         : "0.1.0",
+  "description"     : "i18n with easy syntax for node.js",
+  "keywords"        : ["i18n"],
+  "homepage"        : "https://github.com/nodeca/babelfish",
+
+  "author"          : "Aleksey V Zapparov <ixti@member.fsf.org> (http://www.ixti.net/)",
+
+  "bugs"            : { "url": "https://github.com/nodeca/babelfish/issues" },
+  "license"         : { "type": "MIT", "url": "https://github.com/nodeca/babelfish/blob/master/LICENSE" },
+  "repository"      : { "type": "git", "url": "git://github.com/nodeca/babelfish.git" },
+
+  "main"            : "./index.js",
+
+  "devDependencies" : {
+                        "ndoc" : "~ 0.1.0"
+                      },
+  "engines"         : { "node": "> 0.4.11 < 0.7.0" }
+}
