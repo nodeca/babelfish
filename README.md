@@ -13,11 +13,9 @@ plurals. See explanation and examples below.
 -  `%{Singular|Plural1|Plural2}:myvar` Plural form
    -  outputs appropriate form according to `length` or `count` property variable
    -  one may pass count (`length` property) directly (as an integer)
-   -  you can use `@@` within plural forms to refer to the variable's count
 
 ```
 А у меня в кармане #{nails.length} %{гвоздь|гвоздя|гвоздей}.nails
-А у меня в кармане %{один гвоздь|@@ гвоздя|@@ гвоздей}.nails
 ```
 
 
@@ -38,9 +36,7 @@ ru-RU:
         title : Последнее сообщение
         by : от
   demo:
-    apples: >
-      Смотри, #{name}, на столе лежит %{одно красное|аж целых @@ красных}:apples
-      %{яблоко|яблока|яблок}:apples.count"
+    apples: "На столе лежит #{apples.count} %{яблоко|яблока|яблок}:apples"
 ```
 
 
@@ -79,18 +75,18 @@ i18n.t('uk-UA', 'demo.conv.alright');   // -> 'Alright, man!'
 
 
 // Get compiled phrase or all phrases within scope.
-i18n.getCompiledPhrase('ru-RU', 'demo');
+i18n.getScope('ru-RU', 'demo');
 // -> { hello : [Function],
 //      conv  : { wazup   : 'Как дела?',
 //                alright : 'Alright, man!' } }
 
-i18n.getCompiledPhrase('ru-RU', 'demo.hello');
-// -> [Function]
-
-
 // You may want to get translations within only one level of the scope
-i18n.getCompiledPhrase('ru-RU', 'demo', {deep: false});
+// This might be useful for exporting translations partially in browser
+i18n.getScope('ru-RU', 'demo', {deep: false});
 // -> { hello : [Function] }
+
+i18n.getScope('ru-RU', 'demo.hello');
+// -> [Function]
 ```
 
 
