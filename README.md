@@ -10,12 +10,10 @@ plurals. See explanation and examples below.
 ## Phrases Syntax
 
 -  `#{varname}` Echoes value of variable
--  `%{Singular|Plural1|Plural2}:myvar` Plural form
-   -  outputs appropriate form according to `length` or `count` property variable
-   -  one may pass count (`length` property) directly (as an integer)
+-  `%{Singular|Plural1|Plural2}:count` Plural form
 
 ```
-А у меня в кармане #{nails.length} %{гвоздь|гвоздя|гвоздей}.nails
+А у меня в кармане #{nails_count} %{гвоздь|гвоздя|гвоздей}:nails_count
 ```
 
 
@@ -36,7 +34,7 @@ ru-RU:
         title : Последнее сообщение
         by : от
   demo:
-    apples: "На столе лежит #{apples.count} %{яблоко|яблока|яблок}:apples"
+    apples: "На столе лежит #{apples.count} %{яблоко|яблока|яблок}:apples.count"
 ```
 
 
