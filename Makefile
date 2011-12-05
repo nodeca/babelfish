@@ -1,8 +1,7 @@
 PATH        := ./node_modules/.bin:${PATH}
 
-PROJECT      =  $(notdir ${PWD})
-TMP_PATH     = /tmp/${PROJECT}-$(shell date +%s)
-DOC_PATH    ?= doc
+PROJECT     :=  $(notdir ${PWD})
+TMP_PATH    := /tmp/${PROJECT}-$(shell date +%s)
 
 REMOTE_NAME ?= origin
 REMOTE_REPO ?= $(shell git config --get remote.${REMOTE_NAME}.url)
