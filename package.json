@@ -14,7 +14,8 @@
   "main"            : "./index.js",
 
   "devDependencies" : {
-                        "ndoc" : "~ 0.1.0"
+                        "ndoc" : "~ 0.1.0",
+                        "vows" : "~ 0.6.0"
                       },
   "engines"         : { "node": "> 0.4.11 < 0.7.0" }
 }
