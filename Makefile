@@ -9,7 +9,7 @@ REMOTE_REPO ?= $(shell git config --get remote.${REMOTE_NAME}.url)
 
 
 test:
-	if test ! `which vows` ; then \
+	@if test ! `which vows` ; then \
 		echo "You need vows installed in order to run tests." >&2 ; \
 		echo "  $ npm install vows" >&2 ; \
 		exit 128 ; \
@@ -17,7 +17,7 @@ test:
 	NODE_ENV=test vows --spec
 
 doc:
-	if test ! `which ndoc` ; then \
+	@if test ! `which ndoc` ; then \
 		echo "You need 'ndoc' installed in order to generate docs." >&2 ; \
 		echo "  $ npm install ndoc" >&2 ; \
 		exit 128 ; \
@@ -25,7 +25,7 @@ doc:
 	ndoc -o ./doc ./lib
 
 dev-deps:
-	if test ! `which npm` ; then \
+	@if test ! `which npm` ; then \
 		echo "You need 'npm' installed." >&2 ; \
 		echo "  See: http://npmjs.org/" >&2 ; \
 		exit 128 ; \
