@@ -27,12 +27,12 @@ require('vows').describe('BabelFish').addBatch({
     'getScope()': {
       'returns String when scope has no macros': function (i18n) {
         i18n.addPhrase('ru', 'getscope.string', 'test');
-        assert.instanceOf(i18n.getScope('ru', 'getscope.string', String));
+        assert.equal(i18n.getScope('ru', 'getscope.string'), 'test');
       },
 
       'returns Function when scope has macros': function (i18n) {
         i18n.addPhrase('ru', 'getscope.function', 'test #{test}');
-        assert.instanceOf(i18n.getScope('ru', 'getscope.function', Function));
+        assert.instanceOf(i18n.getScope('ru', 'getscope.function'), Function);
       },
 
       'returns inner scope Object when scope requested': function (i18n) {
@@ -45,7 +45,7 @@ require('vows').describe('BabelFish').addBatch({
 
         assert.include(flat, 'foo');
         assert.include(flat, 'bar');
-        assert.isUndefined(flat, 'inner');
+        assert.isUndefined(flat.inner);
 
         assert.include(deep, 'foo');
         assert.include(deep, 'bar');
@@ -65,8 +65,8 @@ require('vows').describe('BabelFish').addBatch({
 
     'translates inline plurals': function (i18n) {
       i18n.addPhrase('ru', 'plurals', '-%{foo|bar}:{nails.count}-');
-      assert.equal('-foo-', i18n.t('ru', 'plurals', {nails: {count: 1}}));
-      assert.equal('-bar-', i18n.t('ru', 'plurals', {nails: {count: 2}}));
+      assert.equal(i18n.t('ru', 'plurals', {nails: {count: 1}}), '-foo-');
+      assert.equal(i18n.t('ru', 'plurals', {nails: {count: 2}}), '-bar-');
     },
 
     'fallbacks to default language in worst case': function (i18n) {
@@ -90,7 +90,7 @@ require('vows').describe('BabelFish').addBatch({
 
       i18n.addPhrase('ua', 'fallback.generic.moo', 'moo.ua');
 
-      i18n.setFallbackLocale('ua', 'ru');
+      i18n.setLocaleFallback('ua', 'ru');
 
       assert.equal(i18n.t('ua', 'fallback.generic.foo'), 'foo');
       assert.equal(i18n.t('ua', 'fallback.generic.bar'), 'bar.ru');
