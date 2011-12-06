@@ -1,7 +1,9 @@
 var assert = require('assert'),
-    BabelFish = require('../lib/babelfish');
+    BabelFish = require('../lib/babelfish'),
+    helper = require('./helper');
 
 require('vows').describe('BabelFish').addBatch({
+  // API consistence tests
   'Exported module': {
     'is a constructor': function () {
       assert.isFunction(BabelFish);
@@ -14,87 +16,155 @@ require('vows').describe('BabelFish').addBatch({
     }
   },
 
-  'BabelFish instance': {
+  'Instance': {
     topic: new (BabelFish),
+    'has `addPhrase()` method'      : helper.hasFunction('addPhrase'),
+    'has `getScope()` method'       : helper.hasFunction('getScope'),
+    'has `translate()` method'      : helper.hasFunction('translate'),
+    'has `t()` aliase'              : helper.hasAlias('t', 'translate'),
+    'has `defaultLocale` property'  : helper.hasProperty('defaultLocale')
+  },
 
-    'addPhrase() overrides scope on duplicate': function (i18n) {
-      i18n.addPhrase('ru', 'addphrase', 'original');
-      i18n.addPhrase('ru', 'addphrase', 'override');
+  'New instance with defaults': {
+    topic: function () { return BabelFish.create(); },
+    'has defaultLocale = `en`': function (i18n) {
+      assert.equal(i18n.defaultLocale, 'en', 'defaultLocal is en');
+    }
+  },
 
-      assert.equal(i18n.getScope('ru', 'addphrase'), 'override');
+  'New instance with defaultLocale given': {
+    topic: function () { return BabelFish.create('ru'); },
+    'has defaultLocale equal to the specified one': function (i18n) {
+      assert.equal(i18n.defaultLocale, 'ru', 'defaultLocal is ru');
+    }
+  }
+}).addBatch({
+  // Behavior and unit tests come here
+  'When fallback is given': {
+    topic: function () {
+      var i18n = BabelFish.create('en');
+
+      i18n.setLocaleFallback('es', 'es-ES', 'es-MX');
+      i18n.setLocaleFallback('es-ES', 'es', 'es-US');
+
+      i18n.addPhrase('en',    'test.a', '(en)');
+      i18n.addPhrase('en',    'test.b', '(en)');
+      i18n.addPhrase('en',    'test.c', '(en)');
+      i18n.addPhrase('en',    'test.d', '(en)');
+
+      i18n.addPhrase('es',    'test.a', '(es)');
+      i18n.addPhrase('es-ES', 'test.b', '(es-ES)');
+      i18n.addPhrase('es-MX', 'test.c', '(es-MX)');
+      i18n.addPhrase('es-US', 'test.d', '(es-US)');
+
+      return i18n;
     },
 
-    'getScope()': {
-      'returns String when scope has no macros': function (i18n) {
-        i18n.addPhrase('ru', 'getscope.string', 'test');
-        assert.equal(i18n.getScope('ru', 'getscope.string'), 'test');
-      },
-
-      'returns Function when scope has macros': function (i18n) {
-        i18n.addPhrase('ru', 'getscope.function', 'test #{test}');
-        assert.instanceOf(i18n.getScope('ru', 'getscope.function'), Function);
-      },
-
-      'returns inner scope Object when scope requested': function (i18n) {
-        i18n.addPhrase('ru', 'getscope.object.foo', 'foo');
-        i18n.addPhrase('ru', 'getscope.object.bar', 'bar');
-        i18n.addPhrase('ru', 'getscope.object.inner.moo', 'moo');
-
-        var flat = i18n.getScope('ru', 'getscope.object', {deep: false}),
-            deep = i18n.getScope('ru', 'getscope.object', {deep: true});
-
-        assert.include(flat, 'foo');
-        assert.include(flat, 'bar');
-        assert.isUndefined(flat.inner);
-
-        assert.include(deep, 'foo');
-        assert.include(deep, 'bar');
-        assert.include(deep, 'inner');
-        assert.include(deep.inner, 'moo');
-      }
+    'use defaultLocale in worst case': function (i18n) {
+      assert.equal(i18n.t('es', 'test.d'), '(en)');
+      assert.equal(i18n.t('ru', 'test.d'), '(en)');
     },
 
-    'prepared function can be used multiple times': function (i18n) {
-      i18n.addPhrase('ru', 'getscope.function_test', 'foo #{bar}');
-
-      var func = i18n.getScope('ru', 'getscope.function_test');
-
-      assert.equal('foo 1', func({bar: 1}));
-      assert.equal('foo 2', func({bar: 2, baz: 3}));
+    'allows specify more than one fallback locale': function (i18n) {
+      assert.equal(i18n.t('es', 'test.a'), '(es)');
+      assert.equal(i18n.t('es', 'test.b'), '(es-ES)');
+      assert.equal(i18n.t('es', 'test.c'), '(es-MX)');
     },
 
-    'translates inline plurals': function (i18n) {
-      i18n.addPhrase('ru', 'plurals', '-%{foo|bar}:{nails.count}-');
-      assert.equal(i18n.t('ru', 'plurals', {nails: {count: 1}}), '-foo-');
-      assert.equal(i18n.t('ru', 'plurals', {nails: {count: 2}}), '-bar-');
+    'do not recursively resolve locale fallbacks': function (i18n) {
+      assert.equal(i18n.t('es-ES', 'test.a'), '(es)');
+      assert.equal(i18n.t('es-ES', 'test.b'), '(es-ES)');
+      assert.equal(i18n.t('es-ES', 'test.c'), '(en)');
+      assert.equal(i18n.t('es-ES', 'test.d'), '(es-US)');
+    }
+  },
+
+  'Adding phrases': {
+    topic: function () {
+      var i18n = BabelFish.create('en');
+
+      i18n.addPhrase('en', 'phrase1',       'foobar');
+      i18n.addPhrase('en', 'scope.phrase2', 'foobar');
+      i18n.addPhrase('en', 'scope',         {phrase3: 'foobar'});
+
+      return i18n;
     },
 
-    'fallbacks to default language in worst case': function (i18n) {
-      i18n.addPhrase('en', 'fallback.generic.foo', 'foo');
-      i18n.addPhrase('en', 'fallback.generic.bar', 'bar');
-      i18n.addPhrase('ru', 'fallback.generic.bar', 'moo');
-
-      assert.equal(i18n.t('en', 'fallback.generic.foo'), 'foo');
-      assert.equal(i18n.t('en', 'fallback.generic.bar'), 'bar');
-      assert.equal(i18n.t('ru', 'fallback.generic.foo'), 'foo');
-      assert.equal(i18n.t('ru', 'fallback.generic.bar'), 'moo');
+    'allows specify phrase within `global` scope': function (i18n) {
+      assert.equal(i18n.t('phrase1'), 'foobar');
     },
 
-    'allows specify fallback route': function (i18n) {
-      i18n.addPhrase('en', 'fallback.generic.foo', 'foo');
-      i18n.addPhrase('en', 'fallback.generic.bar', 'bar');
-      i18n.addPhrase('en', 'fallback.generic.moo', 'moo');
+    'allows specify phrase prefixed with scope': function (i18n) {
+      assert.equal(i18n.t('scope.phrase2'), 'foobar');
+    },
 
-      i18n.addPhrase('ru', 'fallback.generic.bar', 'bar.ru');
-      i18n.addPhrase('ru', 'fallback.generic.moo', 'moo.ru');
+    'allows spicify translations as inner scope': function (i18n) {
+      assert.equal(i18n.t('scope.phrase3'), 'foobar');
+    }
+  },
 
-      i18n.addPhrase('ua', 'fallback.generic.moo', 'moo.ua');
+  'Getting scope': {
+    topic: function () {
+      var i18n = BabelFish.create('en');
 
-      i18n.setLocaleFallback('ua', 'ru');
+      i18n.addPhrase('en', 'test.simple_string',    'test');
+      i18n.addPhrase('en', 'test.complex.variable', '-#{count}-');
+      i18n.addPhrase('en', 'test.complex.plurals',  '-%{foo|bar}.count-');
 
-      assert.equal(i18n.t('ua', 'fallback.generic.foo'), 'foo');
-      assert.equal(i18n.t('ua', 'fallback.generic.bar'), 'bar.ru');
-      assert.equal(i18n.t('ua', 'fallback.generic.moo'), 'moo.ua');
+      return i18n;
+    },
+
+    'returns String when scope has no macros or variables': function (i18n) {
+      assert.equal(i18n.getScope('ru', 'test.simple_string'), 'test');
+    },
+
+    'returns Function when scope has macros or variable': function (i18n) {
+      assert.instanceOf(i18n.getScope('ru', 'test.with.plurals'), Function);
+      assert.instanceOf(i18n.getScope('ru', 'test.with.variable'), Function);
+    },
+
+    'returns inner scope Object when scope requested': function (i18n) {
+      var flat = i18n.getScope('ru', 'test', {deep: false}),
+          deep = i18n.getScope('ru', 'test', {deep: true});
+
+      assert.isUndefined(flat.complex);
+      assert.include(flat,          'simple_string');
+
+      assert.include(deep,          'simple_string');
+      assert.include(deep,          'complex');
+      assert.include(deep.complex,  'variables');
+      assert.include(deep.complex,  'plurals');
+    }
+  },
+
+  'Translating a phrase': {
+    topic: function () {
+      var i18n = BabelFish.create('en');
+
+      i18n.addPhrase('en', 'a', 'a (en)');
+      i18n.addPhrase('en', 'b', 'b (en)');
+      i18n.addPhrase('ru', 'b', 'b (ru) #{foo}');
+      i18n.addPhrase('es', 'b', 'b (es) #{f.o}');
+
+      return i18n;
+    },
+
+    'always returns a string': function (i18n) {
+      assert.equal(i18n.t('en', 'a'), 'a (en)');
+      assert.equal(i18n.t('en', 'b'), 'b (en)');
+      assert.equal(i18n.t('ru', 'b', {foo: 'bar'}), 'b (ru) bar');
+    },
+
+    'ignores provided params when they are not needed': function (i18n) {
+      assert.equal(i18n.t('en', 'b', {foo: 'bar', bar: 'baz'}), 'b (en)');
+    },
+
+    'replaces missing params with undefined': function (i18n) {
+      assert.equal(i18n.t('ru', 'b'), 'b (ru) <undefined>');
+    },
+
+    'honour ojects in params': function (i18n) {
+      assert.equal(i18n.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
     }
   }
 }).export(module);
