@@ -1,21 +1,20 @@
-BabelFish
-=========
+BabelFish - i18n for node.js
+============================
 
-Internationaliation with easy syntax for Node.JS. In comparison to classic
-solutions we do not split single phrase and plural phrses into different
-instances. Instead you del with phrases where you can use special macros for
-plurals. See explanation and examples below.
+Internationaliation with easy syntax for Node.JS. Classic solutions use multiple phrases
+for plurals. But we define plurals inline - that's more compact, and easier to maintain.
+Also, phrases are grouped into nested scopes, like in Ruby.
+
+If you need cli tools to generate language files - see [babelfish.tools](https://github.com/nodeca/babelfish.tools).
 
 
 ## Phrases Syntax
 
 -  `#{varname}` Echoes value of variable
--  `%{Singular|Plural1|Plural2}:myvar` Plural form
-   -  outputs appropriate form according to `length` or `count` property variable
-   -  one may pass count (`length` property) directly (as an integer)
+-  `%{Singular|Plural1|Plural2}:count` Plural form
 
 ```
-А у меня в кармане #{nails.length} %{гвоздь|гвоздя|гвоздей}.nails
+А у меня в кармане #{nails_count} %{гвоздь|гвоздя|гвоздей}:nails_count
 ```
 
 
@@ -36,7 +35,7 @@ ru-RU:
         title : Последнее сообщение
         by : от
   demo:
-    apples: "На столе лежит #{apples.count} %{яблоко|яблока|яблок}:apples"
+    apples: "На столе лежит #{apples.count} %{яблоко|яблока|яблок}:apples.count"
 ```
 
 
@@ -81,7 +80,7 @@ i18n.getScope('ru-RU', 'demo');
 //                alright : 'Alright, man!' } }
 
 // You may want to get translations within only one level of the scope
-// This might be useful for exporting translations partially in browser
+// This might be useful for exporting translations partially to browser
 i18n.getScope('ru-RU', 'demo', {deep: false});
 // -> { hello : [Function] }
 
