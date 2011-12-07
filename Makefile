@@ -15,6 +15,14 @@ test:
 		fi
 	NODE_ENV=test vows --spec
 
+lint:
+	@if test ! `which jslint` ; then \
+		echo "You need jslint installed in order to run tests." >&2 ; \
+		echo "  $ npm install jslint" >&2 ; \
+		exit 128 ; \
+		fi
+	jslint --node ./lib/**/*.js
+
 doc:
 	@if test ! `which ndoc` ; then \
 		echo "You need 'ndoc' installed in order to generate docs." >&2 ; \

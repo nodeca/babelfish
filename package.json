@@ -13,9 +13,14 @@
 
   "main"            : "./index.js",
 
+  "scripts"         : {
+                        "test" : "make test"
+                      },
+
   "devDependencies" : {
-                        "ndoc" : "~ 0.1.0",
-                        "vows" : "~ 0.6.0"
+                        "ndoc"    : "~ 0.1.0",
+                        "vows"    : "~ 0.6.0",
+                        "jslint"  : "~ 0.1.0"
                       },
   "engines"         : { "node": "> 0.4.11 < 0.7.0" }
 }
