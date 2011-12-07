@@ -10,20 +10,10 @@ CURR_HEAD 	:= $(firstword $(shell git show-ref --hash HEAD | cut --bytes=-6) mas
 GITHUB_NAME := nodeca/babelfish
 SRC_URL_FMT := https://github.com/${GITHUB_NAME}/blob/${CURR_HEAD}/{file}\#L{line}
 
-test:
-	@if test ! `which vows` ; then \
-		echo "You need vows installed in order to run tests." >&2 ; \
-		echo "  $ npm install vows" >&2 ; \
-		exit 128 ; \
-		fi
+test: dev-deps
 	NODE_ENV=test vows --spec
 
-lint:
-	@if test ! `which jslint` ; then \
-		echo "You need jslint installed in order to run tests." >&2 ; \
-		echo "  $ npm install jslint" >&2 ; \
-		exit 128 ; \
-		fi
+lint: dev-deps
 	# (node)    -> Node.JS compatibility mode
 	# (indent)  -> indentation level (2 spaces)
 	# (nomen)   -> tolerate underscores in identifiers (e.g. `var _val = 1`)
@@ -32,7 +22,7 @@ lint:
 doc:
 	@if test ! `which ndoc` ; then \
 		echo "You need 'ndoc' installed in order to generate docs." >&2 ; \
-		echo "  $ npm install ndoc" >&2 ; \
+		echo "  $ npm install -g ndoc" >&2 ; \
 		exit 128 ; \
 		fi
 	rm -rf ./doc

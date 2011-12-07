@@ -18,7 +18,6 @@
                       },
 
   "devDependencies" : {
-                        "ndoc"    : "~ 1.0.0",
                         "vows"    : "~ 0.6.0",
                         "jslint"  : "https://github.com/reid/node-jslint/tarball/6131ebf5713274871b89735105e3286131804771"
                       },
