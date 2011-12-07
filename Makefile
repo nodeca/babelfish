@@ -32,6 +32,7 @@ doc:
 		echo "  $ npm install ndoc" >&2 ; \
 		exit 128 ; \
 		fi
+	rm -rf ./doc
 	ndoc -o ./doc ./lib
 
 dev-deps:
@@ -63,5 +64,5 @@ todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
 
 
-.PHONY: test dev-deps gh-pages todo
+.PHONY: test doc dev-deps gh-pages todo
 .SILENT: test doc todo
