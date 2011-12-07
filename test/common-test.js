@@ -1,6 +1,9 @@
-var Assert = require('assert'),
-    Common = require('../lib/babelfish/common'),
-    Helper = require('./helper');
+'use strict';
+
+
+var Assert = require('assert');
+var Common = require('../lib/babelfish/common');
+var Helper = require('./helper');
 
 
 require('vows').describe('BabelFish.Common').addBatch({

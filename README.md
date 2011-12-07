@@ -69,17 +69,17 @@ YAML files:
 
 
     // Get compiled phrase or all phrases within scope.
-    i18n.getScope('ru-RU', 'demo');
+    i18n.getTranslation('ru-RU', 'demo');
     // -> { hello : [Function],
     //      conv  : { wazup   : 'Как дела?',
     //                alright : 'Alright, man!' } }
 
     // You may want to get translations within only one level of the scope
     // This might be useful for exporting translations partially to browser
-    i18n.getScope('ru-RU', 'demo', {deep: false});
+    i18n.getTranslation('ru-RU', 'demo', {deep: false});
     // -> { hello : [Function] }
 
-    i18n.getScope('ru-RU', 'demo.hello');
+    i18n.getTranslation('ru-RU', 'demo.hello');
     // -> [Function]
 
 

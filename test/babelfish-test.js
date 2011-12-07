@@ -1,6 +1,10 @@
-var Assert = require('assert'),
-    BabelFish = require('../lib/babelfish'),
-    Helper = require('./helper');
+'use strict';
+
+
+var Assert = require('assert');
+var BabelFish = require('../lib/babelfish');
+var Helper = require('./helper');
+
 
 require('vows').describe('BabelFish').addBatch({
   // API consistence tests
@@ -19,7 +23,9 @@ require('vows').describe('BabelFish').addBatch({
   'Instance': {
     topic: new (BabelFish),
     'has `addPhrase()` method'      : Helper.hasFunction('addPhrase'),
-    'has `getScope()` method'       : Helper.hasFunction('getScope'),
+    'has `getTranslation()` method' : Helper.hasFunction('getTranslation'),
+    'has `setFallback()` method'    : Helper.hasFunction('setFallback'),
+    'has `getFallback()` method'    : Helper.hasFunction('getFallback'),
     'has `translate()` method'      : Helper.hasFunction('translate'),
     'has `t()` aliase'              : Helper.hasAlias('t', 'translate'),
     'has `defaultLocale` property'  : Helper.hasProperty('defaultLocale')
@@ -44,8 +50,8 @@ require('vows').describe('BabelFish').addBatch({
     topic: function () {
       var i18n = BabelFish.create('en');
 
-      i18n.setLocaleFallback('es', 'es-ES', 'es-MX');
-      i18n.setLocaleFallback('es-ES', 'es', 'es-US');
+      i18n.setFallback('es', 'es-ES', 'es-MX');
+      i18n.setFallback('es-ES', 'es', 'es-US');
 
       i18n.addPhrase('en',    'test.a', '(en)');
       i18n.addPhrase('en',    'test.b', '(en)');
@@ -103,7 +109,7 @@ require('vows').describe('BabelFish').addBatch({
     }
   },
 
-  'Getting scope': {
+  'Getting translation': {
     topic: function () {
       var i18n = BabelFish.create('en');
 
@@ -115,17 +121,17 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'returns String when scope has no macros or variables': function (i18n) {
-      Assert.equal(i18n.getScope('ru', 'test.simple_string'), 'test');
+      Assert.equal(i18n.getTranslation('ru', 'test.simple_string'), 'test');
     },
 
     'returns Function when scope has macros or variable': function (i18n) {
-      Assert.instanceOf(i18n.getScope('ru', 'test.with.plurals'), Function);
-      Assert.instanceOf(i18n.getScope('ru', 'test.with.variable'), Function);
+      Assert.instanceOf(i18n.getTranslation('ru', 'test.with.plurals'), Function);
+      Assert.instanceOf(i18n.getTranslation('ru', 'test.with.variable'), Function);
     },
 
     'returns inner scope Object when scope requested': function (i18n) {
-      var flat = i18n.getScope('ru', 'test', {deep: false}),
-          deep = i18n.getScope('ru', 'test', {deep: true});
+      var flat = i18n.getTranslation('ru', 'test', {deep: false}),
+          deep = i18n.getTranslation('ru', 'test', {deep: true});
 
       Assert.isUndefined(flat.complex);
       Assert.include(flat,          'simple_string');

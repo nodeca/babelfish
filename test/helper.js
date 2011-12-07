@@ -1,6 +1,9 @@
-var Assert = require('assert'),
-    Vows = require('vows'), // we need it to make sure `assert` got patched
-    Helper = module.exports = {};
+'use strict';
+
+
+var Assert = require('assert');
+var Vows = require('vows'); // we need it to make sure `assert` got patched
+var Helper = module.exports = {};
 
 
 Helper.hasFunction = function (func) {
