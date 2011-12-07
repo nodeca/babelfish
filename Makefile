@@ -21,7 +21,7 @@ lint:
 		echo "  $ npm install jslint" >&2 ; \
 		exit 128 ; \
 		fi
-	jslint --node ./lib/**/*.js
+	jslint --node --nomen --indent=2 ./lib/*.js ./lib/**/*.js
 
 doc:
 	@if test ! `which ndoc` ; then \
