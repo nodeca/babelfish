@@ -21,6 +21,9 @@ lint:
 		echo "  $ npm install jslint" >&2 ; \
 		exit 128 ; \
 		fi
+	# (node)    -> Node.JS compatibility mode
+	# (indent)  -> indentation level (2 spaces)
+	# (nomen)   -> tolerate underscores in identifiers (e.g. `var _val = 1`)
 	jslint --node --nomen --indent=2 ./lib/*.js ./lib/**/*.js
 
 doc:
