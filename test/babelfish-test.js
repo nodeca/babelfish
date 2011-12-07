@@ -25,7 +25,6 @@ require('vows').describe('BabelFish').addBatch({
     'has `addPhrase()` method'      : Helper.hasFunction('addPhrase'),
     'has `getTranslation()` method' : Helper.hasFunction('getTranslation'),
     'has `setFallback()` method'    : Helper.hasFunction('setFallback'),
-    'has `getFallback()` method'    : Helper.hasFunction('getFallback'),
     'has `translate()` method'      : Helper.hasFunction('translate'),
     'has `t()` aliase'              : Helper.hasAlias('t', 'translate'),
     'has `defaultLocale` property'  : Helper.hasProperty('defaultLocale')
