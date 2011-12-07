@@ -10,10 +10,20 @@ CURR_HEAD 	:= $(firstword $(shell git show-ref --hash HEAD | cut --bytes=-6) mas
 GITHUB_NAME := nodeca/babelfish
 SRC_URL_FMT := https://github.com/${GITHUB_NAME}/blob/${CURR_HEAD}/{file}\#L{line}
 
-test: dev-deps
+test:
+	@if test ! `which vows` ; then \
+		echo "You need 'vows' installed in order to generate docs." >&2 ; \
+		echo "  $ make dev-deps" >&2 ; \
+		exit 128 ; \
+		fi
 	NODE_ENV=test vows --spec
 
-lint: dev-deps
+lint:
+	@if test ! `which jslint` ; then \
+		echo "You need 'jslint' installed in order to generate docs." >&2 ; \
+		echo "  $ make dev-deps" >&2 ; \
+		exit 128 ; \
+		fi
 	# (node)    -> Node.JS compatibility mode
 	# (indent)  -> indentation level (2 spaces)
 	# (nomen)   -> tolerate underscores in identifiers (e.g. `var _val = 1`)
