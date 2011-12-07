@@ -1,27 +1,27 @@
-var assert = require('assert'),
-    vows = require('vows'), // we need it to make sure `assert` got patched
-    helper = module.exports = {};
+var Assert = require('assert'),
+    Vows = require('vows'), // we need it to make sure `assert` got patched
+    Helper = module.exports = {};
 
 
-helper.hasFunction = function (func) {
+Helper.hasFunction = function (func) {
   return function (i18n) {
-    assert.isFunction(i18n[func], 'has ' + func + ' function');
+    Assert.isFunction(i18n[func], 'has ' + func + ' function');
   };
 };
 
 
-helper.hasAlias = function (alias, original) {
+Helper.hasAlias = function (alias, original) {
   return function (i18n) {
-    assert.ok(i18n[original] === i18n[alias],
+    Assert.ok(i18n[original] === i18n[alias],
               alias + ' is alias of ' + original);
   };
 };
 
 
-helper.hasProperty = function (prop) {
+Helper.hasProperty = function (prop) {
   return function (i18n) {
-    assert.include(i18n, prop, 'has ' + prop + ' property');
-    assert.isFalse('function' === typeof i18n[prop],
+    Assert.include(i18n, prop, 'has ' + prop + ' property');
+    Assert.isFalse('function' === typeof i18n[prop],
                    prop + ' is a scalar or getter');
   };
 };
