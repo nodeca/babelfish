@@ -49,8 +49,8 @@ require('vows').describe('BabelFish').addBatch({
     topic: function () {
       var i18n = BabelFish.create('en');
 
-      i18n.setFallback('es', 'es-ES', 'es-MX');
-      i18n.setFallback('es-ES', 'es', 'es-US');
+      i18n.setFallback('es',    ['es-ES', 'es-MX']);
+      i18n.setFallback('es-ES', ['es', 'es-US']);
 
       i18n.addPhrase('en',    'test.a', '(en)');
       i18n.addPhrase('en',    'test.b', '(en)');
@@ -61,6 +61,8 @@ require('vows').describe('BabelFish').addBatch({
       i18n.addPhrase('es-ES', 'test.b', '(es-ES)');
       i18n.addPhrase('es-MX', 'test.c', '(es-MX)');
       i18n.addPhrase('es-US', 'test.d', '(es-US)');
+
+      i18n.setFallback('es-US', ['es']);
 
       return i18n;
     },
@@ -74,6 +76,7 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('es', 'test.a'), '(es)');
       Assert.equal(i18n.t('es', 'test.b'), '(es-ES)');
       Assert.equal(i18n.t('es', 'test.c'), '(es-MX)');
+      Assert.equal(i18n.t('es', 'test.d'), '(en)');
     },
 
     'do not recursively resolve locale fallbacks': function (i18n) {
@@ -81,6 +84,13 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('es-ES', 'test.b'), '(es-ES)');
       Assert.equal(i18n.t('es-ES', 'test.c'), '(en)');
       Assert.equal(i18n.t('es-ES', 'test.d'), '(es-US)');
+    },
+
+    'allow specify fallbacks after phrases were added': function (i18n) {
+      Assert.equal(i18n.t('es-US', 'test.a'), '(es)');
+      Assert.equal(i18n.t('es-US', 'test.b'), '(en)');
+      Assert.equal(i18n.t('es-US', 'test.c'), '(en)');
+      Assert.equal(i18n.t('es-US', 'test.d'), '(es-US)');
     }
   },
 
