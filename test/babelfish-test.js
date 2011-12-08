@@ -99,6 +99,15 @@ require('vows').describe('BabelFish').addBatch({
     }
   },
 
+  'Setting fallback for defaultLocale': {
+    topic: function () {
+      return BabelFish.create('en');
+    },
+    'cause exception to be thrown': function (i18n) {
+      Assert.throws(function () { i18n.setFallback('en', ['en-GB']); }, Error);
+    }
+  },
+
   'Adding phrases': {
     topic: function () {
       var i18n = BabelFish.create('en');
