@@ -13,6 +13,8 @@ If you need cli tools to generate language files - see [babelfish.tools](https:/
 -  `#{varname}` Echoes value of variable
 -  `%{Singular|Plural1|Plural2}:count` Plural form
 
+example:
+
     А у меня в кармане #{nails_count} %{гвоздь|гвоздя|гвоздей}:nails_count
 
 
