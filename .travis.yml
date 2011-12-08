@@ -4,6 +4,6 @@ node_js:
  - 0.5
  - 0.6
 before_script: "npm install --dev"
-script: "make lint test"
+script: "npm test"
 notifications:
   email: false
