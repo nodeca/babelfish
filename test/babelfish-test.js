@@ -27,7 +27,12 @@ require('vows').describe('BabelFish').addBatch({
     'has `setFallback()` method'    : Helper.hasFunction('setFallback'),
     'has `translate()` method'      : Helper.hasFunction('translate'),
     'has `t()` aliase'              : Helper.hasAlias('t', 'translate'),
-    'has `defaultLocale` property'  : Helper.hasProperty('defaultLocale')
+    'has `defaultLocale` property'  : Helper.hasProperty('defaultLocale'),
+
+    '`defaultLocale` property is read-only': function (i18n) {
+      Assert.throws(function () { i18n.defaultLocale = 'ru'; }, TypeError);
+      Assert.throws(function () { delete i18n.defaultLocale; }, TypeError);
+    }
   },
 
   'New instance with defaults': {
