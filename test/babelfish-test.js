@@ -160,13 +160,6 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(translation.value, 'test');
     },
 
-    'translation has field with original translations string': function (i18n) {
-      Assert.equal(i18n.getTranslation('en', 'test.simple_string').orig, 'test');
-      Assert.equal(i18n.getTranslation('en', 'test.complex.variable').orig, '-#{count}-');
-      Assert.equal(i18n.getTranslation('en', 'test.complex.plurals').orig, '-%{foo|bar}.count-');
-      Assert.equal(i18n.getTranslation('ru', 'test.complex.plurals').orig, '-%{ruu|bar}.count-');
-    },
-
     'translation has field with actual locale of translation': function (i18n) {
       Assert.equal(i18n.getTranslation('ru', 'test.simple_string').locale, 'en');
       Assert.equal(i18n.getTranslation('ru', 'test.complex.variable').locale, 'en');
