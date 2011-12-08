@@ -14,7 +14,7 @@
   "main"            : "./index.js",
 
   "scripts"         : {
-                        "test" : "make lint test"
+                        "test" : "make test"
                       },
 
   "devDependencies" : {
