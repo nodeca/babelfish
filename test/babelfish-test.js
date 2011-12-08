@@ -106,15 +106,15 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'allows specify phrase within `global` scope': function (i18n) {
-      Assert.equal(i18n.t('phrase1'), 'foobar');
+      Assert.equal(i18n.t('en', 'phrase1'), 'foobar');
     },
 
     'allows specify phrase prefixed with scope': function (i18n) {
-      Assert.equal(i18n.t('scope.phrase2'), 'foobar');
+      Assert.equal(i18n.t('en', 'scope.phrase2'), 'foobar');
     },
 
     'allows spicify translations as inner scope': function (i18n) {
-      Assert.equal(i18n.t('scope.phrase3'), 'foobar');
+      Assert.equal(i18n.t('en', 'scope.phrase3'), 'foobar');
     }
   },
 
@@ -125,30 +125,53 @@ require('vows').describe('BabelFish').addBatch({
       i18n.addPhrase('en', 'test.simple_string',    'test');
       i18n.addPhrase('en', 'test.complex.variable', '-#{count}-');
       i18n.addPhrase('en', 'test.complex.plurals',  '-%{foo|bar}.count-');
+      i18n.addPhrase('ru', 'test.complex.plurals',  '-%{ruu|bar}.count-');
 
       return i18n;
     },
 
-    'returns String when scope has no macros or variables': function (i18n) {
-      Assert.equal(i18n.getTranslation('ru', 'test.simple_string'), 'test');
+    'translation is a String when scope has no macros or variables': function (i18n) {
+      var translation = i18n.getTranslation('en', 'test.simple_string');
+
+      Assert.equal(translation.type,  'string');
+      Assert.equal(translation.value, 'test');
     },
 
-    'returns Function when scope has macros or variable': function (i18n) {
-      Assert.instanceOf(i18n.getTranslation('ru', 'test.with.plurals'), Function);
-      Assert.instanceOf(i18n.getTranslation('ru', 'test.with.variable'), Function);
+    'translation has field with original translations string': function (i18n) {
+      Assert.equal(i18n.getTranslation('en', 'test.simple_string').orig, 'test');
+      Assert.equal(i18n.getTranslation('en', 'test.complex.variable').orig, '-#{count}-');
+      Assert.equal(i18n.getTranslation('en', 'test.complex.plurals').orig, '-%{foo|bar}.count-');
+      Assert.equal(i18n.getTranslation('ru', 'test.complex.plurals').orig, '-%{ruu|bar}.count-');
+    },
+
+    'translation has field with actual locale of translation': function (i18n) {
+      Assert.equal(i18n.getTranslation('ru', 'test.simple_string').locale, 'en');
+      Assert.equal(i18n.getTranslation('ru', 'test.complex.variable').locale, 'en');
+      Assert.equal(i18n.getTranslation('ru', 'test.complex.plurals').locale, 'ru');
+    },
+
+    'translation is a Function when scope has macros or variable': function (i18n) {
+      ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
+        var translation = i18n.getTranslation('en', scope);
+        Assert.equal(translation.type, 'function');
+        Assert.instanceOf(translation.value, Function);
+      });
     },
 
     'returns inner scope Object when scope requested': function (i18n) {
       var flat = i18n.getTranslation('ru', 'test', {deep: false}),
           deep = i18n.getTranslation('ru', 'test', {deep: true});
 
-      Assert.isUndefined(flat.complex);
-      Assert.include(flat,          'simple_string');
+      Assert.equal(flat.type, 'object');
+      Assert.equal(deep.type, 'object');
 
-      Assert.include(deep,          'simple_string');
-      Assert.include(deep,          'complex');
-      Assert.include(deep.complex,  'variables');
-      Assert.include(deep.complex,  'plurals');
+      Assert.isUndefined(flat.value.complex);
+      Assert.include(flat.value, 'simple_string');
+
+      Assert.include(deep.value, 'simple_string');
+      Assert.include(deep.value, 'complex');
+      Assert.include(deep.value.complex.value,  'variables');
+      Assert.include(deep.value.complex.value,  'plurals');
     }
   },
 
