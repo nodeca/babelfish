@@ -96,6 +96,15 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('es-US', 'test.b'), '(en)');
       Assert.equal(i18n.t('es-US', 'test.c'), '(en)');
       Assert.equal(i18n.t('es-US', 'test.d'), '(es-US)');
+    },
+
+    'allows reset fallbacks': function (i18n) {
+      i18n.setFallback('es-US', ['es-ES', 'es-MX']);
+
+      Assert.equal(i18n.t('es', 'test.a'), '(es)');
+      Assert.equal(i18n.t('es', 'test.b'), '(es-ES)');
+      Assert.equal(i18n.t('es', 'test.c'), '(es-MX)');
+      Assert.equal(i18n.t('es', 'test.d'), '(en)');
     }
   },
 
