@@ -193,7 +193,7 @@ require('vows').describe('BabelFish').addBatch({
 
       Assert.include(deep.value, 'simple_string');
       Assert.include(deep.value, 'complex');
-      Assert.include(deep.value.complex.value,  'variables');
+      Assert.include(deep.value.complex.value,  'variable');
       Assert.include(deep.value.complex.value,  'plurals');
     }
   },
