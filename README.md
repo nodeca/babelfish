@@ -1,5 +1,6 @@
 BabelFish - i18n for node.js
 ============================
+[![Build Status](https://secure.travis-ci.org/nodeca/babelfish.png)](http://travis-ci.org/nodeca/babelfish)
 
 Internationaliation with easy syntax for Node.JS. Classic solutions use multiple phrases
 for plurals. But we define plurals inline - that's more compact, and easier to maintain.
