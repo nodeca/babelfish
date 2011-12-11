@@ -1,2 +1,0 @@
-- ??? Specify multiple fallbacks
-  babelfish.setFallbackLocale('ua', 'ua-UA', 'uk-UA', 'ru');
