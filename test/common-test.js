@@ -7,22 +7,30 @@ var Helper = require('./helper');
 
 
 require('vows').describe('BabelFish.Common').addBatch({
-  'flattenParams': function () {
-    var params = Common.flattenParams({
-      foo: {
+  'flattenParams': {
+    'flattens object into single dimension key->value pairs hash': function () {
+      var params = Common.flattenParams({
+        foo: {
+          bar: {
+            baz: 1
+          }
+        },
         bar: {
-          baz: 1
-        }
-      },
-      bar: {
-        baz: 2
-      },
-      baz: 3
-    });
+          baz: 2
+        },
+        baz: 3
+      });
 
-    Assert.equal(params['foo.bar.baz'], 1);
-    Assert.equal(params['bar.baz'],     2);
-    Assert.equal(params['baz'],         3);
+      Assert.equal(params['foo.bar.baz'], 1);
+      Assert.equal(params['bar.baz'],     2);
+      Assert.equal(params['baz'],         3);
+    },
+
+    'tolerate when non-object is given': function () {
+      Assert.instanceOf(Common.flattenParams(), Object);
+      Assert.instanceOf(Common.flattenParams(null), Object);
+      Assert.isNotNull(Common.flattenParams(null));
+    }
   },
 
   'filter': function () {
