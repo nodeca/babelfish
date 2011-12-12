@@ -147,8 +147,8 @@ require('vows').describe('BabelFish').addBatch({
 
       i18n.addPhrase('en', 'test.simple_string',    'test');
       i18n.addPhrase('en', 'test.complex.variable', '-#{count}-');
-      i18n.addPhrase('en', 'test.complex.plurals',  '-%{foo|bar}.count-');
-      i18n.addPhrase('ru', 'test.complex.plurals',  '-%{ruu|bar}.count-');
+      i18n.addPhrase('en', 'test.complex.plurals',  '-%{foo|bar}:count-');
+      i18n.addPhrase('ru', 'test.complex.plurals',  '-%{ruu|bar}:count-');
 
       return i18n;
     },
@@ -169,8 +169,8 @@ require('vows').describe('BabelFish').addBatch({
     'translation is a Function when scope has macros or variable': function (i18n) {
       ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
         var translation = i18n.getCompiledData('en', scope);
-        Assert.equal(translation.type, 'function');
-        Assert.instanceOf(translation.value, Function);
+        Assert.equal(translation.type, 'function', 'type of ' + scope + ' data is function');
+        Assert.instanceOf(translation.value, Function, 'value of ' + scope + ' data is Function');
       });
     },
 
@@ -197,6 +197,7 @@ require('vows').describe('BabelFish').addBatch({
 
       i18n.addPhrase('en', 'a', 'a (en)');
       i18n.addPhrase('en', 'b', 'b (en)');
+      i18n.addPhrase('en', 'c', 'c (en) %{one|other}:count');
       i18n.addPhrase('ru', 'b', 'b (ru) #{foo}');
       i18n.addPhrase('es', 'b', 'b (es) #{f.o}');
 
@@ -219,6 +220,11 @@ require('vows').describe('BabelFish').addBatch({
 
     'honour ojects in params': function (i18n) {
       Assert.equal(i18n.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
+    },
+
+    'correctly pluralizes': function (i18n) {
+      Assert.equal(i18n.t('en', 'c', {count: 1}), 'c (en) one');
+      Assert.equal(i18n.t('en', 'c', {count: 2}), 'c (en) other');
     }
   },
 
