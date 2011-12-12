@@ -220,6 +220,11 @@ require('vows').describe('BabelFish').addBatch({
 
     'honour ojects in params': function (i18n) {
       Assert.equal(i18n.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
+    },
+
+    'respect pluralization': function (i18n) {
+      Assert.equal(i18n.t('en', 'c', {count: 1}), 'c (en) one');
+      Assert.equal(i18n.t('en', 'c', {count: 2}), 'c (en) other');
     }
   },
 
