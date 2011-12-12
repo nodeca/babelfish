@@ -10,9 +10,9 @@ require('vows').describe('BabelFish.Rules').addBatch({
   'en': {
     topic: function () { return Rules.en.pluralize; },
     'pluralize()': function (p) {
-      Assert.equal(p(1, {one: 'one', other: 'other'}), 'one');
-      Assert.equal(p(2, {one: 'one', other: 'other'}), 'other');
-      Assert.equal(p(1, {other: 'other'}), 'other');
+      Assert.equal(p(1, ['one', 'other']), 'one');
+      Assert.equal(p(2, ['one', 'other']), 'other');
+      Assert.equal(p(1, ['other']), 'other');
     }
   }
 }).export(module);
