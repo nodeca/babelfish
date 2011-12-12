@@ -23,7 +23,7 @@ require('vows').describe('BabelFish').addBatch({
   'Instance': {
     topic: new (BabelFish),
     'has `addPhrase()` method'      : Helper.hasFunction('addPhrase'),
-    'has `getTranslation()` method' : Helper.hasFunction('getTranslation'),
+    'has `getCompiledData()` method' : Helper.hasFunction('getCompiledData'),
     'has `setFallback()` method'    : Helper.hasFunction('setFallback'),
     'has `translate()` method'      : Helper.hasFunction('translate'),
     'has `t()` aliase'              : Helper.hasAlias('t', 'translate'),
@@ -154,29 +154,29 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'translation is a String when scope has no macros or variables': function (i18n) {
-      var translation = i18n.getTranslation('en', 'test.simple_string');
+      var translation = i18n.getCompiledData('en', 'test.simple_string');
 
       Assert.equal(translation.type,  'string');
       Assert.equal(translation.value, 'test');
     },
 
     'translation has field with actual locale of translation': function (i18n) {
-      Assert.equal(i18n.getTranslation('ru', 'test.simple_string').locale, 'en');
-      Assert.equal(i18n.getTranslation('ru', 'test.complex.variable').locale, 'en');
-      Assert.equal(i18n.getTranslation('ru', 'test.complex.plurals').locale, 'ru');
+      Assert.equal(i18n.getCompiledData('ru', 'test.simple_string').locale, 'en');
+      Assert.equal(i18n.getCompiledData('ru', 'test.complex.variable').locale, 'en');
+      Assert.equal(i18n.getCompiledData('ru', 'test.complex.plurals').locale, 'ru');
     },
 
     'translation is a Function when scope has macros or variable': function (i18n) {
       ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
-        var translation = i18n.getTranslation('en', scope);
+        var translation = i18n.getCompiledData('en', scope);
         Assert.equal(translation.type, 'function');
         Assert.instanceOf(translation.value, Function);
       });
     },
 
     'returns inner scope Object when scope requested': function (i18n) {
-      var flat = i18n.getTranslation('ru', 'test', {deep: false}),
-          deep = i18n.getTranslation('ru', 'test', {deep: true});
+      var flat = i18n.getCompiledData('ru', 'test', {deep: false}),
+          deep = i18n.getCompiledData('ru', 'test', {deep: true});
 
       Assert.equal(flat.type, 'object');
       Assert.equal(deep.type, 'object');
