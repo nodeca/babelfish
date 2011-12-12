@@ -141,7 +141,7 @@ require('vows').describe('BabelFish').addBatch({
     }
   },
 
-  'Getting translation': {
+  'Getting compiled data': {
     topic: function () {
       var i18n = BabelFish.create('en');
 
@@ -153,20 +153,20 @@ require('vows').describe('BabelFish').addBatch({
       return i18n;
     },
 
-    'translation is a String when scope has no macros or variables': function (i18n) {
+    'data is a String when scope has no macros or variables': function (i18n) {
       var translation = i18n.getCompiledData('en', 'test.simple_string');
 
       Assert.equal(translation.type,  'string');
       Assert.equal(translation.value, 'test');
     },
 
-    'translation has field with actual locale of translation': function (i18n) {
+    'dats has field with actual locale of translation': function (i18n) {
       Assert.equal(i18n.getCompiledData('ru', 'test.simple_string').locale, 'en');
       Assert.equal(i18n.getCompiledData('ru', 'test.complex.variable').locale, 'en');
       Assert.equal(i18n.getCompiledData('ru', 'test.complex.plurals').locale, 'ru');
     },
 
-    'translation is a Function when scope has macros or variable': function (i18n) {
+    'data is a Function when scope has macros or variable': function (i18n) {
       ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
         var translation = i18n.getCompiledData('en', scope);
         Assert.equal(translation.type, 'function', 'type of ' + scope + ' data is function');
@@ -220,16 +220,11 @@ require('vows').describe('BabelFish').addBatch({
 
     'honour ojects in params': function (i18n) {
       Assert.equal(i18n.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
-    },
-
-    'correctly pluralizes': function (i18n) {
-      Assert.equal(i18n.t('en', 'c', {count: 1}), 'c (en) one');
-      Assert.equal(i18n.t('en', 'c', {count: 2}), 'c (en) other');
     }
   },
 
-  'Getting localization rules': {
-    'When locale have own rules': 'TBD',
-    'When locale have no rules': 'TBD'
+  'Getting pluralizer': {
+    'When locale have own pluralizer': 'TBD',
+    'When locale have no pluralizer': 'TBD'
   }
 }).export(module);
