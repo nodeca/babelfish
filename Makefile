@@ -10,6 +10,9 @@ CURR_HEAD 	:= $(firstword $(shell git show-ref --hash HEAD | cut --bytes=-6) mas
 GITHUB_NAME := nodeca/babelfish
 SRC_URL_FMT := https://github.com/${GITHUB_NAME}/blob/${CURR_HEAD}/{file}\#L{line}
 
+JS_FILES 	:= $(shell find ./lib -type f -name '*.js' -print)
+
+
 lint:
 	@if test ! `which jslint` ; then \
 		echo "You need 'jslint' installed in order to run lint." >&2 ; \
@@ -19,7 +22,7 @@ lint:
 	# (node)    -> Node.JS compatibility mode
 	# (indent)  -> indentation level (2 spaces)
 	# (nomen)   -> tolerate underscores in identifiers (e.g. `var _val = 1`)
-	jslint --node --nomen --indent=2 ./lib/*.js ./lib/**/*.js
+	jslint --node --nomen --indent=2 ${JS_FILES}
 
 test: lint
 	@if test ! `which vows` ; then \
