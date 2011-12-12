@@ -22,12 +22,12 @@ require('vows').describe('BabelFish').addBatch({
 
   'Instance': {
     topic: new (BabelFish),
-    'has `addPhrase()` method'      : Helper.hasFunction('addPhrase'),
-    'has `getCompiledData()` method' : Helper.hasFunction('getCompiledData'),
-    'has `setFallback()` method'    : Helper.hasFunction('setFallback'),
-    'has `translate()` method'      : Helper.hasFunction('translate'),
-    'has `t()` aliase'              : Helper.hasAlias('t', 'translate'),
-    'has `defaultLocale` property'  : Helper.hasProperty('defaultLocale'),
+    'has `addPhrase()` method'        : Helper.hasFunction('addPhrase'),
+    'has `getCompiledData()` method'  : Helper.hasFunction('getCompiledData'),
+    'has `setFallback()` method'      : Helper.hasFunction('setFallback'),
+    'has `translate()` method'        : Helper.hasFunction('translate'),
+    'has `t()` aliase'                : Helper.hasAlias('t', 'translate'),
+    'has `defaultLocale` property'    : Helper.hasProperty('defaultLocale'),
 
     '`defaultLocale` property is read-only': function (i18n) {
       Assert.throws(function () { i18n.defaultLocale = 'ru'; }, TypeError);
@@ -220,5 +220,10 @@ require('vows').describe('BabelFish').addBatch({
     'honour ojects in params': function (i18n) {
       Assert.equal(i18n.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
     }
+  },
+
+  'Getting localization rules': {
+    'When locale have own rules': 'TBD',
+    'When locale have no rules': 'TBD'
   }
 }).export(module);
