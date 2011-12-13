@@ -230,6 +230,7 @@ require('vows').describe('BabelFish').addBatch({
 
   'Getting pluralizer': {
     'When locale have own pluralizer': 'TBD',
-    'When locale have no pluralizer': 'TBD'
+    'When locale have no pluralizer': 'TBD',
+    'Respect locales fallbacks': 'TBD'
   }
 }).export(module);
