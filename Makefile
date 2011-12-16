@@ -1,4 +1,4 @@
-PATH        := ./node_modules/.bin:${PATH}
+PATH        := $(shell pwd)/node_modules/.bin:${PATH}
 
 PROJECT     :=  $(notdir ${PWD})
 TMP_PATH    := /tmp/${PROJECT}-$(shell date +%s)
