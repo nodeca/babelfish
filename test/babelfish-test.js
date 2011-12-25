@@ -11,7 +11,7 @@ require('vows').describe('BabelFish').addBatch({
   'Exported module': {
     'is a constructor': function () {
       Assert.isFunction(BabelFish);
-      Assert.instanceOf(new BabelFish, BabelFish);
+      Assert.instanceOf(new BabelFish(), BabelFish);
     },
 
     'has `create` (constructor proxy)': function () {
@@ -21,7 +21,7 @@ require('vows').describe('BabelFish').addBatch({
   },
 
   'Instance': {
-    topic: new (BabelFish),
+    topic: new BabelFish(),
     'has `addPhrase()` method'        : Helper.hasFunction('addPhrase'),
     'has `getCompiledData()` method'  : Helper.hasFunction('getCompiledData'),
     'has `setFallback()` method'      : Helper.hasFunction('setFallback'),
@@ -175,8 +175,10 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'returns inner scope Object when scope requested': function (i18n) {
-      var flat = i18n.getCompiledData('ru', 'test', {deep: false}),
-          deep = i18n.getCompiledData('ru', 'test', {deep: true});
+      var flat, deep;
+
+      flat = i18n.getCompiledData('ru', 'test', {deep: false});
+      deep = i18n.getCompiledData('ru', 'test', {deep: true});
 
       Assert.equal(flat.type, 'object');
       Assert.equal(deep.type, 'object');
