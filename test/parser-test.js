@@ -116,17 +116,28 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'allows escaped argument separator as part of argument': {
       topic: function () {
         return [
-          Parser.parse('%{a\\||b\\}|c\\\\}}:x'),
+          Parser.parse('%{a\\||b \\||\\|  c}:x'),
           Parser.parse('%{\\u007d|1|2}:x'),
         ];
       },
       '': function (result) {
         Assert.deepEqual(result, [
-          [ { forms: [ 'a|', 'b}', 'c\\}' ], anchor: 'x', type: 'plural' } ],
+          [ { forms: [ 'a|', 'b |', '|  c' ], anchor: 'x', type: 'plural' } ],
           [ { forms: [ '\\u007d', '1', '2' ], anchor: 'x', type: 'plural' } ],
         ]);
       }
     },
-    'allows escaped macros close char as part of argument': 'TBD'
+    'allows escaped macros close char as part of argument': {
+      topic: function () {
+        return [
+          Parser.parse('%{ |c\\}}:x'),
+        ];
+      },
+      '': function (result) {
+        Assert.deepEqual(result, [
+          [ { forms: [ ' ', 'c\\}' ], anchor: 'x', type: 'plural' } ],
+        ]);
+      }
+    },
   }
 }).export(module);
