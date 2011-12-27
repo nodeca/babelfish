@@ -37,7 +37,8 @@ require('vows').describe('BabelFish.Parser').addBatch({
         return Parser.parse('More complex string, with plurals foo_bar$baz.fu %{fou}:foo_bar$baz.fu');
       },
       'results in function': function (result) {
-        Assert.deepEqual(result, [ { value: 'More complex string, with plurals foo_bar$baz.fu ', type: 'text' }, { forms: [ 'fou' ], anchor: 'foo_bar', type: 'plural' }, { value: 'baz.fu', type: 'text' } ]);
+        //Assert.deepEqual(result, [ { value: 'More complex string, with plurals foo_bar$baz.fu ', type: 'text' }, { forms: [ 'fou' ], anchor: 'foo_bar', type: 'plural' }, { value: 'baz.fu', type: 'text' } ]);
+        Assert.deepEqual(result, [ { value: 'More complex string, with plurals foo_bar$baz.fu ', type: 'text' }, { forms: [ 'fou' ], anchor: 'foo_bar$baz.fu', type: 'plural' } ]);
       }
     }
   },
