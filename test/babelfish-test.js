@@ -234,7 +234,7 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('en', 'c', {count: 1}), 'c (en) one');
       Assert.equal(i18n.t('en', 'c', {count: 2}), 'c (en) other');
       Assert.equal(i18n.t('fr', 'c', {count: 0}), 'c (en) other');
-      Assert.equal(i18n.t('fr', 'd', {count: 0}), 'c (fr) une');
+      Assert.equal(i18n.t('fr', 'd', {count: 0}), 'd (fr) une');
     }
   },
 
@@ -242,7 +242,7 @@ require('vows').describe('BabelFish').addBatch({
     'when no fallback is given': {
       topic: function () {
         var i18n = BabelFish.create('ru');
-        return i18n.getPluralizer('ru');
+        return i18n.getContext('ru').pluralize('ru');
       },
       'pluralizer is still defined correct': function (pl) {
         Assert.equal(pl(0, [1, 2, 3]), 3);
@@ -251,20 +251,21 @@ require('vows').describe('BabelFish').addBatch({
     'when locale have own pluralizer': {
       topic: function () {
         var i18n = BabelFish.create('en');
-        i18n.setFallback('ru', ['ru-RU']);
-        return i18n.getPluralizer('ru');
+        i18n._pluralizers.add('yy', function (n, forms) {
+          return forms[n];
+        });
+        return i18n.getContext('ru').pluralize('yy');
       },
       'it works right': function (pl) {
-        Assert.equal(pl(0, [1, 2, 3]), 3);
+        Assert.equal(pl(5, [0, 1, 2, 3, 4, 5]), 5);
       },
     },
-    'TODO CLARIFY TEST CORRECTNESS!!! when locale have no pluralizer': {
+    'when locale have no explicit pluralizer': {
       topic: function () {
         var i18n = BabelFish.create('en');
-        i18n.setFallback('fr', ['en']);
-        return i18n.getPluralizer('fr');
+        return i18n.getContext('xx').pluralize('xx');
       },
-      'it works right': function (pl) {
+      'pluralizer for "en" is used': function (pl) {
         Assert.equal(pl(0, [1, 2, 3]), 2);
       },
     },

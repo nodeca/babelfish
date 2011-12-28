@@ -3,9 +3,10 @@
 
 var Assert = require('assert');
 var Pluralizer = require('../lib/babelfish/pluralizer');
+var pluralizer = new Pluralizer();
 
 function helper(lang, expected, forms) {
-  function p(n) { return Pluralizer[lang](n, forms || ['one', 'other']); }
+  function p(n) { return pluralizer.get(lang)(n, forms || ['one', 'other']); }
   Assert.equal(p(0), expected[0]);
   Assert.equal(p(1), expected[1]);
   Assert.equal(p(2), expected[2]);
@@ -44,5 +45,15 @@ require('vows').describe('BabelFish.Pluralizer').addBatch({
     helper('it', [
       'other', 'one', 'other', 'other', 'other', 'other'
     ]);
+  },
+  // TODO: continue
+  //
+  'xx': function () {
+    pluralizer.add('xx', function (n, forms) {
+      return forms[n % 5];
+    });
+    helper('xx', [
+      'a', 'b', 'c', 'a', 'b', 'a'
+    ], ['a', 'b', 'c', 'd', 'e']);
   }
 }).export(module);
