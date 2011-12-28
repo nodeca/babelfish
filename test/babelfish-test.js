@@ -239,25 +239,36 @@ require('vows').describe('BabelFish').addBatch({
   },
 
   'Getting pluralizer': {
-    'when locale have own pluralizer': {
+    'when no fallback is given': {
       topic: function () {
         var i18n = BabelFish.create('ru');
+        return i18n.getPluralizer('ru');
+      },
+      'pluralizer is still defined correct': function (pl) {
+        Assert.equal(pl(0, [1, 2, 3]), 3);
+      },
+    },
+    'when locale have own pluralizer': {
+      topic: function () {
+        var i18n = BabelFish.create('en');
+        i18n.setFallback('ru', ['ru-RU']);
         return i18n.getPluralizer('ru');
       },
       'it works right': function (pl) {
         Assert.equal(pl(0, [1, 2, 3]), 3);
       },
     },
-    'when locale have no pluralizer': {
+    'TODO CLARIFY TEST CORRECTNESS!!! when locale have no pluralizer': {
       topic: function () {
-        var i18n = BabelFish.create('fr');
-        return i18n.getPluralizer('ru');
+        var i18n = BabelFish.create('en');
+        i18n.setFallback('fr', ['en']);
+        return i18n.getPluralizer('fr');
       },
       'it works right': function (pl) {
-        Assert.equal(pl(0, [1, 2, 3]), 1);
+        Assert.equal(pl(0, [1, 2, 3]), 2);
       },
     },
-    'TODO CLARIFY!!! Respect locales fallbacks': {
+    'TODO CLARIFY TEST CORRECTNESS!!! Respect locales fallbacks': {
       topic: function () {
         var i18n = BabelFish.create('fr');
         i18n.addPhrase('fr', 'a', 'a (fr) %{1|2|3|4}:x');
