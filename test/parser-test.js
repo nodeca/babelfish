@@ -36,21 +36,27 @@ require('vows').describe('BabelFish.Parser').addBatch({
       ]);
     }
   },
+  'Parsing strings with empty interpolation': {
+    topic: function () {
+      return Parser.parse('#{}');
+    },
+    'results empty string for interpolation': function (result) {
+      Assert.deepEqual(result, [{ anchor: '', type: 'text' }]);
+    }
+  },
   'Parsing strings with quirky variables': {
     topic: function () {
       return [
-        Parser.parse('#{}'),
         Parser.parse('#{1}'),
         Parser.parse('#{  }'),
         Parser.parse('#{. (.) . (.).}')
       ];
     },
-    'results in ignoring quirky variables': function (result) {
+    'results in ignoring quirky variables and dumping content of #{}': function (result) {
       Assert.deepEqual(result, [
-        [{ anchor: '#{}', type: 'text' }],
-        [{ anchor: '#{1}', type: 'text' }],
-        [{ anchor: '#{  }', type: 'text' }],
-        [{ anchor: '#{. (.) . (.).}', type: 'text' }]
+        [{ value: '1', type: 'text' }],
+        [{ value: '  ', type: 'text' }],
+        [{ value: '. (.) . (.).', type: 'text' }]
       ]);
     }
   },
