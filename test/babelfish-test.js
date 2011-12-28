@@ -160,7 +160,7 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(translation.value, 'test');
     },
 
-    'dats has field with actual locale of translation': function (i18n) {
+    'data has field with actual locale of translation': function (i18n) {
       Assert.equal(i18n.getCompiledData('ru', 'test.simple_string').locale, 'en');
       Assert.equal(i18n.getCompiledData('ru', 'test.complex.variable').locale, 'en');
       Assert.equal(i18n.getCompiledData('ru', 'test.complex.plurals').locale, 'ru');
@@ -200,6 +200,7 @@ require('vows').describe('BabelFish').addBatch({
       i18n.addPhrase('en', 'a', 'a (en)');
       i18n.addPhrase('en', 'b', 'b (en)');
       i18n.addPhrase('en', 'c', 'c (en) %{one|other}:count');
+      i18n.addPhrase('fr', 'd', 'd (fr) %{une|autre}:count');
       i18n.addPhrase('ru', 'b', 'b (ru) #{foo}');
       i18n.addPhrase('es', 'b', 'b (es) #{f.o}');
 
@@ -216,17 +217,24 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('en', 'b', {foo: 'bar', bar: 'baz'}), 'b (en)');
     },
 
-    'replaces missing params with undefined': function (i18n) {
+    'replaces missing params with <undefined>': function (i18n) {
       Assert.equal(i18n.t('ru', 'b'), 'b (ru) <undefined>');
+      Assert.equal(i18n.t('es', 'b'), 'b (es) <undefined>');
     },
 
-    'honour ojects in params': function (i18n) {
+    'honors objects in params': function (i18n) {
       Assert.equal(i18n.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
     },
 
-    'respect pluralization': function (i18n) {
+    'reports missing translation': function (i18n) {
+      Assert.equal(i18n.t('en', 'd', {count: 0}), 'en: No translation for <d>');
+    },
+
+    'respects pluralization': function (i18n) {
       Assert.equal(i18n.t('en', 'c', {count: 1}), 'c (en) one');
       Assert.equal(i18n.t('en', 'c', {count: 2}), 'c (en) other');
+      Assert.equal(i18n.t('fr', 'c', {count: 0}), 'c (en) other');
+      Assert.equal(i18n.t('fr', 'd', {count: 0}), 'c (fr) une');
     }
   },
 
