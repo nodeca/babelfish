@@ -118,7 +118,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
       }
     }
   },
-  'MACROS_REGEXP': {
+  /*'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
       topic: function () {
         return [
@@ -145,5 +145,5 @@ require('vows').describe('BabelFish.Parser').addBatch({
         ]);
       }
     },
-  }
+  }*/
 }).export(module);
