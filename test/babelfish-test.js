@@ -239,8 +239,35 @@ require('vows').describe('BabelFish').addBatch({
   },
 
   'Getting pluralizer': {
-    'When locale have own pluralizer': 'TBD',
-    'When locale have no pluralizer': 'TBD',
-    'Respect locales fallbacks': 'TBD'
+    'when locale have own pluralizer': {
+      topic: function () {
+        var i18n = BabelFish.create('ru');
+        return i18n.getPluralizer('ru');
+      },
+      'it works right': function (pl) {
+        Assert.equal(pl(0, [1, 2, 3]), 3);
+      },
+    },
+    'when locale have no pluralizer': {
+      topic: function () {
+        var i18n = BabelFish.create('fr');
+        return i18n.getPluralizer('ru');
+      },
+      'it works right': function (pl) {
+        Assert.equal(pl(0, [1, 2, 3]), 1);
+      },
+    },
+    'TODO CLARIFY!!! Respect locales fallbacks': {
+      topic: function () {
+        var i18n = BabelFish.create('fr');
+        i18n.addPhrase('fr', 'a', 'a (fr) %{1|2|3|4}:x');
+        i18n.addPhrase('en', 'a', 'a (en) %{1|2|3|4}:x');
+        return i18n;
+      },
+      'translation is done right': function (i18n) {
+        Assert.equal(i18n.t('fr', 'a', {x: 0}), 'a (fr) 1');
+        Assert.equal(i18n.t('en', 'a', {x: 0}), 'a (en) 2');
+      },
+    },
   }
 }).export(module);
