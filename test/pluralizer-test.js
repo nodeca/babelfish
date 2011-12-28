@@ -49,11 +49,11 @@ require('vows').describe('BabelFish.Pluralizer').addBatch({
   // TODO: continue
   //
   'xx': function () {
-    pluralizer.add('xx', function (n, forms) {
+    pluralizer.add(['xx'], function (n, forms) {
       return forms[n % 5];
     });
     helper('xx', [
-      'a', 'b', 'c', 'a', 'b', 'a'
+      'a', 'b', 'c', 'a', 'b', 'b'
     ], ['a', 'b', 'c', 'd', 'e']);
   }
 }).export(module);
