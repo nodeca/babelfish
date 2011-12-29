@@ -146,6 +146,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
         return [
           '#{c\}}'.match(MACROS_REGEXP).slice(0, 4),
           '%{ |c\}}:x'.match(MACROS_REGEXP).slice(0, 5),
+          '%{ \||||c\}\\}:x'.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
       'for interpolation': function (result) {
@@ -155,6 +156,10 @@ require('vows').describe('BabelFish.Parser').addBatch({
       'for pluralization': function (result) {
         Assert.isArray(result[1]);
         Assert.deepEqual(result[1], ['%{ |c\}}:x', '', '%', ' |c\}', 'x']);
+      },
+      'for pluralization, plus spiky backslashes': function (result) {
+        Assert.isArray(result[2]);
+        Assert.deepEqual(result[2], ['%{ \||||c\}\\}:x', '', '%', ' \||||c\}\\', 'x']);
       },
     },
   }
