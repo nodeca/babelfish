@@ -5,6 +5,7 @@ var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 var Helper = require('./helper');
 
+var MACROS_REGEXP = Parser.MACROS_REGEXP;
 
 require('vows').describe('BabelFish.Parser').addBatch({
   'Parsing simple string': {
@@ -118,32 +119,38 @@ require('vows').describe('BabelFish.Parser').addBatch({
       }
     }
   },
-  /*'MACROS_REGEXP': {
+  'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
       topic: function () {
         return [
-          Parser.parse('%{a\\||b \\||\\|  c}:x'),
-          Parser.parse('%{\\u007d|1|2}:x'),
+          '%{a|b|c}:x'.match(MACROS_REGEXP),
+          '%{a\||b \||\\|  c}:x'.match(MACROS_REGEXP),
+          '%{\u007d|1|2}:x'.match(MACROS_REGEXP),
         ];
       },
-      '': function (result) {
-        Assert.deepEqual(result, [
-          [ { forms: [ 'a|', 'b |', '|  c' ], anchor: 'x', type: 'plural' } ],
-          [ { forms: [ '\\u007d', '1', '2' ], anchor: 'x', type: 'plural' } ],
-        ]);
-      }
+      'good': function (result) {
+        Assert.deepEqual(result[0], ['%{a|b|c}:x', '', '%', 'a|b|c', 'x']);
+      },
+      'bad': function (result) {
+        Assert.deepEqual(result[1], ['%{a\||b \||\\|  c}:x', '', '%', 'a\||b \||\\|  c', 'x']);
+      },
+      'ugly': function (result) {
+        Assert.deepEqual(result[2], ['%{\u007d|1|2}:x', '', '%', '\u007d|1|2', 'x']);
+      },
     },
     'allows escaped macros close char as part of argument': {
       topic: function () {
         return [
-          Parser.parse('%{ |c\\}}:x'),
+          '#{c\}}'.match(MACROS_REGEXP),
+          '%{ |c\}}:x'.match(MACROS_REGEXP),
         ];
       },
-      '': function (result) {
-        Assert.deepEqual(result, [
-          [ { forms: [ ' ', 'c\\}' ], anchor: 'x', type: 'plural' } ],
-        ]);
-      }
+      'for interpolation': function (result) {
+        Assert.deepEqual(result[0].slice(0, 4), ['#{c\}}', '', '#', 'c\}']);
+      },
+      'for pluralization': function (result) {
+        Assert.deepEqual(result[1], ['%{ |c\}}:x', '', '%', ' |c\}', 'x']);
+      },
     },
-  }*/
+  }
 }).export(module);
