@@ -123,32 +123,37 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'allows escaped argument separator as part of argument': {
       topic: function () {
         return [
-          '%{a|b|c}:x'.match(MACROS_REGEXP),
-          '%{a\||b \||\\|  c}:x'.match(MACROS_REGEXP),
-          '%{\u007d|1|2}:x'.match(MACROS_REGEXP),
+          '%{a|b|c}:x'.match(MACROS_REGEXP).slice(0, 5),
+          '%{a\||b \||\\|  c}:x'.match(MACROS_REGEXP).slice(0, 5),
+          '%{\u007d|1|2}:x'.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
       'good': function (result) {
+        Assert.isArray(result[0]);
         Assert.deepEqual(result[0], ['%{a|b|c}:x', '', '%', 'a|b|c', 'x']);
       },
       'bad': function (result) {
+        Assert.isArray(result[1]);
         Assert.deepEqual(result[1], ['%{a\||b \||\\|  c}:x', '', '%', 'a\||b \||\\|  c', 'x']);
       },
       'ugly': function (result) {
+        Assert.isArray(result[2]);
         Assert.deepEqual(result[2], ['%{\u007d|1|2}:x', '', '%', '\u007d|1|2', 'x']);
       },
     },
     'allows escaped macros close char as part of argument': {
       topic: function () {
         return [
-          '#{c\}}'.match(MACROS_REGEXP),
-          '%{ |c\}}:x'.match(MACROS_REGEXP),
+          '#{c\}}'.match(MACROS_REGEXP).slice(0, 4),
+          '%{ |c\}}:x'.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
       'for interpolation': function (result) {
-        Assert.deepEqual(result[0].slice(0, 4), ['#{c\}}', '', '#', 'c\}']);
+        Assert.isArray(result[0]);
+        Assert.deepEqual(result[0], ['#{c\}}', '', '#', 'c\}']);
       },
       'for pluralization': function (result) {
+        Assert.isArray(result[1]);
         Assert.deepEqual(result[1], ['%{ |c\}}:x', '', '%', ' |c\}', 'x']);
       },
     },
