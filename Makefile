@@ -10,7 +10,7 @@ CURR_HEAD 	:= $(firstword $(shell git show-ref --hash HEAD | cut --bytes=-6) mas
 GITHUB_NAME := nodeca/babelfish
 SRC_URL_FMT := https://github.com/${GITHUB_NAME}/blob/${CURR_HEAD}/{file}\#L{line}
 
-JS_FILES    := $(shell find ./bin ./lib ./test -type f -name '*.js' -print)
+JS_FILES    := $(shell find ./bin ./lib -type f -name '*.js' -print)
 
 
 lint:
