@@ -113,75 +113,132 @@ require('vows').describe('BabelFish.Parser').addBatch({
       }
     }
   },
+  'Escaping': {
+    'of both interpolation and pluralization': {
+      topic: function () {
+        return Parser.parse(' dfgjhlh gsdf \\#{a...b.c} \\%{lorem ipsum}:abc asjkl sdfc');
+      },
+      'does not produce anchors': function (result) {
+        Assert.deepEqual(result, [ { value: ' dfgjhlh gsdf #{a...b.c} %{lorem ipsum}:abc asjkl sdfc', type: 'text' } ]);
+      }
+    },
+    'of word forms in pluralization': {
+      topic: function () {
+        return Parser.parse(' dfgjhlh gsdf \\#{a...b.c} %{l\\}orem |\\}ipsum}:abc asjkl sdfc');
+      },
+      'is unescaped': function (result) {
+        Assert.deepEqual(result, [
+          { value: ' dfgjhlh gsdf #{a...b.c} ', type: 'text' },
+          { forms: ['l}orem ','}ipsum'], anchor: 'abc', type: 'plural' },
+          { value: 'asjkl sdfc', type: 'text' },
+          { value: ' asjkl sdfc', type: 'text' }
+        ]);
+      }
+    },
+  },
   'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
       topic: function () {
         return [
-          '%{a|b|c}:x'.match(MACROS_REGEXP).slice(0, 5),
-          '%{a\||b \||\\|  c}:x'.match(MACROS_REGEXP).slice(0, 5),
-          '%{\u007d|1|2}:x'.match(MACROS_REGEXP).slice(0, 5),
+          ' texte1 %{a|b|c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' texte1 %{a\\||b \\||\\|  c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' texte1 %{\u007d|1|2}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
       'good': function (result) {
         Assert.isArray(result[0]);
-        Assert.deepEqual(result[0], ['%{a|b|c}:x', '', undefined, 'a|b|c', 'x']);
+        Assert.deepEqual(result[0], [' texte1 %{a|b|c}:x', ' texte1 ', undefined, 'a|b|c', 'x']);
       },
       'bad': function (result) {
         Assert.isArray(result[1]);
-        Assert.deepEqual(result[1], ['%{a\||b \||\\|  c}:x', '', undefined, 'a\||b \||\\|  c', 'x']);
+        Assert.deepEqual(result[1], [' texte1 %{a\\||b \\||\\|  c}:x', ' texte1 ', undefined, 'a\\||b \\||\\|  c', 'x']);
       },
       'ugly': function (result) {
         Assert.isArray(result[2]);
-        Assert.deepEqual(result[2], ['%{\u007d|1|2}:x', '', undefined, '\u007d|1|2', 'x']);
+        Assert.deepEqual(result[2], [' texte1 %{\u007d|1|2}:x', ' texte1 ', undefined, '\u007d|1|2', 'x']);
       },
     },
     'allows escaped macros close char as part of argument': {
       topic: function () {
         return [
-          '#{c\}}'.match(MACROS_REGEXP).slice(0, 3),
-          '%{ |c\}}:x'.match(MACROS_REGEXP).slice(0, 5),
-          '%{ \||||c\}\\}:x'.match(MACROS_REGEXP).slice(0, 5),
+          ' pretexte1 %{ |c\\}}:x soustexte2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' text1 %{ \\||||c\\}:\\}:x text2 '.match(MACROS_REGEXP),
+          ' text1 %{ \\||||c\\}:\\}}:x text2 '.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
-      'for interpolation': function (result) {
-        Assert.isArray(result[0]);
-        Assert.deepEqual(result[0], ['#{c}', '', 'c']);
-      },
       'for pluralization': function (result) {
-        Assert.isArray(result[1]);
-        Assert.deepEqual(result[1], ['%{ |c\}}:x', '', undefined, ' |c\}', 'x']);
+        Assert.isArray(result[0]);
+        Assert.deepEqual(result[0], [' pretexte1 %{ |c\\}}:x', ' pretexte1 ', undefined, ' |c\\}', 'x']);
+      },
+      'for pluralization, if it is done properly': function (result) {
+        Assert.isNull(result[1]);
       },
       'for pluralization, plus spiky backslashes': function (result) {
         Assert.isArray(result[2]);
-        Assert.deepEqual(result[2], ['%{ \||||c\}\\}:x', '', undefined, ' \||||c\}\\', 'x']);
+        Assert.deepEqual(result[2], [' text1 %{ \\||||c\\}:\\}}:x', ' text1 ', undefined, ' \\||||c\\}:\\}', 'x']);
       },
     },
-    'attempt at fixing regexp for interpolation': {
+    'disallows escaped macros close char in interpolation': {
       topic: function () {
-        return '#{c\}}'.match(MACROS_REGEXP).slice(0, 3);
+        return [
+          ' texte1 #{c\\}} texte2 '.match(MACROS_REGEXP).slice(0, 3),
+          ' texte1 #{c\\} texte2 '.match(MACROS_REGEXP).slice(0, 3),
+        ];
       },
-      'works': function (result) {
-        Assert.isArray(result);
-        Assert.deepEqual(result, ['#{c}', '', 'c']);
+      'properly closed': function (result) {
+        Assert.isArray(result[0]);
+        Assert.deepEqual(result[0], [' texte1 #{c\\}}', ' texte1 ', 'c\\}']);
+      },
+      'improperly closed': function (result) {
+        Assert.isArray(result[1]);
+        Assert.deepEqual(result[2], [' texte1 #{c\\}', ' texte1 ', 'c\\']);
       },
     },
-    'attempt at fixing regexp for pluralization': {
+  },
+  'Variable parsing': {
+    'variables extracted': {
       topic: function () {
-        return '%{ |c\}}:x'.match(MACROS_REGEXP).slice(0, 5);
+        return [
+          matchVar('a'),
+          matchVar('a.a'),
+          matchVar('a.a.aaa.aaaa'),
+          matchVar('a_$.$$$a.____aa_a.aaaa._.$'),
+        ];
       },
-      'works': function (result) {
-        Assert.isArray(result);
-        Assert.deepEqual(result, ['%{ |c\}}:x', '', undefined, ' |c\}', 'x']);
+      'ok': function (result) {
+        var i, r = true;
+        for (i = 0; i < result.length; i += 1) {
+          r = r && result[i];
+        }
+        Assert.isTrue(r);
       },
     },
-    'attempt at fixing regexp for pluralization, plus spiky backslashes': {
+    'false positives': {
       topic: function () {
-        return '%{ \||||c\}\\}:x'.match(MACROS_REGEXP).slice(0, 5);
+        return [
+          matchVar('ф'),
+          matchVar('a..a'),
+          matchVar('a.a.'),
+          matchVar('.a'),
+          matchVar('.'),
+          matchVar('....'),
+          matchVar('Jožin z bažin'),
+        ];
       },
-      'works': function (result) {
-        Assert.isArray(result);
-        Assert.deepEqual(result, ['%{ \||||c\}\\}:x', '', undefined, ' \||||c\}\\', 'x']);
+      'absent': function (result) {
+        var i, r = false;
+        for (i = 0; i < result.length; i += 1) {
+          r = r || result[i];
+        }
+        console.log(result);
+        Assert.isFalse(r);
       },
     },
-  }
+  },
 }).export(module);
+
+var REVAR = /([_$a-z](?:[_$a-z0-9.]*?[_$a-z0-9])?)/;
+
+function matchVar(str) {
+  return str.match(REVAR) !== null;
+}
