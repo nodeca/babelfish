@@ -132,7 +132,6 @@ require('vows').describe('BabelFish.Parser').addBatch({
         Assert.deepEqual(result, [
           { value: ' dfgjhlh gsdf #{a...b.c} ', type: 'text' },
           { forms: ['l}orem ','}ipsum'], anchor: 'abc', type: 'plural' },
-          { value: 'asjkl sdfc', type: 'text' },
           { value: ' asjkl sdfc', type: 'text' }
         ]);
       }
