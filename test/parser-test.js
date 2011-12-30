@@ -37,27 +37,21 @@ require('vows').describe('BabelFish.Parser').addBatch({
       ]);
     }
   },
-  'Parsing strings with empty interpolation': {
-    topic: function () {
-      return Parser.parse('#{}');
-    },
-    'results empty string for interpolation': function (result) {
-      Assert.deepEqual(result, [{ anchor: '', type: 'text' }]);
-    }
-  },
-  'Parsing strings with quirky variables': {
+  'Parsing strings with quirky interpolation': {
     topic: function () {
       return [
+        Parser.parse('#{}'),
         Parser.parse('#{1}'),
         Parser.parse('#{  }'),
-        Parser.parse('#{. (.) . (.).}')
+        Parser.parse(' foo bar. #{. (.) . (.).} bazzz.%{}$_'),
       ];
     },
-    'results in ignoring quirky variables and dumping content of #{}': function (result) {
+    'results in passing string verbatim': function (result) {
       Assert.deepEqual(result, [
-        [{ value: '1', type: 'text' }],
-        [{ value: '  ', type: 'text' }],
-        [{ value: '. (.) . (.).', type: 'text' }]
+        [{value: '#{}', type: 'text'}],
+        [{ value: '#{1}', type: 'text' }],
+        [{ value: '#{  }', type: 'text' }],
+        [{ value: ' foo bar. #{. (.) . (.).} bazzz.%{}$_', type: 'text' }],
       ]);
     }
   },
@@ -65,15 +59,17 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'quirky but valid variable': {
       topic: function () {
         return [
+          Parser.parse('%{a|b|c}:foo_bar$baz.fu.bar.baz'),
           Parser.parse('%{a|b|c}:foo_bar$baz.fu.1.bar.baz'),
-          Parser.parse('%{a|b|c}:___.0.1.2'),
+          Parser.parse('%{a|b|c}:___[0][1][2].a'),
           Parser.parse('%{a|b|c}:...'),
         ];
       },
       'results in sane behavior': function (result) {
         Assert.deepEqual(result, [
-          [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu.1.bar.baz', type: 'plural' } ],
-          [ { forms: [ 'a', 'b', 'c' ], anchor: '___.0.1.2', type: 'plural' } ],
+          [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu.bar.baz', type: 'plural' } ],
+          [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu', type: 'plural' }, { value: '.1.bar.baz', type: 'text' } ],
+          [ { forms: [ 'a', 'b', 'c' ], anchor: '___', type: 'plural' }, { value: '[0][1][2].a', type: 'text'} ],
           [ { value: '%{a|b|c}:...', type: 'text' } ],
         ]);
       }
@@ -82,8 +78,8 @@ require('vows').describe('BabelFish.Parser').addBatch({
       topic: function () {
         return Parser.parse('More complex string, with plurals foo_bar$baz.fu %{}:foo_bar$baz.fu');
       },
-      'results in ignoring plural, since, formally, it should output empty string for any value': function (result) {
-        Assert.deepEqual(result, [ { value: 'More complex string, with plurals foo_bar$baz.fu ', type: 'text' } ]);
+      'results in passing string intact': function (result) {
+        Assert.deepEqual(result, [ { value: 'More complex string, with plurals foo_bar$baz.fu %{}:foo_bar$baz.fu', type: 'text' } ]);
       }
     },
     'only singular form given': {
@@ -119,36 +115,113 @@ require('vows').describe('BabelFish.Parser').addBatch({
       }
     }
   },
+  'Escaping': {
+    'of both interpolation and pluralization': {
+      topic: function () {
+        return Parser.parse(' dfgjhlh gsdf \\#{a...b.c} \\%{lorem ipsum}:abc asjkl sdfc');
+      },
+      'does not produce anchors': function (result) {
+        Assert.deepEqual(result, [ { value: ' dfgjhlh gsdf #{a...b.c} %{lorem ipsum}:abc asjkl sdfc', type: 'text' } ]);
+      }
+    },
+    'of word forms in pluralization': {
+      topic: function () {
+        return Parser.parse(' dfgjhlh gsdf \\#{a...b.c} %{l\\}orem |\\}ipsum}:abc asjkl sdfc');
+      },
+      'is unescaped': function (result) {
+        Assert.deepEqual(result, [
+          { value: ' dfgjhlh gsdf #{a...b.c} ', type: 'text' },
+          { forms: ['l}orem ','}ipsum'], anchor: 'abc', type: 'plural' },
+          { value: 'asjkl sdfc', type: 'text' },
+          { value: ' asjkl sdfc', type: 'text' }
+        ]);
+      }
+    },
+  },
   'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
       topic: function () {
         return [
-          '%{a|b|c}:x'.match(MACROS_REGEXP),
-          '%{a\\||b \\||\\|  c}:x'.match(MACROS_REGEXP),
-          '%{\u007d|1|2}:x'.match(MACROS_REGEXP),
+          ' texte1 %{a|b|c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' texte1 %{a\\||b \\||\\|  c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' texte1 %{\u007d|1|2}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
       'good': function (result) {
-        Assert.deepEqual(result[0], [ '%{a|b|c}:x', '', '%', 'a|b|c', 'x' ]);
+        Assert.isArray(result[0]);
+        Assert.deepEqual(result[0], [' texte1 %{a|b|c}:x', ' texte1 ', undefined, 'a|b|c', 'x']);
       },
       'bad': function (result) {
-        Assert.deepEqual(result[1], [ '%{a\\||b \\||\\|  c}:x', '', '%', 'a\\||b \\||\\|  c', 'x' ]);
+        Assert.isArray(result[1]);
+        Assert.deepEqual(result[1], [' texte1 %{a\\||b \\||\\|  c}:x', ' texte1 ', undefined, 'a\\||b \\||\\|  c', 'x']);
       },
       'ugly': function (result) {
-        Assert.deepEqual(result[2], [ '%{\u007d|1|2}:x', '', '%', '\u007d|1|2', 'x' ]);
-      }
+        Assert.isArray(result[2]);
+        Assert.deepEqual(result[2], [' texte1 %{\u007d|1|2}:x', ' texte1 ', undefined, '\u007d|1|2', 'x']);
+      },
     },
     'allows escaped macros close char as part of argument': {
       topic: function () {
         return [
-          '%{ |c\\}}:x'.match(MACROS_REGEXP),
+          ' pretexte1 %{ |c\\}}:x soustexte2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' text1 %{ \\||||c\\}:\\}:x text2 '.match(MACROS_REGEXP),
+          ' text1 %{ \\||||c\\}:\\}}:x text2 '.match(MACROS_REGEXP).slice(0, 5),
         ];
       },
-      '': function (result) {
-        Assert.deepEqual(result, [
-          [ '%{ |c\\}}:x', '', '%', ' |c\\}', 'x' ],
-        ]);
-      }
+      'for pluralization': function (result) {
+        Assert.isArray(result[0]);
+        Assert.deepEqual(result[0], [' pretexte1 %{ |c\\}}:x', ' pretexte1 ', undefined, ' |c\\}', 'x']);
+      },
+      'for pluralization, if it is done properly': function (result) {
+        Assert.isNull(result[1]);
+      },
+      'for pluralization, plus spiky backslashes': function (result) {
+        Assert.isArray(result[2]);
+        Assert.deepEqual(result[2], [' text1 %{ \\||||c\\}:\\}}:x', ' text1 ', undefined, ' \\||||c\\}:\\}', 'x']);
+      },
     },
-  }
+    'disallows escaped macros close char in interpolation': {
+      topic: function () {
+        return [
+          ' texte1 #{c\\}} texte2 '.match(MACROS_REGEXP),
+          ' texte1 #{c\\} texte2 '.match(MACROS_REGEXP),
+        ];
+      },
+      'properly closed': function (result) {
+        Assert.isNull(result[0]);
+      },
+      'improperly closed': function (result) {
+        Assert.isNull(result[1]);
+      },
+    },
+  },
+  'Variable parsing': {
+    'extracting 1': testVar('a', ['a', 'a']),
+    'extracting 2': testVar('a.a', ['a.a', 'a.a']),
+    'extracting 3': testVar('a.a.aaa.aaaa', ['a.a.aaa.aaaa', 'a.a.aaa.aaaa']),
+    'extracting 4': testVar('a_$.$$$a.____aa_a.aaaa._.$', ['a_$.$$$a.____aa_a.aaaa._.$', 'a_$.$$$a.____aa_a.aaaa._.$']),
+  },
+  'Variable parsing false positives': {
+    'extracting 1': testVar('ф', null),
+    'extracting 2': testVar('a..a', ['a', 'a']),
+    'extracting 3': testVar('a.a.', ['a.a', 'a.a']),
+    'extracting 4': testVar('.a', null),
+    'extracting 5': testVar('.', null),
+    'extracting 6': testVar('....', null),
+    'extracting 7': testVar('Jožin z bažin', ['Jo', 'Jo']),
+  },
 }).export(module);
+
+var VAR_REGEXP = new RegExp('^' + Parser.VAR_REGEXP_SOURCE, 'i');
+
+function testVar(str, check) {
+  return {
+    topic: function () {
+      var r = str.match(VAR_REGEXP);
+      return r ? r.slice(0, 2) : r;
+    },
+    'ok': function (result) {
+      Assert.deepEqual(result, check);
+    }
+  };
+}
