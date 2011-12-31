@@ -196,6 +196,7 @@ require('vows').describe('BabelFish').addBatch({
   'Translating a phrase': {
     topic: function () {
       var i18n = BabelFish.create('en');
+      i18n.setFallback('DUMMY', ['en']);
 
       i18n.addPhrase('en', 'a', 'a (en)');
       i18n.addPhrase('en', 'b', 'b (en)');
