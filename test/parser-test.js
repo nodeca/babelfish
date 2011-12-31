@@ -136,6 +136,14 @@ require('vows').describe('BabelFish.Parser').addBatch({
         ]);
       }
     },
+    'everythig else': {
+      topic: function () {
+        return Parser.parse(' t\\exte1 \\ texte2 \\\n');
+      },
+      'goes verbatim': function (result) {
+        Assert.deepEqual(result, [ { value: ' t\\exte1 \\ texte2 \\\n', type: 'text' } ]);
+      },
+    },
   },
   'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
