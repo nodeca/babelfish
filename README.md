@@ -19,6 +19,12 @@ example:
     А у меня в кармане #{nails_count} %{гвоздь|гвоздя|гвоздей}:nails_count
 
 
+#### Escape chars
+
+
+We support escaping (with backslash) of `#`, `%`, `|`, `\` and `}`.
+
+
 #### Example with YAML
 
 As BabelFish supports scopes, it's really fun and nice to store translations in
