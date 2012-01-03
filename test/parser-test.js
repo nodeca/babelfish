@@ -6,8 +6,10 @@ var Parser = require('../lib/babelfish/parser');
 var Helper = require('./helper');
 
 
+/*
 var MACROS_REGEXP = Parser.MACROS_REGEXP;
 var VAR_REGEXP = new RegExp('^' + Parser.VAR_REGEXP_SOURCE, 'i');
+
 
 function testVar(str, check) {
   return {
@@ -20,145 +22,126 @@ function testVar(str, check) {
     }
   };
 }
+*/
+
+
+function testParsedNodes(definitions) {
+  var tests = {};
+
+  Object.getOwnPropertyNames(definitions).forEach(function (str) {
+    tests[str] = function () {
+      var expected, result, msg;
+
+      expected = definitions[str];
+      result = Parser.parse(str);
+
+      // make sure we have expected amount of nodes
+      Assert.equal(result.length, expected.length, 'Same amount of nodes.');
+
+      result.forEach(function (node, idx) {
+        Assert.deepEqual(node, expected[idx]);
+      });
+    };
+  });
+
+  return tests;
+}
+
+
+// Nodes constructor from Parser
+
+function ScalarNode(value) {
+  this.type = 'text';
+  this.value = value;
+}
+
+
+function VariableNode(anchor) {
+  this.type = 'variable';
+  this.anchor = anchor;
+}
+
+
+function PluralNode(anchor, forms) {
+  this.type = 'plural';
+  this.anchor = anchor;
+  this.forms = forms;
+}
+
 
 require('vows').describe('BabelFish.Parser').addBatch({
-  'Parsing simple string': {
-    topic: function () {
-      return [
-        Parser.parse('Просто строка'),
-        Parser.parse('    #{ '),
-        Parser.parse('    }} '),
-        Parser.parse('  }\t\n #{')
-      ];
-    },
-    'results in text node': function (result) {
-      Assert.deepEqual(result, [
-        [ { type: 'text', value: 'Просто строка' } ],
-        [ { type: 'text', value: '    #{ ' } ],
-        [ { type: 'text', value: '    }} ' } ],
-        [ { type: 'text', value: '  }\t\n #{' } ]
-      ]);
-    }
-  },
-  'Parsing string with variable': {
-    topic: function () {
-      return Parser.parse('Complex string, with variable foo.bar.baz #{foo.bar.baz}');
-    },
-    'results in anchor node': function (result) {
-      Assert.deepEqual(result, [
-        { value: 'Complex string, with variable foo.bar.baz ', type: 'text' },
-        { anchor: 'foo.bar.baz', type: 'variable' }
-      ]);
-    }
-  },
-  'Parsing strings with quirky interpolation': {
-    topic: function () {
-      return [
-        Parser.parse('#{}'),
-        Parser.parse('#{1}'),
-        Parser.parse('#{  }'),
-        Parser.parse(' foo bar. #{. (.) . (.).} bazzz.%{}$_')
-      ];
-    },
-    'results in passing string verbatim': function (result) {
-      Assert.deepEqual(result, [
-        [{value: '#{}', type: 'text'}],
-        [{ value: '#{1}', type: 'text' }],
-        [{ value: '#{  }', type: 'text' }],
-        [{ value: ' foo bar. #{. (.) . (.).} bazzz.%{}$_', type: 'text' }]
-      ]);
-    }
-  },
-  'Parsing string with plurals': {
-    'quirky but valid variable': {
-      topic: function () {
-        return [
-          Parser.parse('%{a|b|c}:foo_bar$baz.fu.bar.baz'),
-          Parser.parse('%{a|b|c}:foo_bar$baz.fu.1.bar.baz'),
-          Parser.parse('%{a|b|c}:___[0][1][2].a'),
-          Parser.parse('%{a|b|c}:...')
-        ];
-      },
-      'results in sane behavior': function (result) {
-        Assert.deepEqual(result, [
-          [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu.bar.baz', type: 'plural' } ],
-          [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu', type: 'plural' }, { value: '.1.bar.baz', type: 'text' } ],
-          [ { forms: [ 'a', 'b', 'c' ], anchor: '___', type: 'plural' }, { value: '[0][1][2].a', type: 'text'} ],
-          [ { value: '%{a|b|c}:...', type: 'text' } ]
-        ]);
-      }
-    },
-    'empty plural': {
-      topic: function () {
-        return Parser.parse('More complex string, with plurals foo_bar$baz.fu %{}:foo_bar$baz.fu');
-      },
-      'results in passing string intact': function (result) {
-        Assert.deepEqual(result, [ { value: 'More complex string, with plurals foo_bar$baz.fu %{}:foo_bar$baz.fu', type: 'text' } ]);
-      }
-    },
-    'only singular form given': {
-      topic: function () {
-        return Parser.parse('%{fou}:foo_bar$baz.fu');
-      },
-      'one form got': function (result) {
-        Assert.deepEqual(result, [ { forms: [ 'fou' ], anchor: 'foo_bar$baz.fu', type: 'plural' } ]);
-      }
-    },
-    'two forms given': {
-      topic: function () {
-        return Parser.parse('%{fou  |fous  }:x');
-      },
-      'two forms got': function (result) {
-        Assert.deepEqual(result, [ { forms: [ 'fou  ', 'fous  ' ], anchor: 'x', type: 'plural' } ]);
-      }
-    },
-    'three forms given': {
-      topic: function () {
-        return Parser.parse('%{fou  |fous  |  multifous  }:x');
-      },
-      'three forms got': function (result) {
-        Assert.deepEqual(result, [ { forms: [ 'fou  ', 'fous  ', '  multifous  ' ], anchor: 'x', type: 'plural' } ]);
-      }
-    },
-    'four forms given': {
-      topic: function () {
-        return Parser.parse('%{fou  |fous  |  multifous  |}:x');
-      },
-      'four forms got': function (result) {
-        Assert.deepEqual(result, [ { forms: [ 'fou  ', 'fous  ', '  multifous  ', '' ], anchor: 'x', type: 'plural' } ]);
-      }
-    }
-  },
-  'Escaping': {
-    'of both interpolation and pluralization': {
-      topic: function () {
-        return Parser.parse(' dfgjhlh gsdf \\#{a...b.c} \\%{lorem ipsum}:abc asjkl sdfc');
-      },
-      'does not produce anchors': function (result) {
-        Assert.deepEqual(result, [ { value: ' dfgjhlh gsdf #{a...b.c} %{lorem ipsum}:abc asjkl sdfc', type: 'text' } ]);
-      }
-    },
-    'of word forms in pluralization': {
-      topic: function () {
-        return Parser.parse(' dfgjhlh gsdf \\#{a...b.c} %{l\\}orem |\\}ipsum}:abc asjkl sdfc');
-      },
-      'is unescaped': function (result) {
-        Assert.deepEqual(result, [
-          { value: ' dfgjhlh gsdf #{a...b.c} ', type: 'text' },
-          { forms: ['l}orem ', '}ipsum'], anchor: 'abc', type: 'plural' },
-          { value: ' asjkl sdfc', type: 'text' }
-        ]);
-      }
-    },
-    'everythig else': {
-      topic: function () {
-        return Parser.parse(' t\\exte1 \\ texte2 \\\n');
-      },
-      'goes verbatim': function (result) {
-        Assert.deepEqual(result, [ { value: ' t\\exte1 \\ texte2 \\\n', type: 'text' } ]);
-      }
-    }
-  },
+  // Parse resulting nodes
+  'Parsing strings': testParsedNodes({
+    'Simple string }{ with \b brackets and \t special chars': [
+      new ScalarNode('Simple string }{ with \b brackets and \t special chars')
+    ],
+
+    'Quirky #{} #{1} #{  } foo bar. #{. (.) . (.).} bazzz.%{}$_ mess': [
+      new ScalarNode('Quirky #{} #{1} #{  } foo bar. #{. (.) . (.).} bazzz.%{}$_ mess')
+    ],
+
+    'String with simple #{variable}...': [
+      new ScalarNode('String with simple '),
+      new VariableNode('variable'),
+      new ScalarNode('...')
+    ],
+
+    'String with complex #{foo.bar.baz} variable': [
+      new ScalarNode('String with complex '),
+      new VariableNode('foo.bar.baz'),
+      new ScalarNode(' variable')
+    ],
+
+    'String with plurals %{a|b}:c': [
+      new ScalarNode('String with plurals '),
+      new PluralNode('c', ['a', 'b'])
+    ],
+
+    'Plurals with %{a\\}b\\|c|d}:myvar, escaping': [
+      new ScalarNode('Plurals with '),
+      new PluralNode('myvar', ['a}b|c', 'd']),
+      new ScalarNode(', escaping')
+    ],
+
+    'Plurals with %{a|b}:_compl3x.$variable.': [
+      new ScalarNode('Plurals with '),
+      new PluralNode('_compl3x.$variable', ['a', 'b']),
+      new ScalarNode('.')
+    ],
+
+    'Invalid count of %{a|b}:... plurals.': [
+      new ScalarNode('Invalid count of %{a|b}:... plurals.')
+    ],
+
+    'Plurals with empty %{}:myvar forms': [
+      new ScalarNode('Plurals with empty %{}:myvar forms')
+    ],
+
+    'Plurals with single %{abc}:$myvar forms': [
+      new ScalarNode('Plurals with single '),
+      new PluralNode('$myvar', ['abc']),
+      new ScalarNode(' forms')
+    ],
+
+    'Plurals with lots of forms %{b|c|d|e|f|g|h}:a': [
+      new ScalarNode('Plurals with lots of forms '),
+      new PluralNode('a', ['b', 'c', 'd', 'e', 'f', 'g', 'h'])
+    ],
+
+    'Escape \\%{a|b|}:plurals and \\#{variables}': [
+      new ScalarNode('Escape %{a|b|}:plurals and #{variables}')
+    ],
+
+    'Invalid variable #{n..e}': [
+      new ScalarNode('Invalid variable #{n..e}')
+    ],
+
+    'Escape backslash %{a\\\\|b}:c': [
+      new ScalarNode('Escape backslash '),
+      new PluralNode('c', ['b\\', 'c'])
+    ]
+  })
+  /*
   'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
       topic: function () {
@@ -231,4 +214,5 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'extracting 6': testVar('....', null),
     'extracting 7': testVar('Jožin z bažin', ['Jo', 'Jo'])
   }
+  */
 }).export(module);
