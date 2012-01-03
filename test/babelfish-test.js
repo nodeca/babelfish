@@ -17,6 +17,7 @@ require('vows').describe('BabelFish').addBatch({
     'has `create` (constructor proxy)': function () {
       Assert.isFunction(BabelFish.create);
       Assert.equal(BabelFish.create.length, BabelFish.length);
+      Assert.instanceOf(BabelFish.create(), BabelFish);
     }
   },
 
@@ -57,15 +58,14 @@ require('vows').describe('BabelFish').addBatch({
       i18n.setFallback('es',    ['es-ES', 'es-MX']);
       i18n.setFallback('es-ES', ['es', 'es-US']);
 
-      i18n.addPhrase('en',    'test.a', '(en)');
-      i18n.addPhrase('en',    'test.b', '(en)');
-      i18n.addPhrase('en',    'test.c', '(en)');
-      i18n.addPhrase('en',    'test.d', '(en)');
-
-      i18n.addPhrase('es',    'test.a', '(es)');
-      i18n.addPhrase('es-ES', 'test.b', '(es-ES)');
-      i18n.addPhrase('es-MX', 'test.c', '(es-MX)');
-      i18n.addPhrase('es-US', 'test.d', '(es-US)');
+      i18n.addPhrase('en',    'aaa', 'aaa (en)');
+      i18n.addPhrase('en',    'bbb', 'bbb (en)');
+      i18n.addPhrase('en',    'ccc', 'ccc (en)');
+      i18n.addPhrase('en',    'ddd', 'ddd (en)');
+      i18n.addPhrase('es',    'aaa', 'aaa (es)');
+      i18n.addPhrase('es-ES', 'bbb', 'bbb (es-ES)');
+      i18n.addPhrase('es-MX', 'ccc', 'ccc (es-MX)');
+      i18n.addPhrase('es-US', 'ddd', 'ddd (es-US)');
 
       i18n.setFallback('es-US', ['es']);
 
@@ -73,38 +73,38 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'use defaultLocale in worst case': function (i18n) {
-      Assert.equal(i18n.t('es', 'test.d'), '(en)');
-      Assert.equal(i18n.t('ru', 'test.d'), '(en)');
+      Assert.equal(i18n.t('es', 'ddd'), 'ddd (en)');
+      Assert.equal(i18n.t('ru', 'ddd'), 'ddd (en)');
     },
 
     'allows specify more than one fallback locale': function (i18n) {
-      Assert.equal(i18n.t('es', 'test.a'), '(es)');
-      Assert.equal(i18n.t('es', 'test.b'), '(es-ES)');
-      Assert.equal(i18n.t('es', 'test.c'), '(es-MX)');
-      Assert.equal(i18n.t('es', 'test.d'), '(en)');
+      Assert.equal(i18n.t('es', 'aaa'), 'aaa (es)');
+      Assert.equal(i18n.t('es', 'bbb'), 'bbb (es-ES)');
+      Assert.equal(i18n.t('es', 'ccc'), 'ccc (es-MX)');
+      Assert.equal(i18n.t('es', 'ddd'), 'ddd (en)');
     },
 
     'do not recursively resolve locale fallbacks': function (i18n) {
-      Assert.equal(i18n.t('es-ES', 'test.a'), '(es)');
-      Assert.equal(i18n.t('es-ES', 'test.b'), '(es-ES)');
-      Assert.equal(i18n.t('es-ES', 'test.c'), '(en)');
-      Assert.equal(i18n.t('es-ES', 'test.d'), '(es-US)');
+      Assert.equal(i18n.t('es-ES', 'aaa'), 'aaa (es)');
+      Assert.equal(i18n.t('es-ES', 'bbb'), 'bbb (es-ES)');
+      Assert.equal(i18n.t('es-ES', 'ccc'), 'ccc (en)');
+      Assert.equal(i18n.t('es-ES', 'ddd'), 'ddd (es-US)');
     },
 
     'allow specify fallbacks after phrases were added': function (i18n) {
-      Assert.equal(i18n.t('es-US', 'test.a'), '(es)');
-      Assert.equal(i18n.t('es-US', 'test.b'), '(en)');
-      Assert.equal(i18n.t('es-US', 'test.c'), '(en)');
-      Assert.equal(i18n.t('es-US', 'test.d'), '(es-US)');
+      Assert.equal(i18n.t('es-US', 'aaa'), 'aaa (es)');
+      Assert.equal(i18n.t('es-US', 'bbb'), 'bbb (en)');
+      Assert.equal(i18n.t('es-US', 'ccc'), 'ccc (en)');
+      Assert.equal(i18n.t('es-US', 'ddd'), 'ddd (es-US)');
     },
 
-    'allows reset fallbacks': function (i18n) {
+    'allows re-assign fallbacks': function (i18n) {
       i18n.setFallback('es-US', ['es-ES', 'es-MX']);
 
-      Assert.equal(i18n.t('es', 'test.a'), '(es)');
-      Assert.equal(i18n.t('es', 'test.b'), '(es-ES)');
-      Assert.equal(i18n.t('es', 'test.c'), '(es-MX)');
-      Assert.equal(i18n.t('es', 'test.d'), '(en)');
+      Assert.equal(i18n.t('es', 'aaa'), 'aaa (es)');
+      Assert.equal(i18n.t('es', 'bbb'), 'bbb (es-ES)');
+      Assert.equal(i18n.t('es', 'ccc'), 'ccc (es-MX)');
+      Assert.equal(i18n.t('es', 'ddd'), 'ddd (en)');
     }
   },
 
@@ -112,7 +112,7 @@ require('vows').describe('BabelFish').addBatch({
     topic: function () {
       return BabelFish.create('en');
     },
-    'cause exception to be thrown': function (i18n) {
+    'cause exception': function (i18n) {
       Assert.throws(function () { i18n.setFallback('en', ['en-GB']); }, Error);
     }
   },
@@ -136,7 +136,7 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('en', 'scope.phrase2'), 'foobar');
     },
 
-    'allows spicify translations as inner scope': function (i18n) {
+    'allows specify translations as inner scope': function (i18n) {
       Assert.equal(i18n.t('en', 'scope.phrase3'), 'foobar');
     }
   },
@@ -160,6 +160,8 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(translation.value, 'test');
     },
 
+    // locale is needed on stage of locale recompiling (to override fallback
+    // translations if needed)
     'data has field with actual locale of translation': function (i18n) {
       Assert.equal(i18n.getCompiledData('ru', 'test.simple_string').locale, 'en');
       Assert.equal(i18n.getCompiledData('ru', 'test.complex.variable').locale, 'en');
@@ -196,7 +198,6 @@ require('vows').describe('BabelFish').addBatch({
   'Translating a phrase': {
     topic: function () {
       var i18n = BabelFish.create('en');
-      i18n.setFallback('DUMMY', ['en']);
 
       i18n.addPhrase('en', 'a', 'a (en)');
       i18n.addPhrase('en', 'b', 'b (en)');
@@ -236,52 +237,12 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('en', 'c', {count: 1}), 'c (en) one');
       Assert.equal(i18n.t('en', 'c', {count: 2}), 'c (en) other');
       Assert.equal(i18n.t('fr', 'c', {count: 0}), 'c (en) other');
-      Assert.equal(i18n.t('fr', 'd', {count: 0}), 'd (fr) une');
-    }
-  },
 
-  'Getting pluralizer': {
-    'when no fallback is given': {
-      topic: function () {
-        var i18n = BabelFish.create('ru');
-        return i18n.getContext('ru').pluralize('ru');
-      },
-      'pluralizer is still defined correct': function (pl) {
-        Assert.equal(pl(0, [1, 2, 3]), 3);
-      },
-    },
-    'when locale have own pluralizer': {
-      topic: function () {
-        var i18n = BabelFish.create('en');
-        i18n._pluralizers.add(['yy'], function (n, forms) {
-          return forms[n];
-        });
-        return i18n.getContext('ru').pluralize('yy');
-      },
-      'it works right': function (pl) {
-        Assert.equal(pl(5, [0, 1, 2, 3, 4, 5]), 5);
-      },
-    },
-    'when locale have no explicit pluralizer': {
-      topic: function () {
-        var i18n = BabelFish.create('en');
-        return i18n.getContext('xx').pluralize('xx');
-      },
-      'pluralizer for "en" is used': function (pl) {
-        Assert.equal(pl(0, [1, 2, 3]), 2);
-      },
-    },
-    'TODO CLARIFY TEST CORRECTNESS!!! Respect locales fallbacks': {
-      topic: function () {
-        var i18n = BabelFish.create('fr');
-        i18n.addPhrase('fr', 'a', 'a (fr) %{1|2|3|4}:x');
-        i18n.addPhrase('en', 'a', 'a (en) %{1|2|3|4}:x');
-        return i18n;
-      },
-      'translation is done right': function (i18n) {
-        Assert.equal(i18n.t('fr', 'a', {x: 0}), 'a (fr) 1');
-        Assert.equal(i18n.t('en', 'a', {x: 0}), 'a (en) 2');
-      },
-    },
+      // check that we use correct pluralizer
+      Assert.equal(i18n.t('en', 'c', {count: 1}),   'c (en) one');
+      Assert.equal(i18n.t('en', 'c', {count: 1.5}), 'c (en) other');
+      Assert.equal(i18n.t('fr', 'd', {count: 0}),   'd (fr) une');
+      Assert.equal(i18n.t('fr', 'd', {count: 1.5}), 'd (fr) une');
+    }
   }
 }).export(module);

@@ -5,7 +5,21 @@ var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 var Helper = require('./helper');
 
+
 var MACROS_REGEXP = Parser.MACROS_REGEXP;
+var VAR_REGEXP = new RegExp('^' + Parser.VAR_REGEXP_SOURCE, 'i');
+
+function testVar(str, check) {
+  return {
+    topic: function () {
+      var r = str.match(VAR_REGEXP);
+      return r ? r.slice(0, 2) : r;
+    },
+    'ok': function (result) {
+      Assert.deepEqual(result, check);
+    }
+  };
+}
 
 require('vows').describe('BabelFish.Parser').addBatch({
   'Parsing simple string': {
@@ -14,7 +28,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
         Parser.parse('Просто строка'),
         Parser.parse('    #{ '),
         Parser.parse('    }} '),
-        Parser.parse('  }\t\n #{'),
+        Parser.parse('  }\t\n #{')
       ];
     },
     'results in text node': function (result) {
@@ -22,7 +36,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
         [ { type: 'text', value: 'Просто строка' } ],
         [ { type: 'text', value: '    #{ ' } ],
         [ { type: 'text', value: '    }} ' } ],
-        [ { type: 'text', value: '  }\t\n #{' } ],
+        [ { type: 'text', value: '  }\t\n #{' } ]
       ]);
     }
   },
@@ -43,7 +57,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
         Parser.parse('#{}'),
         Parser.parse('#{1}'),
         Parser.parse('#{  }'),
-        Parser.parse(' foo bar. #{. (.) . (.).} bazzz.%{}$_'),
+        Parser.parse(' foo bar. #{. (.) . (.).} bazzz.%{}$_')
       ];
     },
     'results in passing string verbatim': function (result) {
@@ -51,7 +65,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
         [{value: '#{}', type: 'text'}],
         [{ value: '#{1}', type: 'text' }],
         [{ value: '#{  }', type: 'text' }],
-        [{ value: ' foo bar. #{. (.) . (.).} bazzz.%{}$_', type: 'text' }],
+        [{ value: ' foo bar. #{. (.) . (.).} bazzz.%{}$_', type: 'text' }]
       ]);
     }
   },
@@ -62,7 +76,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
           Parser.parse('%{a|b|c}:foo_bar$baz.fu.bar.baz'),
           Parser.parse('%{a|b|c}:foo_bar$baz.fu.1.bar.baz'),
           Parser.parse('%{a|b|c}:___[0][1][2].a'),
-          Parser.parse('%{a|b|c}:...'),
+          Parser.parse('%{a|b|c}:...')
         ];
       },
       'results in sane behavior': function (result) {
@@ -70,7 +84,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
           [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu.bar.baz', type: 'plural' } ],
           [ { forms: [ 'a', 'b', 'c' ], anchor: 'foo_bar$baz.fu', type: 'plural' }, { value: '.1.bar.baz', type: 'text' } ],
           [ { forms: [ 'a', 'b', 'c' ], anchor: '___', type: 'plural' }, { value: '[0][1][2].a', type: 'text'} ],
-          [ { value: '%{a|b|c}:...', type: 'text' } ],
+          [ { value: '%{a|b|c}:...', type: 'text' } ]
         ]);
       }
     },
@@ -131,7 +145,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
       'is unescaped': function (result) {
         Assert.deepEqual(result, [
           { value: ' dfgjhlh gsdf #{a...b.c} ', type: 'text' },
-          { forms: ['l}orem ','}ipsum'], anchor: 'abc', type: 'plural' },
+          { forms: ['l}orem ', '}ipsum'], anchor: 'abc', type: 'plural' },
           { value: ' asjkl sdfc', type: 'text' }
         ]);
       }
@@ -142,8 +156,8 @@ require('vows').describe('BabelFish.Parser').addBatch({
       },
       'goes verbatim': function (result) {
         Assert.deepEqual(result, [ { value: ' t\\exte1 \\ texte2 \\\n', type: 'text' } ]);
-      },
-    },
+      }
+    }
   },
   'MACROS_REGEXP': {
     'allows escaped argument separator as part of argument': {
@@ -151,7 +165,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
         return [
           ' texte1 %{a|b|c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
           ' texte1 %{a\\||b \\||\\|  c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
-          ' texte1 %{\u007d|1|2}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
+          " texte1 %{\u00AB|1|2}:x  texte2 ".match(MACROS_REGEXP).slice(0, 5)
         ];
       },
       'good': function (result) {
@@ -164,15 +178,15 @@ require('vows').describe('BabelFish.Parser').addBatch({
       },
       'ugly': function (result) {
         Assert.isArray(result[2]);
-        Assert.deepEqual(result[2], [' texte1 %{\u007d|1|2}:x', ' texte1 ', undefined, '\u007d|1|2', 'x']);
-      },
+        Assert.deepEqual(result[2], [' texte1 %{\u00AB|1|2}:x', ' texte1 ', undefined, '\u00AB|1|2', 'x']);
+      }
     },
     'allows escaped macros close char as part of argument': {
       topic: function () {
         return [
           ' pretexte1 %{ |c\\}}:x soustexte2 '.match(MACROS_REGEXP).slice(0, 5),
           ' text1 %{ \\||||c\\}:\\}:x text2 '.match(MACROS_REGEXP),
-          ' text1 %{ \\||||c\\}:\\}}:x text2 '.match(MACROS_REGEXP).slice(0, 5),
+          ' text1 %{ \\||||c\\}:\\}}:x text2 '.match(MACROS_REGEXP).slice(0, 5)
         ];
       },
       'for pluralization': function (result) {
@@ -185,13 +199,13 @@ require('vows').describe('BabelFish.Parser').addBatch({
       'for pluralization, plus spiky backslashes': function (result) {
         Assert.isArray(result[2]);
         Assert.deepEqual(result[2], [' text1 %{ \\||||c\\}:\\}}:x', ' text1 ', undefined, ' \\||||c\\}:\\}', 'x']);
-      },
+      }
     },
     'disallows escaped macros close char in interpolation': {
       topic: function () {
         return [
           ' texte1 #{c\\}} texte2 '.match(MACROS_REGEXP),
-          ' texte1 #{c\\} texte2 '.match(MACROS_REGEXP),
+          ' texte1 #{c\\} texte2 '.match(MACROS_REGEXP)
         ];
       },
       'properly closed': function (result) {
@@ -199,14 +213,14 @@ require('vows').describe('BabelFish.Parser').addBatch({
       },
       'improperly closed': function (result) {
         Assert.isNull(result[1]);
-      },
-    },
+      }
+    }
   },
   'Variable parsing': {
     'extracting 1': testVar('a', ['a', 'a']),
     'extracting 2': testVar('a.a', ['a.a', 'a.a']),
     'extracting 3': testVar('a.a.aaa.aaaa', ['a.a.aaa.aaaa', 'a.a.aaa.aaaa']),
-    'extracting 4': testVar('a_$.$$$a.____aa_a.aaaa._.$', ['a_$.$$$a.____aa_a.aaaa._.$', 'a_$.$$$a.____aa_a.aaaa._.$']),
+    'extracting 4': testVar('a_$.$$$a.____aa_a.aaaa._.$', ['a_$.$$$a.____aa_a.aaaa._.$', 'a_$.$$$a.____aa_a.aaaa._.$'])
   },
   'Variable parsing false positives': {
     'extracting 1': testVar('ф', null),
@@ -215,20 +229,6 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'extracting 4': testVar('.a', null),
     'extracting 5': testVar('.', null),
     'extracting 6': testVar('....', null),
-    'extracting 7': testVar('Jožin z bažin', ['Jo', 'Jo']),
-  },
+    'extracting 7': testVar('Jožin z bažin', ['Jo', 'Jo'])
+  }
 }).export(module);
-
-var VAR_REGEXP = new RegExp('^' + Parser.VAR_REGEXP_SOURCE, 'i');
-
-function testVar(str, check) {
-  return {
-    topic: function () {
-      var r = str.match(VAR_REGEXP);
-      return r ? r.slice(0, 2) : r;
-    },
-    'ok': function (result) {
-      Assert.deepEqual(result, check);
-    }
-  };
-}

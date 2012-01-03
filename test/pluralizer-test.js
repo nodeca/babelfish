@@ -3,8 +3,9 @@
 
 var Assert = require('assert');
 var Pluralizer = require('../lib/babelfish/pluralizer');
-var pluralizer = new Pluralizer();
+var Helper = require('./helper');
 
+/*
 function helper(lang, expected, forms) {
   function p(n) { return pluralizer.get(lang)(n, forms || ['one', 'other']); }
   Assert.equal(p(0), expected[0]);
@@ -16,6 +17,12 @@ function helper(lang, expected, forms) {
 }
 
 require('vows').describe('BabelFish.Pluralizer').addBatch({
+  'Built-in plurlizers': {
+    ru: testPluralizer('ru', 
+    { langs: ['ru', 'uk'], forms: [ 'one', 'few', 'many', 'other' ],
+  ])
+}).addBatch({
+  // TBD
   'en':  function () {
     helper('en', [
       'other', 'one', 'other', 'other', 'other', 'other'
@@ -38,8 +45,8 @@ require('vows').describe('BabelFish.Pluralizer').addBatch({
   },
   'ru':  function () {
     helper('ru', [
-      'несколько', 'один', 'два', 'несколько', 'несколько', 'один'
-    ], ['один', 'два', 'несколько']);
+      'другое', 'один', 'несколько', 'много', 'несколько', 'один'
+    ], ['один', 'несколько', 'много', 'другое']);
   },
   'it':  function () {
     helper('it', [
@@ -49,11 +56,15 @@ require('vows').describe('BabelFish.Pluralizer').addBatch({
   // TODO: continue
   //
   'xx': function () {
-    pluralizer.add(['xx'], function (n, forms) {
-      return forms[n % 5];
+    pluralizer.add(['xx'], {
+      forms: 2,
+      rule: function (n, forms) {
+        return forms[n % 5];
+      }
     });
     helper('xx', [
       'a', 'b', 'c', 'a', 'b', 'b'
     ], ['a', 'b', 'c', 'd', 'e']);
   }
 }).export(module);
+*/
