@@ -138,7 +138,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
 
     'Escape backslash %{a\\\\|b}:c': [
       new ScalarNode('Escape backslash '),
-      new PluralNode('c', ['b\\', 'c'])
+      new PluralNode('c', ['a\\', 'b'])
     ]
   })
   /*
