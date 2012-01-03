@@ -58,4 +58,22 @@ require('vows').describe('BabelFish.Pluralizer').addBatch({
       other:  [1.05, 1.1, 1.2]
     }
   })
+}).addBatch({
+  'With unknown language': {
+    topic: function () {
+      return pluralize('unknown', 1, ['one']);
+    },
+    'returns error message': function (result) {
+      Assert.equal(result, '[pluralizer for (unknown) not exists]');
+    }
+  },
+
+  'With insufficient plural form': {
+    topic: function () {
+      return pluralize('ru', 1.1, ['one', 'few', 'many']);
+    },
+    'returns error message': function (result) {
+      Assert.equal(result, '[plural form N3 not found in translation]');
+    }
+  }
 }).export(module);
