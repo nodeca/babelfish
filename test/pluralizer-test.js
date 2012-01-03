@@ -2,7 +2,6 @@
 
 
 var Assert = require('assert');
-var Helper = require('./helper');
 
 
 // pluralization function
