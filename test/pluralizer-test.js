@@ -2,69 +2,60 @@
 
 
 var Assert = require('assert');
-var Pluralizer = require('../lib/babelfish/pluralizer');
 var Helper = require('./helper');
 
-/*
-function helper(lang, expected, forms) {
-  function p(n) { return pluralizer.get(lang)(n, forms || ['one', 'other']); }
-  Assert.equal(p(0), expected[0]);
-  Assert.equal(p(1), expected[1]);
-  Assert.equal(p(2), expected[2]);
-  Assert.equal(p(5), expected[3]);
-  Assert.equal(p(11), expected[4]);
-  Assert.equal(p(21), expected[5]);
+
+// pluralization function
+var pluralize = require('../lib/babelfish/pluralizer');
+
+
+function testPluralizarionRules(definition) {
+  var tests = {};
+
+  definition.langs.forEach(function (lang) {
+    // en: function () {}
+    tests[lang] = function () {
+      // test each form
+      definition.forms.forEach(function (form) {
+        // for each sample data
+        definition.count[form].forEach(function (n) {
+          var r = pluralize(lang, n, definition.forms);
+          Assert.equal(r, form, n + ' expected to be ' + form + ', got ' + r);
+        });
+      });
+    };
+  });
+
+  return tests;
 }
 
 require('vows').describe('BabelFish.Pluralizer').addBatch({
-  'Built-in plurlizers': {
-    ru: testPluralizer('ru', 
-    { langs: ['ru', 'uk'], forms: [ 'one', 'few', 'many', 'other' ],
-  ])
-}).addBatch({
-  // TBD
-  'en':  function () {
-    helper('en', [
-      'other', 'one', 'other', 'other', 'other', 'other'
-    ]);
-  },
-  'fr':  function () {
-    helper('fr', [
-      'one', 'one', 'other', 'other', 'other', 'other'
-    ]);
-  },
-  'de':  function () {
-    helper('de', [
-      'other', 'one', 'other', 'other', 'other', 'other'
-    ]);
-  },
-  'es':  function () {
-    helper('es', [
-      'other', 'one', 'other', 'other', 'other', 'other'
-    ]);
-  },
-  'ru':  function () {
-    helper('ru', [
-      'другое', 'один', 'несколько', 'много', 'несколько', 'один'
-    ], ['один', 'несколько', 'много', 'другое']);
-  },
-  'it':  function () {
-    helper('it', [
-      'other', 'one', 'other', 'other', 'other', 'other'
-    ]);
-  },
-  // TODO: continue
-  //
-  'xx': function () {
-    pluralizer.add(['xx'], {
-      forms: 2,
-      rule: function (n, forms) {
-        return forms[n % 5];
-      }
-    });
-    helper('xx', [
-      'a', 'b', 'c', 'a', 'b', 'b'
-    ], ['a', 'b', 'c', 'd', 'e']);
-  }
+  'French': testPluralizarionRules({
+    langs: ['fr'],
+    forms: ['one', 'other'],
+    count: {
+      one:    [0, 0.5, 1, 1.5],
+      other:  [2, 2.5, 3, 10]
+    }
+  }),
+
+  'German, English, Spanish': testPluralizarionRules({
+    langs: ['de', 'en', 'es'],
+    forms: ['one', 'other'],
+    count: {
+      one:    [1],
+      other:  [0, 1.5, 2, 10]
+    }
+  }),
+
+  'Russian, Ukranian': testPluralizarionRules({
+    langs: ['ru', 'uk'],
+    forms: ['one', 'few', 'many', 'other'],
+    count: {
+      one:    [1, 21, 31],
+      few:    [2, 22, 32],
+      many:   [0, 5, 20],
+      other:  [1.05, 1.1, 1.2]
+    }
+  })
 }).export(module);
-*/
