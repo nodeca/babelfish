@@ -1,5 +1,5 @@
 language: node_js
 node_js:
  - 0.6
-before_script: "make dev-deps"
+before_script: "npm install --dev"
 script: "make test"
