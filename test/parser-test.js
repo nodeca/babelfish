@@ -5,6 +5,11 @@ var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 
 
+var ScalarNode = Parser.Nodes.ScalarNode;
+var VariableNode = Parser.Nodes.VariableNode;
+var PluralNode = Parser.Nodes.PluralNode;
+
+
 function testParsedNodes(definitions) {
   var tests = {};
 
@@ -36,27 +41,6 @@ function regExpMatch(str, data) {
       Assert.equal(m[idx], expected);
     });
   };
-}
-
-
-// Nodes constructor from Parser
-
-function ScalarNode(value) {
-  this.type = 'text';
-  this.value = value;
-}
-
-
-function VariableNode(anchor) {
-  this.type = 'variable';
-  this.anchor = anchor;
-}
-
-
-function PluralNode(anchor, forms) {
-  this.type = 'plural';
-  this.anchor = anchor;
-  this.forms = forms;
 }
 
 
