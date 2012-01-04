@@ -3,7 +3,30 @@
 
 var Assert = require('assert');
 var BabelFish = require('../lib/babelfish');
-var Helper = require('./helper');
+
+
+function hasFunction(func) {
+  return function (i18n) {
+    Assert.isFunction(i18n[func], 'has ' + func + ' function');
+  };
+}
+
+
+function hasAlias(alias, original) {
+  return function (i18n) {
+    Assert.ok(i18n[original] === i18n[alias],
+              alias + ' is alias of ' + original);
+  };
+}
+
+
+function hasProperty(prop) {
+  return function (i18n) {
+    Assert.include(i18n, prop, 'has ' + prop + ' property');
+    Assert.isFalse('function' === typeof i18n[prop],
+                   prop + ' is a scalar or getter');
+  };
+}
 
 
 require('vows').describe('BabelFish').addBatch({
@@ -23,12 +46,12 @@ require('vows').describe('BabelFish').addBatch({
 
   'Instance': {
     topic: new BabelFish(),
-    'has `addPhrase()` method'        : Helper.hasFunction('addPhrase'),
-    'has `getCompiledData()` method'  : Helper.hasFunction('getCompiledData'),
-    'has `setFallback()` method'      : Helper.hasFunction('setFallback'),
-    'has `translate()` method'        : Helper.hasFunction('translate'),
-    'has `t()` aliase'                : Helper.hasAlias('t', 'translate'),
-    'has `defaultLocale` property'    : Helper.hasProperty('defaultLocale'),
+    'has `addPhrase()` method'        : hasFunction('addPhrase'),
+    'has `getCompiledData()` method'  : hasFunction('getCompiledData'),
+    'has `setFallback()` method'      : hasFunction('setFallback'),
+    'has `translate()` method'        : hasFunction('translate'),
+    'has `t()` aliase'                : hasAlias('t', 'translate'),
+    'has `defaultLocale` property'    : hasProperty('defaultLocale'),
 
     '`defaultLocale` property is read-only': function (i18n) {
       Assert.throws(function () { i18n.defaultLocale = 'ru'; }, TypeError);

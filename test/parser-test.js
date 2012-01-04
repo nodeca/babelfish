@@ -3,11 +3,9 @@
 
 var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
-var Helper = require('./helper');
 
 
 /*
-var MACROS_REGEXP = Parser.MACROS_REGEXP;
 var VAR_REGEXP = new RegExp('^' + Parser.VAR_REGEXP_SOURCE, 'i');
 
 
@@ -48,6 +46,18 @@ function testParsedNodes(definitions) {
 }
 
 
+
+function regExpMatch(str, data) {
+  return function (re) {
+    var m = re.exec(str);
+    Assert.isNotNull(m, 'Match the string');
+    data.forEach(function (expected, idx) {
+      Assert.equal(m[idx], expected);
+    });
+  };
+}
+
+
 // Nodes constructor from Parser
 
 function ScalarNode(value) {
@@ -70,7 +80,6 @@ function PluralNode(anchor, forms) {
 
 
 require('vows').describe('BabelFish.Parser').addBatch({
-  // Parse resulting nodes
   'Parsing strings': testParsedNodes({
     'Simple string }{ with \b brackets and \t special chars': [
       new ScalarNode('Simple string }{ with \b brackets and \t special chars')
@@ -140,65 +149,92 @@ require('vows').describe('BabelFish.Parser').addBatch({
       new ScalarNode('Escape backslash '),
       new PluralNode('c', ['a\\', 'b'])
     ]
-  })
-  /*
+  }),
+
+
+  //////////////////////////////////////////////////////////////////////////////
+
+
   'MACROS_REGEXP': {
-    'allows escaped argument separator as part of argument': {
-      topic: function () {
-        return [
-          ' texte1 %{a|b|c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
-          ' texte1 %{a\\||b \\||\\|  c}:x  texte2 '.match(MACROS_REGEXP).slice(0, 5),
-          " texte1 %{\u00AB|1|2}:x  texte2 ".match(MACROS_REGEXP).slice(0, 5)
-        ];
-      },
-      'good': function (result) {
-        Assert.isArray(result[0]);
-        Assert.deepEqual(result[0], [' texte1 %{a|b|c}:x', ' texte1 ', undefined, 'a|b|c', 'x']);
-      },
-      'bad': function (result) {
-        Assert.isArray(result[1]);
-        Assert.deepEqual(result[1], [' texte1 %{a\\||b \\||\\|  c}:x', ' texte1 ', undefined, 'a\\||b \\||\\|  c', 'x']);
-      },
-      'ugly': function (result) {
-        Assert.isArray(result[2]);
-        Assert.deepEqual(result[2], [' texte1 %{\u00AB|1|2}:x', ' texte1 ', undefined, '\u00AB|1|2', 'x']);
-      }
+    topic: Parser.MACROS_REGEXP,
+
+    'matches only when valid macros presented': function (re) {
+      Assert.isNull(re.exec(''));
+      Assert.isNotNull(re.exec('foo %{f}:v bar'));
     },
-    'allows escaped macros close char as part of argument': {
-      topic: function () {
-        return [
-          ' pretexte1 %{ |c\\}}:x soustexte2 '.match(MACROS_REGEXP).slice(0, 5),
-          ' text1 %{ \\||||c\\}:\\}:x text2 '.match(MACROS_REGEXP),
-          ' text1 %{ \\||||c\\}:\\}}:x text2 '.match(MACROS_REGEXP).slice(0, 5)
-        ];
-      },
-      'for pluralization': function (result) {
-        Assert.isArray(result[0]);
-        Assert.deepEqual(result[0], [' pretexte1 %{ |c\\}}:x', ' pretexte1 ', undefined, ' |c\\}', 'x']);
-      },
-      'for pluralization, if it is done properly': function (result) {
-        Assert.isNull(result[1]);
-      },
-      'for pluralization, plus spiky backslashes': function (result) {
-        Assert.isArray(result[2]);
-        Assert.deepEqual(result[2], [' text1 %{ \\||||c\\}:\\}}:x', ' text1 ', undefined, ' \\||||c\\}:\\}', 'x']);
-      }
-    },
-    'disallows escaped macros close char in interpolation': {
-      topic: function () {
-        return [
-          ' texte1 #{c\\}} texte2 '.match(MACROS_REGEXP),
-          ' texte1 #{c\\} texte2 '.match(MACROS_REGEXP)
-        ];
-      },
-      'properly closed': function (result) {
-        Assert.isNull(result[0]);
-      },
-      'improperly closed': function (result) {
-        Assert.isNull(result[1]);
-      }
-    }
-  },
+
+    // [0] -> macthed string
+    // [1] -> leading string
+    // [2] -> variable anchor
+    // [3] -> plural forms
+    // [4] -> plural anchor
+
+    'matches macros with leading string':
+      regExpMatch('< %{f}:v ...', [
+        '< %{f}:v', '< ', undefined, 'f', 'v'
+      ]),
+
+    'matches macros without leading string':
+      regExpMatch('%{f}:v ...', [
+        '%{f}:v', '', undefined, 'f', 'v'
+      ]),
+
+    'skips escaped plurals':
+      regExpMatch('< \\%{f1}:v1 %{f2}:v2 ...', [
+        '< \\%{f1}:v1 %{f2}:v2', '< \\%{f1}:v1 ', undefined, 'f2', 'v2'
+      ]),
+
+    'skips escaped variables':
+      regExpMatch('\\#{v1} %{f2}:v2 ...', [
+        '\\#{v1} %{f2}:v2', '\\#{v1} ', undefined, 'f2', 'v2'
+      ]),
+
+    'allows squeezed macros':
+      regExpMatch('<%{f}:v#{v}>', [
+        '<%{f}:v', '<', undefined, 'f', 'v'
+      ]),
+
+    'disallows invalid variable names in interpolation macros':
+      regExpMatch('#{a\\|b}#{v}...', [
+        '#{a\\|b}#{v}', '#{a\\|b}', 'v', undefined, undefined
+      ]),
+
+    'allows escaping of `|` (pipe) inside plural forms':
+      regExpMatch('%{a\\||b}:v', [
+        '%{a\\||b}:v', '', undefined, 'a\\||b', 'v'
+      ]),
+
+    'allows escaping of `}` inside plural forms':
+      regExpMatch('%{a\\}|b}:v', [
+        '%{a\\}|b}:v', '', undefined, 'a\\}|b', 'v'
+      ]),
+
+    'allows escaping of `\\` to void macros escaping':
+      regExpMatch('\\\\#{a}#{b}', [
+        '\\\\#{a}#{b}', '\\\\#{a}', 'b', undefined, undefined
+      ]),
+
+    'allows escaping of `\\` inside macros':
+      regExpMatch('%{a\\\\|b}:v', [
+        '%{a\\\\|b}:v', '', undefined, 'a\\\\|b', 'v'
+      ]),
+
+    'matches complex variable name':
+      regExpMatch('#{$._.foobar}:...', [
+        '#{$._.foobar}', '', '$._.foobar', undefined, undefined
+      ]),
+
+    'does not include trailing dot in plural anchor':
+      regExpMatch('%{f}:foo.', [
+        '%{f}:foo', '', undefined, 'f', 'foo'
+      ]),
+
+    'allows unicode chars':
+      regExpMatch('\u1234%{\u1234}:v...', [
+        '\u1234%{\u1234}:v', '\u1234', undefined, '\u1234', 'v'
+      ])
+  }
+  /*
   'Variable parsing': {
     'extracting 1': testVar('a', ['a', 'a']),
     'extracting 2': testVar('a.a', ['a.a', 'a.a']),
