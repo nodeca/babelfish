@@ -5,24 +5,6 @@ var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 
 
-/*
-var VAR_REGEXP = new RegExp('^' + Parser.VAR_REGEXP_SOURCE, 'i');
-
-
-function testVar(str, check) {
-  return {
-    topic: function () {
-      var r = str.match(VAR_REGEXP);
-      return r ? r.slice(0, 2) : r;
-    },
-    'ok': function (result) {
-      Assert.deepEqual(result, check);
-    }
-  };
-}
-*/
-
-
 function testParsedNodes(definitions) {
   var tests = {};
 
@@ -34,7 +16,7 @@ function testParsedNodes(definitions) {
       result = Parser.parse(str);
 
       // make sure we have expected amount of nodes
-      Assert.equal(result.length, expected.length, 'Same amount of nodes.');
+      Assert.equal(result.length, expected.length, 'Unexpected amount of nodes.');
 
       result.forEach(function (node, idx) {
         Assert.deepEqual(node, expected[idx]);
@@ -46,11 +28,10 @@ function testParsedNodes(definitions) {
 }
 
 
-
 function regExpMatch(str, data) {
   return function (re) {
     var m = re.exec(str);
-    Assert.isNotNull(m, 'Match the string');
+    Assert.isNotNull(m, 'Pattern does not match the string.');
     data.forEach(function (expected, idx) {
       Assert.equal(m[idx], expected);
     });
@@ -233,22 +214,43 @@ require('vows').describe('BabelFish.Parser').addBatch({
       regExpMatch('\u1234%{\u1234}:v...', [
         '\u1234%{\u1234}:v', '\u1234', undefined, '\u1234', 'v'
       ])
-  }
-  /*
-  'Variable parsing': {
-    'extracting 1': testVar('a', ['a', 'a']),
-    'extracting 2': testVar('a.a', ['a.a', 'a.a']),
-    'extracting 3': testVar('a.a.aaa.aaaa', ['a.a.aaa.aaaa', 'a.a.aaa.aaaa']),
-    'extracting 4': testVar('a_$.$$$a.____aa_a.aaaa._.$', ['a_$.$$$a.____aa_a.aaaa._.$', 'a_$.$$$a.____aa_a.aaaa._.$'])
   },
-  'Variable parsing false positives': {
-    'extracting 1': testVar('ф', null),
-    'extracting 2': testVar('a..a', ['a', 'a']),
-    'extracting 3': testVar('a.a.', ['a.a', 'a.a']),
-    'extracting 4': testVar('.a', null),
-    'extracting 5': testVar('.', null),
-    'extracting 6': testVar('....', null),
-    'extracting 7': testVar('Jožin z bažin', ['Jo', 'Jo'])
+
+
+  //////////////////////////////////////////////////////////////////////////////
+
+
+  'ANCHOR_REGEXP': {
+    topic: Parser.ANCHOR_REGEXP,
+
+    'matches variables with valid first/last char only': function (re) {
+      re = new RegExp('^' + re.source + '$', 'i');
+
+      Assert.isNotNull(re.exec('foobar'));
+      Assert.isNull(re.exec('.foobar'));
+      Assert.isNull(re.exec('foobar.'));
+    },
+
+    'allows /a-z/i letters only': function (re) {
+      Assert.isNull('привет'.match(re));
+    },
+
+    'matches simple variables': function (re) {
+      ['simple', '$$$', '_myVar', 'var_n4m3', 'a10'].forEach(function (str) {
+        regExpMatch(str, [str, str])(re);
+      });
+    },
+
+    'matches complex variables': function (re) {
+      ['foo.bar', 'a.b.c.d.e', '_foo_._', '$foo$.$', '_', '$'].forEach(function (str) {
+        regExpMatch(str, [str, str])(re);
+      });
+    },
+
+    'mathes first valid name': function (re) {
+      regExpMatch('Jožin', ['Jo', 'Jo'])(re);
+      regExpMatch('.foobar', ['foobar', 'foobar'])(re);
+      regExpMatch('foobar.', ['foobar', 'foobar'])(re);
+    }
   }
-  */
 }).export(module);
