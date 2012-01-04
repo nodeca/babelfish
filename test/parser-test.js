@@ -71,9 +71,9 @@ require('vows').describe('BabelFish.Parser').addBatch({
       new PluralNode('c', ['a', 'b'])
     ],
 
-    'Plurals with %{a\\}b\\|c|d}:myvar, escaping': [
+    'Plurals with %{a\\}b\\|c\\{d|e}:myvar, escaping': [
       new ScalarNode('Plurals with '),
-      new PluralNode('myvar', ['a}b|c', 'd']),
+      new PluralNode('myvar', ['a}b|c{d', 'e']),
       new ScalarNode(', escaping')
     ],
 
@@ -231,7 +231,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
       });
     },
 
-    'mathes first valid name': function (re) {
+    'matches first valid name': function (re) {
       regExpMatch('Jožin', ['Jo', 'Jo'])(re);
       regExpMatch('.foobar', ['foobar', 'foobar'])(re);
       regExpMatch('foobar.', ['foobar', 'foobar'])(re);

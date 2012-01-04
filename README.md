@@ -22,7 +22,7 @@ example:
 #### Escape chars
 
 
-We support escaping (with backslash) of `#`, `%`, `|`, `\` and `}`.
+We support escaping (with backslash) of `#`, `%`, `|`, `\`, `{` and `}`.
 
 
 #### Example with YAML
