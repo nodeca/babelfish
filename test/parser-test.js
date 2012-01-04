@@ -35,7 +35,7 @@ function testParsedNodes(definitions) {
 
 function regExpMatch(str, data) {
   return function (re) {
-    var m = re.exec(str);
+    var m = str.match(re);
     Assert.isNotNull(m, 'Pattern does not match the string.');
     data.forEach(function (expected, idx) {
       Assert.equal(m[idx], expected);
@@ -210,9 +210,9 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'matches variables with valid first/last char only': function (re) {
       re = new RegExp('^' + re.source + '$', 'i');
 
-      Assert.isNotNull(re.exec('foobar'));
-      Assert.isNull(re.exec('.foobar'));
-      Assert.isNull(re.exec('foobar.'));
+      Assert.isNotNull('foobar'.match(re));
+      Assert.isNull('.foobar'.match(re));
+      Assert.isNull('foobar.'.match(re));
     },
 
     'allows /a-z/i letters only': function (re) {
