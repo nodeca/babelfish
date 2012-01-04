@@ -10,6 +10,7 @@ CURR_HEAD 	:= $(firstword $(shell git show-ref --hash HEAD | cut --bytes=-6) mas
 GITHUB_NAME := nodeca/babelfish
 SRC_URL_FMT := https://github.com/${GITHUB_NAME}/blob/${CURR_HEAD}/{file}\#L{line}
 
+test-all: lint test
 
 lint:
 	if test ! `which jshint` ; then \
@@ -19,7 +20,7 @@ lint:
 		fi
 	jshint . --show-non-errors
 
-test: lint
+test:
 	@if test ! `which vows` ; then \
 		echo "You need 'vows' installed in order to run tests." >&2 ; \
 		echo "  $ make dev-deps" >&2 ; \
@@ -42,7 +43,7 @@ dev-deps:
 		echo "  See: http://npmjs.org/" >&2 ; \
 		exit 128 ; \
 		fi
-	npm install vows@"~ 0.6.0"
+	npm install --dev
 	npm install -g jshint@"~ 0.5.5"
 
 gh-pages:
