@@ -42,7 +42,8 @@ dev-deps:
 		echo "  See: http://npmjs.org/" >&2 ; \
 		exit 128 ; \
 		fi
-	npm install --dev
+	npm install vows@"~ 0.6.0"
+	npm install -g jshint@"~ 0.5.5"
 
 gh-pages:
 	@if test -z ${REMOTE_REPO} ; then \
