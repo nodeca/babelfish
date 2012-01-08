@@ -15,7 +15,7 @@ function testParsedNodes(definitions) {
 
   Object.getOwnPropertyNames(definitions).forEach(function (str) {
     tests[str] = function () {
-      var expected, result, msg;
+      var expected, result;
 
       expected = definitions[str];
       result = Parser.parse(str);
