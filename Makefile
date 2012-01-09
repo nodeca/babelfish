@@ -11,6 +11,8 @@ GITHUB_NAME := nodeca/babelfish
 SRC_URL_FMT := https://github.com/${GITHUB_NAME}/blob/${CURR_HEAD}/{file}\#L{line}
 
 
+test-all: lint test
+
 lint:
 	if test ! `which jshint` ; then \
 		echo "You need 'jshint' installed in order to run lint." >&2 ; \
@@ -19,7 +21,7 @@ lint:
 		fi
 	jshint . --show-non-errors
 
-test: lint
+test:
 	@if test ! `which vows` ; then \
 		echo "You need 'vows' installed in order to run tests." >&2 ; \
 		echo "  $ make dev-deps" >&2 ; \
@@ -42,6 +44,7 @@ dev-deps:
 		echo "  See: http://npmjs.org/" >&2 ; \
 		exit 128 ; \
 		fi
+	npm install jshint -g
 	npm install --dev
 
 gh-pages:
@@ -65,5 +68,5 @@ todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
 
 
-.PHONY: test doc dev-deps gh-pages todo
+.PHONY: lint test doc dev-deps gh-pages todo
 .SILENT: lint test doc todo
