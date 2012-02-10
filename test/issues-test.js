@@ -20,18 +20,14 @@ Fs.readdirSync(ISSUES_DIR).forEach(function (f) {
 
   data = require(Path.join(ISSUES_DIR, f));
 
+  if (data.pending) {
+    issues[data.title] = 'pending';
+    return;
+  }
+
   issues[data.title] = function () {
-    try {
-      data.test();
-    } catch (err) {
-      if (!data.fixed && 'AssertionError' === err.name) {
-        throw {pending: 'Needs to be fixed'};
-      }
-
-      throw err;
-    }
-
-    if (data.fixed) {
+    data.test();
+    if (!data.fixed) {
       throw "Test passed, but it shouldn't!";
     }
   };

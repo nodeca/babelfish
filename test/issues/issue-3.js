@@ -7,6 +7,7 @@ var BabelFish = require('../..');
 
 module.exports = {
   title: "#3: Compilation fails.",
+  pending: true,
   fixed: false,
   test: function () {
     var i18n = new BabelFish();
