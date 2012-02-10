@@ -18,6 +18,6 @@
                       },
 
   "dependencies"    : { "underscore": "1.1.7" },
-  "devDependencies" : { "vows": "~ 0.6.0" },
+  "devDependencies" : { "vows": "git://github.com/ixti/vows.git" },
   "engines"         : { "node": "> 0.4.11" }
 }
