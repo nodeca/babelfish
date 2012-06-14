@@ -2,4 +2,4 @@
 doc/
 node_modules/
 tmp/
-dist/
+browser/

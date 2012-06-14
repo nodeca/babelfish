@@ -18,32 +18,23 @@ var BabelFish = window.BabelFish = (function () {
   this.def("0", function (require) {
     var module = this, exports = this.exports;
 
-/**
- *  class BabelFish
- *
- *  Internalization and localization library that makes i18n and l10n fun again.
- *
- *  ##### Example
- *
- *      var BabelFish = require('babelfish'),
- *          i18n = new BabelFish();
- **/
+// This is a "minimal" version of BabelFish used on client side ////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 'use strict';
 
 
-var Underscore = require('underscore');
-var Parser = require("1");
-var Pluralizer = require("2");
+/*global window*/
+
+
+// TODO: Provide shim for Underscore
+var Underscore = (window || global)._;
+var Pluralizer = require("1");
 
 
 // helpers
 ////////////////////////////////////////////////////////////////////////////////
-
-
-// Last resort locale, that exists for sure
-var GENERIC_LOCALE = 'en';
 
 
 function trim(str) {
@@ -123,52 +114,6 @@ function flattenParams(obj) {
 }
 
 
-// Compiles given string into translator function. Used to compile phrases,
-// which contains `plurals`, `variables`, etc.
-function compile(str, locale) {
-  var nodes = Parser.parse(str), lang = locale.split('-').shift(), translator;
-
-  if (1 === nodes.length && 'text' === nodes[0].type) {
-    return nodes[0].value;
-  }
-
-  translator = ["var str = '';"];
-  translator.push("params = this.flattenParams(params);");
-
-  Underscore.each(nodes, function (node, idx) {
-    var anchor = "params['" + node.anchor + "']";
-
-    if ('text' === node.type) {
-      // TODO: escape node.value
-      translator.push("str += '" + node.value + "';");
-      return;
-    }
-
-    if ('variable' === node.type) {
-      translator.push("str += (" + anchor + " || '<undefined>').toString();");
-      return;
-    }
-
-    if ('plural' === node.type) {
-      translator.push(
-        "str += (!" + anchor + " || isNaN(" + anchor + ")) " +
-          "? '<invalid_amount>' " +
-          ": this.pluralize('" + lang + "', +" + anchor + ", " + JSON.stringify(node.forms) + ");"
-      );
-      return;
-    }
-
-    // should never happen
-    throw new Error('Unknown node type');
-  });
-
-  translator.push("return str;");
-
-  /*jslint evil:true*/
-  return new Function('params', translator.join('\n'));
-}
-
-
 // Iterator for Underscore.filter to leave non-scopes only
 function flatStorageFilter(val) {
   return 'object' !== val.type;
@@ -185,233 +130,21 @@ function getLocaleStorage(self, locale) {
 }
 
 
-function mergeTranslations(receiver, transmitter, locale) {
-  Underscore.each(transmitter, function (data, key) {
-    // go deeper
-    if ('object' === data.type) {
-      if (!receiver[key] || 'object' !== receiver[key].type) {
-        receiver[key] = {
-          type:   'object',
-          locale: null,
-          value:  {}
-        };
-      }
-      mergeTranslations(receiver[key].value, data.value, locale);
-      return;
-    }
-
-    // propose translation. make a copy
-    if (data.locale === locale) {
-      receiver[key] = Underscore.extend({}, data);
-    }
-  });
-
-  return receiver;
-}
-
-
-// recompiles phrases for locale
-function recompile(self, locale) {
-  var fallbacks, fb_locale, old_storage, new_storage;
-
-  fallbacks = (self._fallbacks[locale] || []).slice();
-  old_storage = getLocaleStorage(self, locale);
-  new_storage = mergeTranslations({}, getLocaleStorage(self, self.defaultLocale), self.defaultLocale);
-
-  // mix-in fallbacks
-  while (fallbacks.length) {
-    fb_locale = fallbacks.pop();
-    mergeTranslations(new_storage, getLocaleStorage(self, fb_locale), fb_locale);
-  }
-
-  // mix-in locale overrides
-  self._storage[locale] = mergeTranslations(new_storage, old_storage, locale);
-}
-
-
 // public api (module)
 ////////////////////////////////////////////////////////////////////////////////
 
 
 /**
- *  new BabelFish([defaultLocale = 'en'])
- *
- *  Initiates new instance of BabelFish. It can't be used as function (without
- *  `new` keyword. Use [[BabelFish.create]] for this purpose.
+ *  new BabelFish(storage)
  **/
-function BabelFish(defaultLocale) {
-  /** read-only
-   *  BabelFish#defaultLocale -> String
-   *
-   *  Default locale, tht will be used if requested locale has no translation,
-   *  and have no fallacks or none of its fallbacks have translation as well.
-   **/
-  Object.defineProperty(this, 'defaultLocale', {
-    value: trim(defaultLocale) || GENERIC_LOCALE
-  });
-
-  // hash of locale => [ fallback1, fallback2, ... ] pairs
-  this._fallbacks = {};
-
-  // hash of fallback => [ locale1, locale2, ... ] pairs
-  this._fallbacksReverse = {};
-
-  // states of compilation per each locale locale => bool pairs
-  this._compiled = {};
-
+function BabelFish(storage) {
   // storage of compiled translations
-  this._storage = {};
+  this._storage = storage;
 }
-
-
-/** chainable
- *  BabelFish.create([defaultLocale = 'en']) -> BabelFish
- *
- *  Syntax sugar for constructor:
- *
- *      new BabelFish('ru')
- *      // equals to:
- *      BabelFish.create('ru');
- **/
-BabelFish.create = function create(defaultLocale) {
-  return new BabelFish(defaultLocale);
-};
 
 
 // public api (instance)
 ////////////////////////////////////////////////////////////////////////////////
-
-
-/** chainable
- *  BabelFish#addPhrase(locale, scope, value) -> BabelFish
- *  - locale (String): Locale of translation
- *  - scope (String|Null): Scope of value, e.g. `apps.forum`
- *  - value (String|Object): Value or nested scopes with values.
- *
- *  ##### Errors
- *
- *  - **TypeError** when `value` is neither _String_ nor _Object_.
- *
- *  ##### Example
- *
- *      i18n.addPhrase('ru-RU',
- *        'apps.forums.replies_count',
- *        '#{count} %{ответ|ответа|ответов}:count в теме');
- *
- *      // equals to:
- *      i18n.addPhrase('ru-RU',
- *        'apps.forums',
- *        { replies_count: '#{count} %{ответ|ответа|ответов}:count в теме' });
- **/
-BabelFish.prototype.addPhrase = function addPhrase(locale, scope, value) {
-  var self = this, t = typeof value, parts, storage, data;
-
-  if ('string' !== t && 'object' !== t && value !== (value || '').toString()) {
-    throw new TypeError('Invalid value. String or Object expected');
-  } else if ('object' === t) {
-    // recursive recursion
-    Underscore.each(value, function (value, key) {
-      self.addPhrase(locale, scope + '.' + key, value);
-    });
-    return;
-  }
-
-  storage = getLocaleStorage(this, locale);
-  parts = parseScope(scope);
-
-  // process inner scope
-  parts.chunks.forEach(function (scope_key) {
-    if (!storage[scope_key] || 'object' !== storage[scope_key].type) {
-      storage[scope_key] = {
-        type:   'object',
-        locale: null,
-        value:  {}
-      };
-    }
-
-    storage = storage[scope_key].value;
-  });
-
-  // prepare data object
-  data = storage[parts.key] = {
-    type:   null, // will set it below
-    locale: locale,
-    value:  compile(value, locale)
-  };
-
-  // set data type
-  data.type = ('function' === typeof data.value) ? 'function' : 'string';
-
-  // mark all "dependant" locales for recompilation
-  (self._fallbacksReverse[locale] || []).forEach(function (locale) {
-    // we need to recompile non-default locales only
-    if (locale !== self.defaultLocale) {
-      self._compiled[locale] = false;
-    }
-  });
-
-  return this;
-};
-
-
-/** chainable
- *  BabelFish#setFallback(locale, fallbacks) -> BabelFish
- *  - locale (String): Target locale
- *  - fallbacks (Array): List of fallback locales
- *
- *  Set fallbacks for given locale.
- *
- *  When `locale` has no translation for the phrase, `fallbacks[0]` will be
- *  tried, if translation still not found, then `fallbacks[1]` will be tried
- *  and so on. If none of fallbacks have translation,
- *  [[BabelFish#defaultLocale]] will be tried as last resort.
- *
- *  ##### Errors
- *
- *  - throws `Error`, when `locale` equals [[BabelFish#defaultLocale]]
- *
- *  ##### Example
- *
- *      i18n.setFallback('ua-UK', ['ua', 'ru']);
- **/
-BabelFish.prototype.setFallback = function setFallback(locale, fallbacks) {
-  var self = this;
-
-  if (self.defaultLocale === locale) {
-    throw new Error("Default locale can't have fallbacks");
-  }
-
-  // clear out current fallbacks
-  if (!!self._fallbacks[locale]) {
-    self._fallbacks[locale].forEach(function (fallback) {
-      var idx = self._fallbacksReverse[fallback].indexOf(locale);
-      if (-1 !== idx) {
-        delete self._fallbacksReverse[fallback][idx];
-      }
-    });
-  }
-
-  // set new empty stack of fallbacks
-  self._fallbacks[locale] = [];
-
-  // fill in new fallbacks. defaultLocale is appended as last fallback
-  fallbacks.forEach(function (fallback) {
-    if (!self._fallbacksReverse[fallback]) {
-      self._fallbacksReverse[fallback] = [];
-    }
-
-    if (-1 === self._fallbacksReverse[fallback].indexOf(locale)) {
-      self._fallbacksReverse[fallback].push(locale);
-    }
-
-    self._fallbacks[locale].push(fallback);
-  });
-
-  // mark locale for recompilation
-  self._compiled[locale] = false;
-
-  return this;
-};
 
 
 /**
@@ -489,12 +222,6 @@ BabelFish.prototype.t = BabelFish.prototype.translate;
 BabelFish.prototype.getCompiledData = function getCompiledData(locale, scope, options) {
   var storage, parts;
 
-  // force recompilation if needed
-  if (!this._compiled[locale]) {
-    recompile(this, locale);
-    this._compiled[locale] = true;
-  }
-
   options = options || {};
   storage = getLocaleStorage(this, locale);
 
@@ -542,135 +269,6 @@ module.exports = BabelFish;
     return this.exports;
   });
   this.def("1", function (require) {
-    var module = this, exports = this.exports;
-
-'use strict';
-
-
-var Parser = module.exports = {};
-
-function ScalarNode(value) {
-  this.type = 'text';
-  this.value = value;
-}
-
-
-function VariableNode(anchor) {
-  this.type = 'variable';
-  this.anchor = anchor;
-}
-
-
-function PluralNode(anchor, forms) {
-  this.type = 'plural';
-  this.anchor = anchor;
-  this.forms = forms;
-}
-
-
-// Expose nodes for testing
-Parser.Nodes = {
-  ScalarNode: ScalarNode,
-  VariableNode: VariableNode,
-  PluralNode: PluralNode
-};
-
-
-// catch valid variable and object accessor notation
-var ANCHOR_REGEXP = new RegExp(
-  '([a-z_$](?:[a-z0-9_$]*|\\.[a-z_$][a-z0-9_$]*)*)',
-  'i'
-);
-
-
-// finds macros in the translations
-var MACROS_REGEXP = new RegExp(
-  '(^|.*?[^\\\\])' +            // either nothing, or anything which doesn't end with \ (backslash)
-    '(?:' +
-      '#{' +                    // interpolation
-        ANCHOR_REGEXP.source +  // interpolating variable
-      '}' +
-    '|' +
-      '%{' +                    // pluralization
-        '(.*?[^\\\\])(?=})' +   // word forms
-      '}:' +
-      ANCHOR_REGEXP.source +    // controlling variable
-    ')',
-  'i'
-);
-
-// used to unescape critical chars
-var UNESCAPE_CHARS = new RegExp('\\\\([#%}{|\\\\])', 'g');
-function unescapeString(str) {
-  return str.replace(UNESCAPE_CHARS, '$1');
-}
-
-// used to split arguments of plural
-var FORMS_SEPARATOR_REGEXP = new RegExp('([\\\\]*)[|]');
-function parseForms(str) {
-  var forms = [], match, tmp = '';
-
-  while (!!str.length) {
-    match = str.match(FORMS_SEPARATOR_REGEXP);
-
-    if (null === match) {
-      forms.push(str);
-      str = '';
-    } else if (1 === match[1].length % 2) {
-      tmp += str.slice(0, match.index + match[0].length);
-      str = str.slice(match.index + match[0].length);
-    } else {
-      forms.push(tmp + str.slice(0, match.index + match[0].length - 1));
-      str = str.slice(match.index + match[0].length);
-      tmp = '';
-    }
-  }
-
-  return forms.map(unescapeString);
-}
-
-
-// parses string into array of nodes
-Parser.parse = function parse(str) {
-  var nodes = [], match;
-
-  while (!!str.length) {
-    match = str.match(MACROS_REGEXP);
-
-    if (null === match) {
-      nodes.push(new ScalarNode(unescapeString(str)));
-      break;
-    }
-
-    // we have scalars before macros
-    if (match[1] && 0 !== match[1].length) {
-      nodes.push(new ScalarNode(unescapeString(match[1])));
-    }
-
-    // got variable node
-    if (undefined !== match[2]) {
-      nodes.push(new VariableNode(match[2]));
-    // got plurals
-    } else {
-      nodes.push(new PluralNode(match[4], parseForms(match[3])));
-    }
-
-    // remove processed data
-    str = str.slice(match.index + match[0].length);
-  }
-
-  return nodes;
-};
-
-
-// export RegExps for unit testing
-Parser.MACROS_REGEXP = MACROS_REGEXP;
-Parser.ANCHOR_REGEXP = ANCHOR_REGEXP;
-
-
-    return this.exports;
-  });
-  this.def("2", function (require) {
     var module = this, exports = this.exports;
 
 //

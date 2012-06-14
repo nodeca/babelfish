@@ -84,9 +84,9 @@ todo:
 
 
 browserify:
-	rm -rf dist && mkdir dist
-	collector --export-name 'BabelFish = window.BabelFish' ./lib/babelfish \
-		> dist/babelfish-${NPM_VERSION}.js
+	rm -rf browser && mkdir browser
+	collector --export-name 'BabelFish = window.BabelFish' ./lib/babelfish/runtime \
+		> browser/babelfish-runtime.js
 
 
 .PHONY: lint test doc dev-deps gh-pages todo
