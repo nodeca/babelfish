@@ -46,8 +46,8 @@ dev-deps:
 		echo "  See: http://npmjs.org/" >&2 ; \
 		exit 128 ; \
 		fi
-	npm install jshint -g
-	npm install --dev
+	which jshint > /dev/null || npm install -g jshint
+	npm install
 
 gh-pages:
 	@if test -z ${REMOTE_REPO} ; then \
