@@ -83,10 +83,6 @@ require('vows').describe('BabelFish.Parser').addBatch({
       new ScalarNode('.')
     ],
 
-    'Invalid count of %{a|b}:... plurals.': [
-      new ScalarNode('Invalid count of %{a|b}:... plurals.')
-    ],
-
     'Plurals with empty %{}:myvar forms': [
       new ScalarNode('Plurals with empty %{}:myvar forms')
     ],
