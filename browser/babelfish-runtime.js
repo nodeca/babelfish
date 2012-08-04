@@ -37,12 +37,6 @@ var Pluralizer = require("1");
 ////////////////////////////////////////////////////////////////////////////////
 
 
-function trim(str) {
-  // cross-browser trim() function
-  return String(str || '').replace(/^\s*|\s*$/mg, '');
-}
-
-
 // similar to Underscore.filter, but preserves keys of object
 function filterObject(obj, iterator) {
   var data = {};
@@ -64,7 +58,7 @@ function parseScope(scope) {
 
   // get key and make sure we are not dealing with empty key, e.g. `foo.`
   while (!parts.key && !!chunks.length) {
-    parts.key = trim(chunks.pop());
+    parts.key = chunks.pop() || '';
   }
 
   // empty scope given `` or `.`, or `..` etc.
@@ -74,7 +68,6 @@ function parseScope(scope) {
 
   // filter chunks that left
   Underscore.each(chunks, function (chunk) {
-    chunk = trim(chunk);
     if (!!chunk) {
       parts.chunks.push(chunk);
     }
