@@ -113,6 +113,18 @@ require('vows').describe('BabelFish.Parser').addBatch({
     'Escape backslash %{a\\\\|b}:c': [
       new ScalarNode('Escape backslash '),
       new PluralNode('c', ['a\\', 'b'])
+    ],
+
+    'Automagically set %{anchor|to|count} when plural have no anchor': [
+      new ScalarNode('Automagically set '),
+      new PluralNode('count', ['anchor', 'to', 'count']),
+      new ScalarNode(' when plural have no anchor')
+    ],
+
+    'Treat %{trailing|semicolumn}: literally and use automagic anchor': [
+      new ScalarNode('Treat '),
+      new PluralNode('count', ['trailing', 'semicolumn']),
+      new ScalarNode(': literally and use automagic anchor')
     ]
   }),
 
