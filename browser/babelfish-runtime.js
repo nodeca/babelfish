@@ -38,7 +38,8 @@ var Pluralizer = require("1");
 
 
 function trim(str) {
-  return (str || '').toString().trimLeft().trimRight();
+  // cross-browser trim() function
+  return String(str || '').replace(/^\s*|\s*$/mg, '');
 }
 
 
