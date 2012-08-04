@@ -18,6 +18,12 @@ example:
 
     А у меня в кармане #{nails_count} %{гвоздь|гвоздя|гвоздей}:nails_count
 
+You can also omit `count` variable for plurals, by default it will be `count`.
+Thus following variants are equal:
+
+- `I have #{count} %{nail|nails}`
+- `I have #{count} %{nail|nails}:count`
+
 
 #### Escape chars
 
