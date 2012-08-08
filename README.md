@@ -6,6 +6,10 @@ Internationaliation with easy syntax for Node.JS. Classic solutions use multiple
 for plurals. But we define plurals inline - that's more compact, and easier to maintain.
 Also, phrases are grouped into nested scopes, like in Ruby.
 
+We support all pluralisation rules from [unicode CLDR](http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html),
+version [2.0.1](http://cldr.unicode.org/index/downloads).
+
+
 If you need cli tools to generate language files - see [babelfish.tools](https://github.com/nodeca/babelfish.tools).
 
 
