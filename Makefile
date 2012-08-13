@@ -92,5 +92,14 @@ browserify:
 		> browser/babelfish-runtime.js
 
 
+lib/babelfish/parser.js:
+	@if test ! `which pegjs` ; then \
+		echo "You need 'pegjs' installed in order to compile parser." >&2 ; \
+		echo "  $ make dev-deps" >&2 ; \
+		exit 128 ; \
+	fi
+	pegjs src/parser.pegjs lib/babelfish/parser.js
+
+
 .PHONY: lint test doc dev-deps gh-pages todo
 .SILENT: lint test doc todo

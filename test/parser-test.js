@@ -5,9 +5,23 @@ var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 
 
-var ScalarNode = Parser.Nodes.ScalarNode;
-var VariableNode = Parser.Nodes.VariableNode;
-var PluralNode = Parser.Nodes.PluralNode;
+function LiteralNode(text) {
+  this.type = 'literal';
+  this.text = text;
+}
+
+
+function VariableNode(anchor) {
+  this.type   = 'variable';
+  this.anchor = anchor;
+}
+
+
+function PluralNode(anchor, forms) {
+  this.type   = 'plural';
+  this.forms  = forms;
+  this.anchor = anchor || 'count';
+}
 
 
 function testParsedNodes(definitions) {
@@ -21,7 +35,20 @@ function testParsedNodes(definitions) {
       result = Parser.parse(str);
 
       // make sure we have expected amount of nodes
-      Assert.equal(result.length, expected.length, 'Unexpected amount of nodes.');
+      if (result.length !== expected.length) {
+        Assert.ok(false, 'Unexpected amount of nodes.' +
+                  '\nExpected:  ' + expected.length +
+                  '\nActual:    ' + result.length +
+                  '\n' + result.map(function (o) {
+                    var ret = '\n - type: ' + o.type;
+
+                    if (o.anchor) { ret += '\n   anchor: ' + o.anchor; }
+                    if (o.forms) { ret += '\n   forms: ' + o.forms; }
+                    if (o.text) { ret += '\n   text: ' + o.text; }
+
+                    return ret;
+                  }));
+      }
 
       result.forEach(function (node, idx) {
         Assert.deepEqual(node, expected[idx]);
@@ -47,202 +74,80 @@ function regExpMatch(str, data) {
 require('vows').describe('BabelFish.Parser').addBatch({
   'Parsing strings': testParsedNodes({
     'Simple string }{ with \b brackets and \t special chars': [
-      new ScalarNode('Simple string }{ with \b brackets and \t special chars')
+      new LiteralNode('Simple string }{ with \b brackets and \t special chars')
     ],
 
-    'Quirky #{} #{1} #{  } foo bar. #{. (.) . (.).} bazzz.%{}$_ mess': [
-      new ScalarNode('Quirky #{} #{1} #{  } foo bar. #{. (.) . (.).} bazzz.%{}$_ mess')
+    'Quirky %{} %{1} %{  } foo bar. %{. (.) . (.).} bazzz.{{}}$_ mess': [
+      new LiteralNode('Quirky %{} %{1} %{  } foo bar. %{. (.) . (.).} bazzz.{{}}$_ mess')
     ],
 
-    'String with simple #{variable}...': [
-      new ScalarNode('String with simple '),
+    'String with simple %{variable}...': [
+      new LiteralNode('String with simple '),
       new VariableNode('variable'),
-      new ScalarNode('...')
+      new LiteralNode('...')
     ],
 
-    'String with complex #{foo.bar.baz} variable': [
-      new ScalarNode('String with complex '),
+    'String with complex %{foo.bar.baz} variable': [
+      new LiteralNode('String with complex '),
       new VariableNode('foo.bar.baz'),
-      new ScalarNode(' variable')
+      new LiteralNode(' variable')
     ],
 
-    'String with plurals %{a|b}:c': [
-      new ScalarNode('String with plurals '),
+    'String with plurals {{a|b}}:c': [
+      new LiteralNode('String with plurals '),
       new PluralNode('c', ['a', 'b'])
     ],
 
-    'Plurals with %{a\\}b\\|c\\{d|e}:myvar, escaping': [
-      new ScalarNode('Plurals with '),
+    'Plurals with {{a\\}b\\|c\\{d|e}}:myvar, escaping': [
+      new LiteralNode('Plurals with '),
       new PluralNode('myvar', ['a}b|c{d', 'e']),
-      new ScalarNode(', escaping')
+      new LiteralNode(', escaping')
     ],
 
-    'Plurals with %{a|b}:_compl3x.$variable.': [
-      new ScalarNode('Plurals with '),
+    'Plurals with {{a|b}}:_compl3x.$variable.': [
+      new LiteralNode('Plurals with '),
       new PluralNode('_compl3x.$variable', ['a', 'b']),
-      new ScalarNode('.')
+      new LiteralNode('.')
     ],
 
-    'Plurals with empty %{}:myvar forms': [
-      new ScalarNode('Plurals with empty %{}:myvar forms')
+    'Plurals with empty {{}}:myvar forms': [
+      new LiteralNode('Plurals with empty {{}}:myvar forms')
     ],
 
-    'Plurals with single %{abc}:$myvar forms': [
-      new ScalarNode('Plurals with single '),
+    'Plurals with single {{abc}}:$myvar forms': [
+      new LiteralNode('Plurals with single '),
       new PluralNode('$myvar', ['abc']),
-      new ScalarNode(' forms')
+      new LiteralNode(' forms')
     ],
 
-    'Plurals with lots of forms %{b|c|d|e|f|g|h}:a': [
-      new ScalarNode('Plurals with lots of forms '),
+    'Plurals with lots of forms {{b|c|d|e|f|g|h}}:a': [
+      new LiteralNode('Plurals with lots of forms '),
       new PluralNode('a', ['b', 'c', 'd', 'e', 'f', 'g', 'h'])
     ],
 
-    'Escape \\%{a|b|}:plurals and \\#{variables}': [
-      new ScalarNode('Escape %{a|b|}:plurals and #{variables}')
+    'Escape \\{{a|b|}}:plurals and \\%{variables}': [
+      new LiteralNode('Escape {{a|b|}}:plurals and %{variables}')
     ],
 
-    'Invalid variable #{n..e}': [
-      new ScalarNode('Invalid variable #{n..e}')
+    'Invalid variable %{n..e}': [
+      new LiteralNode('Invalid variable %{n..e}')
     ],
 
-    'Escape backslash %{a\\\\|b}:c': [
-      new ScalarNode('Escape backslash '),
+    'Escape backslash {{a\\\\|b}}:c': [
+      new LiteralNode('Escape backslash '),
       new PluralNode('c', ['a\\', 'b'])
     ],
 
-    'Automagically set %{anchor|to|count} when plural have no anchor': [
-      new ScalarNode('Automagically set '),
+    'Automagically set {{anchor|to|count}} when plural have no anchor': [
+      new LiteralNode('Automagically set '),
       new PluralNode('count', ['anchor', 'to', 'count']),
-      new ScalarNode(' when plural have no anchor')
+      new LiteralNode(' when plural have no anchor')
     ],
 
-    'Treat %{trailing|semicolumn}: literally and use automagic anchor': [
-      new ScalarNode('Treat '),
+    'Treat {{trailing|semicolumn}}: literally and use automagic anchor': [
+      new LiteralNode('Treat '),
       new PluralNode('count', ['trailing', 'semicolumn']),
-      new ScalarNode(': literally and use automagic anchor')
+      new LiteralNode(': literally and use automagic anchor')
     ]
-  }),
-
-
-  //////////////////////////////////////////////////////////////////////////////
-
-
-  'MACROS_REGEXP': {
-    topic: Parser.MACROS_REGEXP,
-
-    'matches only when valid macros presented': function (re) {
-      Assert.isNull(re.exec(''));
-      Assert.isNotNull(re.exec('foo %{f}:v bar'));
-    },
-
-    // [0] -> macthed string
-    // [1] -> leading string
-    // [2] -> variable anchor
-    // [3] -> plural forms
-    // [4] -> plural anchor
-
-    'matches macros with leading string':
-      regExpMatch('< %{f}:v ...', [
-        '< %{f}:v', '< ', undefined, 'f', 'v'
-      ]),
-
-    'matches macros without leading string':
-      regExpMatch('%{f}:v ...', [
-        '%{f}:v', '', undefined, 'f', 'v'
-      ]),
-
-    'skips escaped plurals':
-      regExpMatch('< \\%{f1}:v1 %{f2}:v2 ...', [
-        '< \\%{f1}:v1 %{f2}:v2', '< \\%{f1}:v1 ', undefined, 'f2', 'v2'
-      ]),
-
-    'skips escaped variables':
-      regExpMatch('\\#{v1} %{f2}:v2 ...', [
-        '\\#{v1} %{f2}:v2', '\\#{v1} ', undefined, 'f2', 'v2'
-      ]),
-
-    'allows squeezed macros':
-      regExpMatch('<%{f}:v#{v}>', [
-        '<%{f}:v', '<', undefined, 'f', 'v'
-      ]),
-
-    'disallows invalid variable names in interpolation macros':
-      regExpMatch('#{a\\|b}#{v}...', [
-        '#{a\\|b}#{v}', '#{a\\|b}', 'v', undefined, undefined
-      ]),
-
-    'allows escaping of `|` (pipe) inside plural forms':
-      regExpMatch('%{a\\||b}:v', [
-        '%{a\\||b}:v', '', undefined, 'a\\||b', 'v'
-      ]),
-
-    'allows escaping of `}` inside plural forms':
-      regExpMatch('%{a\\}|b}:v', [
-        '%{a\\}|b}:v', '', undefined, 'a\\}|b', 'v'
-      ]),
-
-    'allows escaping of `\\` to void macros escaping':
-      regExpMatch('\\\\#{a}#{b}', [
-        '\\\\#{a}#{b}', '\\\\#{a}', 'b', undefined, undefined
-      ]),
-
-    'allows escaping of `\\` inside macros':
-      regExpMatch('%{a\\\\|b}:v', [
-        '%{a\\\\|b}:v', '', undefined, 'a\\\\|b', 'v'
-      ]),
-
-    'matches complex variable name':
-      regExpMatch('#{$._.foobar}:...', [
-        '#{$._.foobar}', '', '$._.foobar', undefined, undefined
-      ]),
-
-    'does not include trailing dot in plural anchor':
-      regExpMatch('%{f}:foo.', [
-        '%{f}:foo', '', undefined, 'f', 'foo'
-      ]),
-
-    'allows unicode chars':
-      regExpMatch('\u1234%{\u1234}:v...', [
-        '\u1234%{\u1234}:v', '\u1234', undefined, '\u1234', 'v'
-      ])
-  },
-
-
-  //////////////////////////////////////////////////////////////////////////////
-
-
-  'ANCHOR_REGEXP': {
-    topic: Parser.ANCHOR_REGEXP,
-
-    'matches variables with valid first/last char only': function (re) {
-      re = new RegExp('^' + re.source + '$', 'i');
-
-      Assert.isNotNull(re.exec('foobar'));
-      Assert.isNull(re.exec('.foobar'));
-      Assert.isNull(re.exec('foobar.'));
-    },
-
-    'allows /a-z/i letters only': function (re) {
-      Assert.isNull('привет'.match(re));
-    },
-
-    'matches simple variables': function (re) {
-      ['simple', '$$$', '_myVar', 'var_n4m3', 'a10'].forEach(function (str) {
-        regExpMatch(str, [str, str])(re);
-      });
-    },
-
-    'matches complex variables': function (re) {
-      ['foo.bar', 'a.b.c.d.e', '_foo_._', '$foo$.$', '_', '$'].forEach(function (str) {
-        regExpMatch(str, [str, str])(re);
-      });
-    },
-
-    'matches first valid name': function (re) {
-      regExpMatch('Jožin', ['Jo', 'Jo'])(re);
-      regExpMatch('.foobar', ['foobar', 'foobar'])(re);
-      regExpMatch('foobar.', ['foobar', 'foobar'])(re);
-    }
-  }
+  })
 }).export(module);

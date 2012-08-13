@@ -20,7 +20,8 @@
   "dependencies"    : { "underscore": "~ 1.3.3" },
   "devDependencies" : {
                         "vows"      : "~ 0.6.1",
-                        "collector" : "git://github.com/nodeca/collector.git"
+                        "collector" : "git://github.com/nodeca/collector.git",
+                        "pegjs"     : "~> 0.7.0"
                       },
   "engines"         : { "node": "> 0.4.11" }
 }

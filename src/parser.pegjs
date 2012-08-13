@@ -1,9 +1,9 @@
 start
-  = (plural / substitution / literal)*
+  = (literal / plural / variable)*
 
 
 plural
-  = "{{" forms:plural_forms "}}" anchor:anchor? {
+  = "{{" forms:plural_forms "}}" anchor:plural_anchor? {
       return {
         type:   'plural',
         forms:  forms,
@@ -32,23 +32,23 @@ plural_char
   / [^|}\\]
 
 
-anchor
+plural_anchor
   = ":" name:identifier {
       return name;
     }
 
 
-substitution
+variable
   = "%{" anchor:identifier "}" {
       return {
-        type:   'substitution',
+        type:   'variable',
         anchor: anchor
       };
     }
 
 
 identifier
-  = a:identifier_part "." b:identifier* {
+  = a:identifier_part "." b:identifier+ {
       return a + "." + b;
     }
   / identifier_part
@@ -63,7 +63,7 @@ identifier_part
 literal
   = chars:literal_char+ {
       return {
-        type: 'litera',
+        type: 'literal',
         text: chars.join('')
       };
     }
