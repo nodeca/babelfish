@@ -1,5 +1,5 @@
 start
-  = (literal / plural / variable)*
+  = (plural / variable / literal)*
 
 
 plural
@@ -47,6 +47,10 @@ variable
     }
 
 
+// Valid Javascript variable identifier, e.g.:
+// - `foo`
+// - `foo.bar`
+// - `$myElement`
 identifier
   = a:identifier_part "." b:identifier+ {
       return a + "." + b;
@@ -55,11 +59,13 @@ identifier
 
 
 identifier_part
-  = a:[a-z_$] b:[a-z0-9_$]* {
+  = a:[a-zA-Z_$] b:[a-zA-Z0-9_$]* {
       return a + b.join("");
     }
 
 
+// Any text, e.g.:
+// - `Hello, World!`
 literal
   = chars:literal_char+ {
       return {
@@ -70,8 +76,14 @@ literal
 
 
 literal_char
-  // any Unicode character except % or { or \ or control character
+  // any Unicode character except { or \ or control character
   = [^%{\\\0-\x1F\x7f]
+  / !"{{" char:"{" {
+      return String(char);
+    }
+  / !"%{" char:"%" {
+      return String(char);
+    }
   / "\\" char:. {
       return String(char);
     }
