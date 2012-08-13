@@ -78,7 +78,17 @@ require('vows').describe('BabelFish.Parser').addBatch({
     ],
 
     'Quirky %{} %{1} %{  } foo bar. %{. (.) . (.).} bazzz.{{}}$_ mess': [
-      new LiteralNode('Quirky %{} %{1} %{  } foo bar. %{. (.) . (.).} bazzz.{{}}$_ mess')
+      new LiteralNode('Quirky '),
+      new LiteralNode('%{'),
+      new LiteralNode('} '),
+      new LiteralNode('%{'),
+      new LiteralNode('1} '),
+      new LiteralNode('%{'),
+      new LiteralNode('  } foo bar. '),
+      new LiteralNode('%{'),
+      new LiteralNode('. (.) . (.).} bazzz.'),
+      new LiteralNode('{{'),
+      new LiteralNode('}}$_ mess')
     ],
 
     'String with simple %{variable}...': [
@@ -111,7 +121,9 @@ require('vows').describe('BabelFish.Parser').addBatch({
     ],
 
     'Plurals with empty {{}}:myvar forms': [
-      new LiteralNode('Plurals with empty {{}}:myvar forms')
+      new LiteralNode('Plurals with empty '),
+      new LiteralNode('{{'),
+      new LiteralNode('}}:myvar forms')
     ],
 
     'Plurals with single {{abc}}:$myvar forms': [
@@ -130,7 +142,9 @@ require('vows').describe('BabelFish.Parser').addBatch({
     ],
 
     'Invalid variable %{n..e}': [
-      new LiteralNode('Invalid variable %{n..e}')
+      new LiteralNode('Invalid variable '),
+      new LiteralNode('%{'),
+      new LiteralNode('n..e}')
     ],
 
     'Escape backslash {{a\\\\|b}}:c': [
