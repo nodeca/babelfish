@@ -79,17 +79,6 @@ function testParsedNodes(definitions) {
 }
 
 
-function regExpMatch(str, data) {
-  return function (re) {
-    var m = re.exec(str);
-    Assert.isNotNull(m, 'Pattern does not match the string.');
-    data.forEach(function (expected, idx) {
-      Assert.equal(m[idx], expected);
-    });
-  };
-}
-
-
 require('vows').describe('BabelFish.Parser').addBatch({
   'Parsing strings': testParsedNodes({
     'Simple string }{ with \b brackets and \t special chars': [

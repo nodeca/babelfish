@@ -13,15 +13,6 @@ plural
         anchor: anchor || 'count'
       };
     }
-  // We met invalid plural form e.g. `{{|}}`,
-  // so instead of failing return string node `{{` to make
-  // parser continue parsing
-  / char:"{{" {
-      return {
-        type: 'literal',
-        text: String(char)
-      };
-    }
 
 
 // List of plural forms, e.g.:
@@ -67,15 +58,6 @@ variable
         anchor: anchor
       };
     }
-  // We met invalid identifier e.g. `%(n..e)`,
-  // so instead of failing return string node `%(` to make
-  // parser continue parsing
-  / char:"%(" {
-      return {
-        type: 'literal',
-        text: String(char)
-      };
-    }
 
 
 // Valid Javascript variable identifier, e.g.:
@@ -99,10 +81,10 @@ identifier_part
 // Any text, e.g.:
 // - `Hello, World!`
 literal
-  = chars:literal_char+ {
+  = char:literal_char {
       return {
         type: 'literal',
-        text: chars.join('')
+        text: String(char)
       };
     }
 
@@ -110,19 +92,7 @@ literal
 // Any non-special character
 literal_char
   // any Unicode character except { or \ or control character
-  = [^%{\\]
-  / !"{{" char:"{" {
+  = "\\" char:[\\{%] {
       return String(char);
     }
-  / !"%(" char:"%" {
-      return String(char);
-    }
-  / "\\" char:"\\" {
-      return String(char);
-    }
-  / "\\" char:"{" {
-      return String(char);
-    }
-  / "\\" char:"%" {
-      return String(char);
-    }
+  / .
