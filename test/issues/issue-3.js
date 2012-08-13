@@ -7,13 +7,12 @@ var BabelFish = require('../..');
 
 module.exports = {
   title: "#3: Compilation fails.",
-  pending: true,
-  fixed: false,
+  fixed: true,
   test: function () {
     var i18n = new BabelFish();
 
     Assert.doesNotThrow(function () {
-      i18n.addPhrase('en', 'test', 'foo #{bar} baz\n');
+      i18n.addPhrase('en', 'test', 'foo #(bar) baz\n');
     }, SyntaxError);
   }
 };
