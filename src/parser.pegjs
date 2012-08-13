@@ -117,6 +117,12 @@ literal_char
   / !"%{" char:"%" {
       return String(char);
     }
-  / "\\" char:. {
+  / "\\" char:"\\" {
+      return String(char);
+    }
+  / "\\" char:"{" {
+      return String(char);
+    }
+  / "\\" char:"%" {
       return String(char);
     }
