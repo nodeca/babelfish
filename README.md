@@ -15,24 +15,24 @@ If you need cli tools to generate language files - see [babelfish.tools](https:/
 
 ## Phrases Syntax
 
--  `#{varname}` Echoes value of variable
--  `%{Singular|Plural1|Plural2}:count` Plural form
+-  `%(varname)` Echoes value of variable
+-  `{{Singular|Plural1|Plural2}}:count` Plural form
 
 example:
 
-    А у меня в кармане #{nails_count} %{гвоздь|гвоздя|гвоздей}:nails_count
+    А у меня в кармане %(nails_count) {{гвоздь|гвоздя|гвоздей}}:nails_count
 
 You can also omit `count` variable for plurals, by default it will be `count`.
 Thus following variants are equal:
 
-- `I have #{count} %{nail|nails}`
-- `I have #{count} %{nail|nails}:count`
+- `I have %(count) {{nail|nails}}`
+- `I have %(count) {{nail|nails}}:count`
 
 
 #### Escape chars
 
 
-We support escaping (with backslash) of `#`, `%`, `|`, `\`, `{` and `}`.
+We support escaping (with backslash) of `%`, `)`, `|`, `\`, `{` and `}`.
 
 
 #### Example with YAML
@@ -51,7 +51,7 @@ YAML files:
             title : Последнее сообщение
             by : от
       demo:
-        apples: "На столе лежит #{apples.count} %{яблоко|яблока|яблок}:apples.count"
+        apples: "На столе лежит %(apples.count) {{яблоко|яблока|яблок}}:apples.count"
 
 
 ## Usage
@@ -61,14 +61,14 @@ YAML files:
 
 
     // Fill in some phrases
-    i18n.addPhrase('en-GB', 'demo.hello',         'Hello, #{user.name}.');
+    i18n.addPhrase('en-GB', 'demo.hello',         'Hello, %(user.name).');
     i18n.addPhrase('en-GB', 'demo.conv.wazup',    'Whats up?');
     i18n.addPhrase('en-GB', 'demo.conv.alright',  'Alright, man!');
 
-    i18n.addPhrase('ru-RU', 'demo.hello',         'Привет, #{user.name}.');
+    i18n.addPhrase('ru-RU', 'demo.hello',         'Привет, %(user.name).');
     i18n.addPhrase('ru-RU', 'demo.conv.wazup',    'Как дела?');
 
-    i18n.addPhrase('uk-UA', 'demo.hello',         'Здоровенькі були, #{user.name}.');
+    i18n.addPhrase('uk-UA', 'demo.hello',         'Здоровенькі були, %(user.name).');
 
 
     // Set locale fallback so we use most appropriate translation

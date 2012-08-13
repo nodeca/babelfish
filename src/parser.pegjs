@@ -37,8 +37,8 @@ plural_part
 
 // Single char of the plural form (returns simple char or unescapes `\|`)
 plural_char
-  = "\\" char:. { return String(char); }
-  / [^|}\\]
+  = "\\" char:[\\|}{] { return String(char); }
+  / [^\\|}]
 
 
 // Name of a variable containing count for plurals
