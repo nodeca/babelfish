@@ -49,10 +49,10 @@ plural_anchor
 
 
 // Interpolation variable, e.g.:
-// - `%(count)`
-// - `%(user.name)`
+// - `#(count)`
+// - `#(user.name)`
 variable
-  = "%(" anchor:identifier ")" {
+  = "#(" anchor:identifier ")" {
       return {
         type:   'variable',
         anchor: anchor
@@ -92,7 +92,7 @@ literal
 // Any non-special character
 literal_char
   // any Unicode character except { or \ or control character
-  = "\\" char:[\\{%] {
+  = "\\" char:[\\{#] {
       return String(char);
     }
   / .
