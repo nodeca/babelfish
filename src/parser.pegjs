@@ -95,7 +95,7 @@ literal
 
 literal_char
   // any Unicode character except { or \ or control character
-  = [^%{\\\0-\x1F\x7f]
+  = [^%{\\]
   / !"{{" char:"{" {
       return String(char);
     }
