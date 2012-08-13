@@ -169,7 +169,7 @@ require('vows').describe('BabelFish').addBatch({
       var i18n = BabelFish.create('en');
 
       i18n.addPhrase('en', 'test.simple_string',    'test');
-      i18n.addPhrase('en', 'test.complex.variable', '-%{count}-');
+      i18n.addPhrase('en', 'test.complex.variable', '-%(count)-');
       i18n.addPhrase('en', 'test.complex.plurals',  '-{{foo|bar}}:count-');
       i18n.addPhrase('ru', 'test.complex.plurals',  '-{{ruu|bar}}:count-');
 
@@ -226,8 +226,8 @@ require('vows').describe('BabelFish').addBatch({
       i18n.addPhrase('en', 'b', 'b (en)');
       i18n.addPhrase('en', 'c', 'c (en) {{one|other}}:count');
       i18n.addPhrase('fr', 'd', 'd (fr) {{une|autre}}:count');
-      i18n.addPhrase('ru', 'b', 'b (ru) %{foo}');
-      i18n.addPhrase('es', 'b', 'b (es) %{f.o}');
+      i18n.addPhrase('ru', 'b', 'b (ru) %(foo)');
+      i18n.addPhrase('es', 'b', 'b (es) %(f.o)');
 
       return i18n;
     },

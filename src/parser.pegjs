@@ -58,19 +58,19 @@ plural_anchor
 
 
 // Interpolation variable, e.g.:
-// - `%{count}`
-// - `%{user.name}`
+// - `%(count)`
+// - `%(user.name)`
 variable
-  = "%{" anchor:identifier "}" {
+  = "%(" anchor:identifier ")" {
       return {
         type:   'variable',
         anchor: anchor
       };
     }
-  // We met invalid identifier e.g. `%{n..e}`,
-  // so instead of failing return string node `%{` to make
+  // We met invalid identifier e.g. `%(n..e)`,
+  // so instead of failing return string node `%(` to make
   // parser continue parsing
-  / char:"%{" {
+  / char:"%(" {
       return {
         type: 'literal',
         text: String(char)
@@ -114,7 +114,7 @@ literal_char
   / !"{{" char:"{" {
       return String(char);
     }
-  / !"%{" char:"%" {
+  / !"%(" char:"%" {
       return String(char);
     }
   / "\\" char:"\\" {

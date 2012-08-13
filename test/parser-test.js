@@ -77,27 +77,27 @@ require('vows').describe('BabelFish.Parser').addBatch({
       new LiteralNode('Simple string }{ with \b brackets and \t special chars')
     ],
 
-    'Quirky %{} %{1} %{  } foo bar. %{. (.) . (.).} bazzz.{{}}$_ mess': [
+    'Quirky %() %(1) %(  ) foo bar. %(. (.) . (.).) bazzz.{{}}$_ mess': [
       new LiteralNode('Quirky '),
-      new LiteralNode('%{'),
-      new LiteralNode('} '),
-      new LiteralNode('%{'),
-      new LiteralNode('1} '),
-      new LiteralNode('%{'),
-      new LiteralNode('  } foo bar. '),
-      new LiteralNode('%{'),
-      new LiteralNode('. (.) . (.).} bazzz.'),
+      new LiteralNode('%('),
+      new LiteralNode(') '),
+      new LiteralNode('%('),
+      new LiteralNode('1) '),
+      new LiteralNode('%('),
+      new LiteralNode('  ) foo bar. '),
+      new LiteralNode('%('),
+      new LiteralNode('. (.) . (.).) bazzz.'),
       new LiteralNode('{{'),
       new LiteralNode('}}$_ mess')
     ],
 
-    'String with simple %{variable}...': [
+    'String with simple %(variable)...': [
       new LiteralNode('String with simple '),
       new VariableNode('variable'),
       new LiteralNode('...')
     ],
 
-    'String with complex %{foo.bar.baz} variable': [
+    'String with complex %(foo.bar.baz) variable': [
       new LiteralNode('String with complex '),
       new VariableNode('foo.bar.baz'),
       new LiteralNode(' variable')
@@ -137,14 +137,14 @@ require('vows').describe('BabelFish.Parser').addBatch({
       new PluralNode('a', ['b', 'c', 'd', 'e', 'f', 'g', 'h'])
     ],
 
-    'Escape \\{{a|b|}}:plurals and \\%{variables}': [
-      new LiteralNode('Escape {{a|b|}}:plurals and %{variables}')
+    'Escape \\{{a|b|}}:plurals and \\%(variables)': [
+      new LiteralNode('Escape {{a|b|}}:plurals and %(variables)')
     ],
 
-    'Invalid variable %{n..e}': [
+    'Invalid variable %(n..e)': [
       new LiteralNode('Invalid variable '),
-      new LiteralNode('%{'),
-      new LiteralNode('n..e}')
+      new LiteralNode('%('),
+      new LiteralNode('n..e)')
     ],
 
     'Escape backslash {{a\\\\|b}}:c': [
