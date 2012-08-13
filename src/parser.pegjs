@@ -3,10 +3,10 @@ start
 
 
 // Plurals macros
-// - `{{girl|girls}}`
-// - `{{girl|girls}}:chicks_count`
+// - `((girl|girls))`
+// - `((girl|girls)):chicks_count`
 plural
-  = "{{" forms:plural_forms "}}" anchor:plural_anchor? {
+  = "((" forms:plural_forms "))" anchor:plural_anchor? {
       return {
         type:   'plural',
         forms:  forms,
@@ -37,8 +37,9 @@ plural_part
 
 // Single char of the plural form (returns simple char or unescapes `\|`)
 plural_char
-  = "\\" char:[\\|}{] { return String(char); }
-  / [^\\|}]
+  = " " char:plural_char { return " " + char; }
+  / "\\" char:[\\|)(] { return String(char); }
+  / [^ \\|)]
 
 
 // Name of a variable containing count for plurals
@@ -49,10 +50,10 @@ plural_anchor
 
 
 // Interpolation variable, e.g.:
-// - `#(count)`
-// - `#(user.name)`
+// - `#{count}`
+// - `#{user.name}`
 variable
-  = "#(" anchor:identifier ")" {
+  = "#{" anchor:identifier "}" {
       return {
         type:   'variable',
         anchor: anchor
@@ -91,8 +92,7 @@ literal
 
 // Any non-special character
 literal_char
-  // any Unicode character except { or \ or control character
-  = "\\" char:[\\{#] {
+  = "\\" char:[\\(#] {
       return String(char);
     }
   / .

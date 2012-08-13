@@ -85,74 +85,74 @@ require('vows').describe('BabelFish.Parser').addBatch({
       new LiteralNode('Simple string }{ with \b brackets and \t special chars')
     ],
 
-    'Quirky #() #(1) #(  ) foo bar. #(. (.) . (.).) bazzz.{{}}$_ mess': [
-      new LiteralNode('Quirky #() #(1) #(  ) foo bar. #(. (.) . (.).) bazzz.{{}}$_ mess')
+    'Quirky #{} #{1} #{ } (()):foo ((|)) (( )):bar mess': [
+      new LiteralNode('Quirky #{} #{1} #{ } (()):foo ((|)) (( )):bar mess')
     ],
 
-    'String with simple #(variable)...': [
+    'String with simple #{variable}...': [
       new LiteralNode('String with simple '),
       new VariableNode('variable'),
       new LiteralNode('...')
     ],
 
-    'String with complex #(foo.bar.baz) variable': [
+    'String with complex #{foo.bar.baz} variable': [
       new LiteralNode('String with complex '),
       new VariableNode('foo.bar.baz'),
       new LiteralNode(' variable')
     ],
 
-    'String with plurals {{a|b}}:c': [
+    'String with plurals ((a|b)):c': [
       new LiteralNode('String with plurals '),
       new PluralNode('c', ['a', 'b'])
     ],
 
-    'Plurals with {{a\\}b\\|c\\{d|e}}:myvar, escaping': [
+    'Plurals with ((a\\)b\\|c\\(d|e)):myvar, escaping': [
       new LiteralNode('Plurals with '),
-      new PluralNode('myvar', ['a}b|c{d', 'e']),
+      new PluralNode('myvar', ['a)b|c(d', 'e']),
       new LiteralNode(', escaping')
     ],
 
-    'Plurals with {{a|b}}:_compl3x.$variable.': [
+    'Plurals with ((a|b)):_compl3x.$variable.': [
       new LiteralNode('Plurals with '),
       new PluralNode('_compl3x.$variable', ['a', 'b']),
       new LiteralNode('.')
     ],
 
-    'Plurals with empty {{}}:myvar forms': [
-      new LiteralNode('Plurals with empty {{}}:myvar forms')
+    'Plurals with empty (()):myvar forms': [
+      new LiteralNode('Plurals with empty (()):myvar forms')
     ],
 
-    'Plurals with single {{abc}}:$myvar forms': [
+    'Plurals with single ((abc)):$myvar forms': [
       new LiteralNode('Plurals with single '),
       new PluralNode('$myvar', ['abc']),
       new LiteralNode(' forms')
     ],
 
-    'Plurals with lots of forms {{b|c|d|e|f|g|h}}:a': [
+    'Plurals with lots of forms ((b|c|d|e|f|g|h)):a': [
       new LiteralNode('Plurals with lots of forms '),
       new PluralNode('a', ['b', 'c', 'd', 'e', 'f', 'g', 'h'])
     ],
 
-    'Escape \\{{a|b|}}:plurals and \\#(variables)': [
-      new LiteralNode('Escape {{a|b|}}:plurals and #(variables)')
+    'Escape \\((a|b)):plurals and \\#{variables}': [
+      new LiteralNode('Escape ((a|b)):plurals and #{variables}')
     ],
 
-    'Invalid variable #(n..e)': [
-      new LiteralNode('Invalid variable #(n..e)')
+    'Invalid variable #{n..e}': [
+      new LiteralNode('Invalid variable #{n..e}')
     ],
 
-    'Escape backslash {{a\\\\|b}}:c': [
+    'Escape backslash ((a\\\\|b)):c': [
       new LiteralNode('Escape backslash '),
       new PluralNode('c', ['a\\', 'b'])
     ],
 
-    'Automagically set {{anchor|to|count}} when plural have no anchor': [
+    'Automagically set ((anchor|to|count)) when plural have no anchor': [
       new LiteralNode('Automagically set '),
       new PluralNode('count', ['anchor', 'to', 'count']),
       new LiteralNode(' when plural have no anchor')
     ],
 
-    'Treat {{trailing|semicolumn}}: literally and use automagic anchor': [
+    'Treat ((trailing|semicolumn)): literally and use automagic anchor': [
       new LiteralNode('Treat '),
       new PluralNode('count', ['trailing', 'semicolumn']),
       new LiteralNode(': literally and use automagic anchor')
