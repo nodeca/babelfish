@@ -1,6 +1,7 @@
 'use strict';
 
 
+var Underscore = require('underscore');
 var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 
@@ -24,6 +25,24 @@ function PluralNode(anchor, forms) {
 }
 
 
+// Merge several continuous `literal` nodes together
+function redistribute_ast(ast) {
+  var nodes = [], last = {};
+
+  Underscore.each(ast, function (node) {
+    if ('literal' === last.type && 'literal' === node.type) {
+      last.text += node.text;
+      return;
+    }
+
+    nodes.push(node);
+    last = node;
+  });
+
+  return nodes;
+}
+
+
 function testParsedNodes(definitions) {
   var tests = {};
 
@@ -32,7 +51,7 @@ function testParsedNodes(definitions) {
       var expected, result;
 
       expected = definitions[str];
-      result = Parser.parse(str);
+      result = redistribute_ast(Parser.parse(str));
 
       // make sure we have expected amount of nodes
       if (result.length !== expected.length) {
@@ -78,17 +97,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
     ],
 
     'Quirky %() %(1) %(  ) foo bar. %(. (.) . (.).) bazzz.{{}}$_ mess': [
-      new LiteralNode('Quirky '),
-      new LiteralNode('%('),
-      new LiteralNode(') '),
-      new LiteralNode('%('),
-      new LiteralNode('1) '),
-      new LiteralNode('%('),
-      new LiteralNode('  ) foo bar. '),
-      new LiteralNode('%('),
-      new LiteralNode('. (.) . (.).) bazzz.'),
-      new LiteralNode('{{'),
-      new LiteralNode('}}$_ mess')
+      new LiteralNode('Quirky %() %(1) %(  ) foo bar. %(. (.) . (.).) bazzz.{{}}$_ mess')
     ],
 
     'String with simple %(variable)...': [
@@ -121,9 +130,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
     ],
 
     'Plurals with empty {{}}:myvar forms': [
-      new LiteralNode('Plurals with empty '),
-      new LiteralNode('{{'),
-      new LiteralNode('}}:myvar forms')
+      new LiteralNode('Plurals with empty {{}}:myvar forms')
     ],
 
     'Plurals with single {{abc}}:$myvar forms': [
@@ -142,9 +149,7 @@ require('vows').describe('BabelFish.Parser').addBatch({
     ],
 
     'Invalid variable %(n..e)': [
-      new LiteralNode('Invalid variable '),
-      new LiteralNode('%('),
-      new LiteralNode('n..e)')
+      new LiteralNode('Invalid variable %(n..e)')
     ],
 
     'Escape backslash {{a\\\\|b}}:c': [
