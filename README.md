@@ -1,8 +1,9 @@
 BabelFish - i18n for node.js
 ============================
+
 [![Build Status](https://secure.travis-ci.org/nodeca/babelfish.png)](http://travis-ci.org/nodeca/babelfish)
 
-Internationaliation with easy syntax for Node.JS. Classic solutions use multiple phrases
+Internationalisation with easy syntax for node.js. Classic solutions use multiple phrases
 for plurals. But we define plurals inline - that's more compact, and easier to maintain.
 Also, phrases are grouped into nested scopes, like in Ruby.
 
@@ -22,7 +23,7 @@ example:
 
     А у меня в кармане #{nails_count} ((гвоздь|гвоздя|гвоздей)):nails_count
 
-You can also omit `count` variable for plurals, by default it will be `count`.
+You can also omit anchor variable for plurals, by default it will be `count`.
 Thus following variants are equal:
 
 - `I have #{count} ((nail|nails))`
@@ -31,7 +32,7 @@ Thus following variants are equal:
 
 #### Escape chars
 
-If you need `#{`, `((`, `|` or `)` somewhere in text, where it can be considered
+If you need `#{`, `((`, `|` or `))` somewhere in text, where it can be considered
 as markup part - just escape them with `\`.
 
 
