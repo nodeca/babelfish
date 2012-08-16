@@ -11,9 +11,6 @@ We support all pluralisation rules from [unicode CLDR](http://unicode.org/repos/
 version [2.0.1](http://cldr.unicode.org/index/downloads).
 
 
-If you need cli tools to generate language files - see [babelfish.tools](https://github.com/nodeca/babelfish.tools).
-
-
 ## Phrases Syntax
 
 -  `#{varname}` Echoes value of variable
