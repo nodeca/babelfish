@@ -110,7 +110,7 @@ BabelFish.prototype.translate = function translate(locale, phrase, params) {
 };
 
 
-BabelFish.prototype.hasTranslation = function hasTranslation(locale, phrase) {
+BabelFish.prototype.hasPhrase = function hasPhrase(locale, phrase) {
   var translator  = this.getCompiledData(locale, phrase);
   return 'string' === translator.type || 'function' === translator.type;
 };
