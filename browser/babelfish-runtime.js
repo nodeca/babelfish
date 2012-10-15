@@ -61,7 +61,7 @@ function flattenParams(obj) {
       return;
     }
 
-    params[key] = val.toString();
+    params[key] = val;
   });
 
   return params;
