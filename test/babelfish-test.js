@@ -237,8 +237,8 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'replaces missing params with <undefined>': function (i18n) {
-      Assert.equal(i18n.t('ru', 'b'), 'b (ru) <undefined>');
-      Assert.equal(i18n.t('es', 'b'), 'b (es) <undefined>');
+      Assert.equal(i18n.t('ru', 'b'), 'b (ru) [undefined]');
+      Assert.equal(i18n.t('es', 'b'), 'b (es) [undefined]');
     },
 
     'honors objects in params': function (i18n) {
@@ -246,7 +246,7 @@ require('vows').describe('BabelFish').addBatch({
     },
 
     'reports missing translation': function (i18n) {
-      Assert.equal(i18n.t('en', 'd', {count: 0}), 'en: No translation for <d>');
+      Assert.equal(i18n.t('en', 'd', {count: 0}), 'en: No translation for [d]');
     },
 
     'honors pluralization': function (i18n) {
