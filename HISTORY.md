@@ -2,6 +2,7 @@
 
 * Refactor internal storage
 * Fix flattenParams()
+* Improved error reporting on missing params
 
 
 0.1.0 / 2012-08-14
