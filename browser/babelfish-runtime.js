@@ -54,7 +54,7 @@ function flattenParams(obj) {
   var params = {};
 
   Underscore.each(obj || {}, function (val, key) {
-    if ('object' === typeof val) {
+    if (val && 'object' === typeof val) {
       Underscore.each(flattenParams(val), function (sub_val, sub_key) {
         params[key + '.' + sub_key] = sub_val;
       });

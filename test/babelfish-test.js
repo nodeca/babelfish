@@ -236,9 +236,9 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('en', 'b', {foo: 'bar', bar: 'baz'}), 'b (en)');
     },
 
-    'replaces missing params with <undefined>': function (i18n) {
-      Assert.equal(i18n.t('ru', 'b'), 'b (ru) [undefined]');
-      Assert.equal(i18n.t('es', 'b'), 'b (es) [undefined]');
+    'replaces missing params with [missed variable: <name>]': function (i18n) {
+      Assert.equal(i18n.t('ru', 'b'), 'b (ru) [missed variable: foo]');
+      Assert.equal(i18n.t('es', 'b'), 'b (es) [missed variable: f.o]');
     },
 
     'honors objects in params': function (i18n) {
@@ -260,6 +260,12 @@ require('vows').describe('BabelFish').addBatch({
       Assert.equal(i18n.t('en', 'c', {count: 1.5}), 'c (en) other');
       Assert.equal(i18n.t('fr', 'd', {count: 0}),   'd (fr) une');
       Assert.equal(i18n.t('fr', 'd', {count: 1.5}), 'd (fr) une');
+    },
+
+    'replaces invalid plurals amount with [invalid plurals amount: <name>(<value>)]': function (i18n) {
+      Assert.equal(i18n.t('en', 'c'), 'c (en) [invalid plurals amount: count(undefined)]');
+      Assert.equal(i18n.t('en', 'c', {count: null}), 'c (en) [invalid plurals amount: count(null)]');
+      Assert.equal(i18n.t('en', 'c', {count: "foo"}), 'c (en) [invalid plurals amount: count(foo)]');
     }
   }
 }).export(module);
