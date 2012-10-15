@@ -199,22 +199,16 @@ require('vows').describe('BabelFish').addBatch({
       });
     },
 
-    'returns inner scope Object when scope requested': function (i18n) {
-      var flat, deep;
+    'returns inner scope Object when locale only requested': function (i18n) {
+      var data = i18n.getCompiledData('ru');
 
-      flat = i18n.getCompiledData('ru', 'test', {deep: false});
-      deep = i18n.getCompiledData('ru', 'test', {deep: true});
+      Assert.typeOf(data, 'object');
 
-      Assert.equal(flat.type, 'object');
-      Assert.equal(deep.type, 'object');
+      Assert.include(data, 'test.simple_string');
+      Assert.include(data, 'test.complex.variable');
 
-      Assert.isUndefined(flat.value.complex);
-      Assert.include(flat.value, 'simple_string');
-
-      Assert.include(deep.value, 'simple_string');
-      Assert.include(deep.value, 'complex');
-      Assert.include(deep.value.complex.value,  'variable');
-      Assert.include(deep.value.complex.value,  'plurals');
+      Assert.equal(data['test.simple_string'].type, 'string');
+      Assert.equal(data['test.complex.variable'].type, 'function');
     }
   },
 
