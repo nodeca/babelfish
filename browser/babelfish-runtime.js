@@ -82,9 +82,6 @@ function getLocaleStorage(self, locale) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-/**
- *  new BabelFish(storage)
- **/
 function BabelFish(storage) {
   // storage of compiled translations
   this._storage = storage;
@@ -95,79 +92,42 @@ function BabelFish(storage) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-/**
- *  BabelFish#translate(locale, scope[, params]) -> String
- *  - locale (String): Locale of translation
- *  - scope (String): Full phrase path, e.g. `app.forums.replies_count`
- *  - params (Object): Params for translation
- *
- *  ##### Example
- *
- *      i18n.addPhrase('ru-RU',
- *        'apps.forums.replies_count',
- *        '#{count} %{ответ|ответа|ответов}:count в теме');
- *
- *      // ...
- *
- *      i18n.translate('ru-RU', 'app.forums.replies_count', {count: 1});
- *      // -> '1 ответ'
- *
- *      i18n.translate('ru-RU', 'app.forums.replies_count', {count: 2});
- *      // -> '2 ответa'
- **/
-BabelFish.prototype.translate = function translate(locale, scope, params) {
-  var translator  = this.getCompiledData(locale, scope);
+BabelFish.prototype.translate = function translate(locale, phrase, params) {
+  var translator  = this.getCompiledData(locale, phrase);
 
   if ('string' === translator.type) {
-    return translator.value;
+    return translator.translation;
   }
 
   if ('function' === translator.type) {
-    return translator.value.call({
+    return translator.translation.call({
       flattenParams: flattenParams,
       pluralize: Pluralizer
     }, params);
   }
 
-  return locale + ': No translation for <' + scope + '>';
+  return locale + ': No translation for [' + phrase + ']';
 };
 
 
-/** alias of: BabelFish#translate
- *  BabelFish#t(locale, scope[, params]) -> String
- **/
+BabelFish.prototype.hasTranslation = function hasTranslation(locale, phrase) {
+  var translator  = this.getCompiledData(locale, phrase);
+  return 'string' === translator.type || 'function' === translator.type;
+};
+
+
 BabelFish.prototype.t = BabelFish.prototype.translate;
 
 
-//  internal
-//  BabelFish#getCompiledData(locale, scope) -> Object
-//  BabelFish#getCompiledData(locale) -> Object
-//  - locale (String): Locale of translation
-//  - scope (String): Full phrase path, e.g. `app.forums.replies_count`
-//
-//  Returns compiled "translator" (if `scope` points phrase) or nested scope
-//  of translators. Each value of hash is an object with fields:
-//
-//  - **type** _(String)_
-//    - _string_:     Simple translation (contains no substitutions)
-//    - _function_:   Translation with macroses
-//
-//  - **locale** _(String|Null)_
-//    Locale of translation. It can differ from requested locale in case when
-//    translation was taken from fallback locale.
-//    `Null`, when `type` is `object`.
-//
-//  - **value** _(String|Function)_
-//
-BabelFish.prototype.getCompiledData = function getCompiledData(locale, scope) {
+BabelFish.prototype.getCompiledData = function getCompiledData(locale, phrase) {
   var storage = getLocaleStorage(this, locale);
 
   // requested FULL storage
-  if (!scope) {
+  if (!phrase) {
     return storage;
   }
 
-  return storage[scope] || {};
+  return storage[phrase] || {};
 };
 
 
