@@ -179,8 +179,8 @@ require('vows').describe('BabelFish').addBatch({
     'data is a String when scope has no macros or variables': function (i18n) {
       var translation = i18n.getCompiledData('en', 'test.simple_string');
 
-      Assert.equal(translation.type,  'string');
-      Assert.equal(translation.value, 'test');
+      Assert.equal(translation.type,        'string');
+      Assert.equal(translation.translation, 'test');
     },
 
     // locale is needed on stage of locale recompiling (to override fallback
@@ -193,9 +193,9 @@ require('vows').describe('BabelFish').addBatch({
 
     'data is a Function when scope has macros or variable': function (i18n) {
       ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
-        var translation = i18n.getCompiledData('en', scope);
-        Assert.equal(translation.type, 'function', 'type of ' + scope + ' data is function');
-        Assert.instanceOf(translation.value, Function, 'value of ' + scope + ' data is Function');
+        var data = i18n.getCompiledData('en', scope);
+        Assert.equal(data.type, 'function', 'type of ' + scope + ' data is function');
+        Assert.instanceOf(data.translation, Function, 'value of ' + scope + ' data is Function');
       });
     },
 
