@@ -1,3 +1,9 @@
+0.1.2 / 2012-10-23
+
+* Fixed handling 0 in #{variables}, thanks to @elmigranto
+* Updated README samples
+
+
 0.1.1 / 2012-10-15
 
 * Refactor internal storage
