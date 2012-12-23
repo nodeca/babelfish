@@ -98,7 +98,7 @@ You are responsible to serialize it and then inject into browser runtime.
 Assuming that you have serialized data and it's available on browser as
 `i18nData`, you can do following to inject them into i18n (on browser):
 
-``` html
+```
 <script type="text/javascript" src="/assets/babelfish-runtime.js"></script>
 <script type="text/javascript" src="/assets/i18n.ru-RU.js"></script>
 <script type="text/javascript">
