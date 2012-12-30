@@ -1,16 +1,19 @@
+/*global it, describe*/
+
 'use strict';
 
 
-var Assert = require('assert');
+var expect = require('chai').expect;
 var BabelFish = require('../..');
 
 
-module.exports = {
-  title: '#7: Numeric 0 in #{variable} should became "0"',
-  fixed: true,
-  test: function () {
-    var i18n = new BabelFish('ru');
-    i18n.addPhrase('ru', 'n', '#{n}');
-    Assert.equal(i18n.translate('ru', 'n', {n: 0}), '0');
-  }
-};
+describe('issue 7', function () {
+  it('Numeric 0 in #{variable} should became "0"', function () {
+    var b = new BabelFish('ru');
+
+    b.addPhrase('ru', 'n', '#{n}');
+
+    expect(b.translate('ru', 'n', {n: 0}))
+      .is.equal('0');
+  });
+});

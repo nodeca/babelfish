@@ -1,18 +1,17 @@
+/*global it, describe*/
+
 'use strict';
 
 
-var Assert = require('assert');
+var expect = require('chai').expect;
 var BabelFish = require('../..');
 
 
-module.exports = {
-  title: "#3: Compilation fails.",
-  fixed: true,
-  test: function () {
-    var i18n = new BabelFish();
+describe('issue 3', function () {
+  it('Compilation fails', function () {
+    var b = new BabelFish();
 
-    Assert.doesNotThrow(function () {
-      i18n.addPhrase('en', 'test', 'foo #(bar) baz\n');
-    }, SyntaxError);
-  }
-};
+    expect(function () { b.addPhrase('en', 'test', 'foo #(bar) baz\n'); })
+      .to.not.throw(SyntaxError);
+  });
+});

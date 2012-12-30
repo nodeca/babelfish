@@ -19,7 +19,8 @@
 
   "dependencies"    : { "underscore": "~ 1.4.2" },
   "devDependencies" : {
-                        "vows"      : "~ 0.6.1",
+                        "mocha"     : "~ 1.7.4",
+                        "chai"      : "~ 1.4.2",
                         "collector" : "~ 0.0.1",
                         "pegjs"     : "~> 0.7.0"
                       },
