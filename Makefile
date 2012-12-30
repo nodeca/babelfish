@@ -22,7 +22,7 @@ lint:
 		fi
 	jshint . --show-non-errors
 
-test:
+test: lint
 	@if test ! `which mocha` ; then \
 		echo "You need 'vows' installed in order to run tests." >&2 ; \
 		echo "  $ make dev-deps" >&2 ; \

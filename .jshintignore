@@ -3,3 +3,4 @@ doc/
 node_modules/
 tmp/
 browser/
+lib/babelfish/parser.js
