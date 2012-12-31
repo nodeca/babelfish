@@ -219,6 +219,11 @@ describe('BabelFish', function () {
         expect(data['test.complex.variable'].type)
           .is.equal('function');
       });
+
+      it('`getCompiledData()` throws error if locale missed', function () {
+        expect(function () { b.getCompiledData(); })
+          .to.throws(Error);
+      });
     });
 
 
