@@ -86,10 +86,12 @@ i18n.t('uk-UA', 'demo.conv.alright');   // -> 'Alright, man!'
 
 
 // You may want to get "compiled" translations to export them into browser.
-i18n.getCompiledData('ru-RU', 'demo');
-// -> { hello : { type: 'function', translation: [Function] },
-//      conv  : { wazup   : { type: 'string', translation: 'Как дела?' },
-//                alright : { type: 'string', translation: 'Alright, man!' } } }
+i18n.getCompiledData('ru-RU');
+// -> {
+//      'demo.hello'        : { type: 'function', translation: [Function] },
+//      'demo.conv.wazup'   : { type: 'string', translation: 'Как дела?' },
+//      'demo.conv.alright' : { type: 'string', translation: 'Alright, man!' }
+//    }
 ```
 
 **NOTICE**
