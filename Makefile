@@ -88,8 +88,7 @@ todo:
 
 browserify:
 	rm -rf browser && mkdir browser
-	collector --export-name 'BabelFish = window.BabelFish' ./lib/babelfish/runtime \
-		> browser/babelfish-runtime.js
+	webmake --name BabelFish ./lib/babelfish/runtime.js ./browser/babelfish-runtime.js
 
 
 lib/babelfish/parser.js:

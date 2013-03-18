@@ -21,7 +21,7 @@
                         "lodash"    : "~ 1.0.1",
                         "mocha"     : "~ 1.7.4",
                         "chai"      : "~ 1.4.2",
-                        "collector" : "~ 0.0.1",
+                        "webmake"   : "~ 0.3.14",
                         "pegjs"     : "~> 0.7.0"
                       },
   "engines"         : { "node": "> 0.4.11" }
