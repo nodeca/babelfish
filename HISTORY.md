@@ -1,11 +1,11 @@
-0.1.3 / ...
+0.1.3 / 2013-03-19
 ------------------
 
 * Migrated tests to mocha
 * Fixed docs errors
 * Added params check to `getCompiledData()`
 * Drop `underscore` dependency.
-* Change browserifier to `webmaker`.
+* Change browserifier to `webmake`.
 
 
 0.1.2 / 2012-10-23
