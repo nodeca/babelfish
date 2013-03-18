@@ -73,7 +73,7 @@ describe('BabelFish', function () {
 
     describe('New instance with defaultLocale given', function () {
       var b = BabelFish.create('ru');
-    
+
       it('has defaultLocale equal to the specified one', function () {
         expect(b.defaultLocale).is.equal('ru');
       });

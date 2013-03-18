@@ -4,6 +4,7 @@
 * Migrated tests to mocha
 * Fixed docs errors
 * Added params check to `getCompiledData()`
+* Drop `underscore` dependency.
 
 
 0.1.2 / 2012-10-23

@@ -3,7 +3,7 @@
 'use strict';
 
 
-var _ = require('underscore');
+var _ = require('lodash');
 var Assert = require('assert');
 var Parser = require('../lib/babelfish/parser');
 
