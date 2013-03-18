@@ -6,6 +6,7 @@
 * Added params check to `getCompiledData()`
 * Drop `underscore` dependency.
 * Switched from Collector to Webmake for the browser version.
+* Drop the browser-specific version. (babelfish/runtime)
 
 
 0.1.2 / 2012-10-23
