@@ -49,34 +49,6 @@ describe('BabelFish', function () {
       it('has `t()` alias', function () {
         expect(b.t).is.equal(b.translate);
       });
-
-      it('has `defaultLocale` property', function () {
-        expect(b).to.have.property('defaultLocale');
-        expect(b.defaultLocale).is.not.a('function');
-      });
-
-      it('`defaultLocale` property is read-only', function () {
-        expect(function () { b.defaultLocale = 'ru'; }).to.throw(TypeError);
-        expect(function () { delete b.defaultLocale; }).to.throw(TypeError);
-      });
-    });
-
-
-    describe('New instance with defaults', function () {
-      var b = BabelFish.create();
-
-      it('has defaultLocale = `en`', function () {
-        expect(b.defaultLocale).is.equal('en');
-      });
-    });
-
-
-    describe('New instance with defaultLocale given', function () {
-      var b = BabelFish.create('ru');
-
-      it('has defaultLocale equal to the specified one', function () {
-        expect(b.defaultLocale).is.equal('ru');
-      });
     });
   });
 
