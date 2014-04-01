@@ -18,9 +18,9 @@
                       },
 
   "devDependencies" : {
-                        "lodash"    : "~ 1.0.1",
-                        "mocha"     : "~ 1.7.4",
-                        "chai"      : "~ 1.4.2",
+                        "lodash"    : "*",
+                        "mocha"     : "*",
+                        "chai"      : "*",
                         "webmake"   : "~ 0.3.14",
                         "pegjs"     : "~> 0.7.0"
                       },
