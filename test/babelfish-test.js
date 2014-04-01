@@ -264,7 +264,7 @@ describe('BabelFish', function () {
           .is.equal('c (en) [invalid plurals amount: count(undefined)]');
         expect(b.t('en', 'c', {count: null}))
           .is.equal('c (en) [invalid plurals amount: count(null)]');
-        expect(b.t('en', 'c', {count: "foo"}))
+        expect(b.t('en', 'c', {count: 'foo'}))
           .is.equal('c (en) [invalid plurals amount: count(foo)]');
       });
     });
