@@ -154,18 +154,18 @@ describe('BabelFish', function () {
       it('data is a String when scope has no macros or variables', function () {
         var compiled = b.getCompiledData('en', 'test.simple_string');
 
-        expect(compiled.type).is.equal('string');
-        expect(compiled.translation).is.equal('test');
+        expect(compiled.e).is.equal(0);
+        expect(compiled.t).is.equal('test');
       });
 
       // locale is needed on stage of locale recompiling (to override fallback
       // translations if needed)
       it('data has field with actual locale of translation', function () {
-        expect(b.getCompiledData('ru', 'test.simple_string').locale)
+        expect(b.getCompiledData('ru', 'test.simple_string').l)
           .is.equal('en');
-        expect(b.getCompiledData('ru', 'test.complex.variable').locale)
+        expect(b.getCompiledData('ru', 'test.complex.variable').l)
           .is.equal('en');
-        expect(b.getCompiledData('ru', 'test.complex.plurals').locale)
+        expect(b.getCompiledData('ru', 'test.complex.plurals').l)
           .is.equal('ru');
       });
 
@@ -173,8 +173,8 @@ describe('BabelFish', function () {
         var data;
         ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
           data = b.getCompiledData('en', scope);
-          expect(data.type).is.equal('function');
-          expect(data.translation).to.be.a('function');
+          expect(data.e).is.equal(1);
+          expect(data.t).to.be.a('function');
         });
       });
 
@@ -186,10 +186,10 @@ describe('BabelFish', function () {
         expect(data).to.have.property('test.simple_string');
         expect(data).to.have.property('test.complex.variable');
 
-        expect(data['test.simple_string'].type)
-          .is.equal('string');
-        expect(data['test.complex.variable'].type)
-          .is.equal('function');
+        expect(data['test.simple_string'].e)
+          .is.equal(0);
+        expect(data['test.complex.variable'].e)
+          .is.equal(1);
       });
 
       it('`getCompiledData()` throws error if locale missed', function () {
