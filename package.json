@@ -21,8 +21,6 @@
                         "lodash"    : "*",
                         "mocha"     : "*",
                         "chai"      : "*",
-                        "webmake"   : "~ 0.3.14",
                         "pegjs"     : "~> 0.7.0"
-                      },
-  "engines"         : { "node": "> 0.4.11" }
+                      }
 }

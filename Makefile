@@ -85,12 +85,6 @@ publish:
 todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
 
-
-browserify:
-	rm -rf browser && mkdir browser
-	webmake --name BabelFish ./lib/babelfish.js ./browser/babelfish-runtime.js
-
-
 lib/babelfish/parser.js:
 	@if test ! `which pegjs` ; then \
 		echo "You need 'pegjs' installed in order to compile parser." >&2 ; \
