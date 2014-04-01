@@ -92,11 +92,15 @@ i18n.getCompiledData('ru-RU');
 //      'demo.conv.wazup'   : { type: 'string', translation: 'Как дела?' },
 //      'demo.conv.alright' : { type: 'string', translation: 'Alright, man!' }
 //    }
+
+// Or use `i18n.stringify(locale)` to get string, eval-able to object.
 ```
 
 **NOTICE**
 `BabelFish#getCompiledData` just exports an object with strings/functions.
 You are responsible to serialize it and then inject into browser runtime.
+You can use `BabelFish#stringify` if you are ok with defaults.
+
 Assuming that you have serialized data and it's available on browser as
 `i18nData`, you can do following to inject them into i18n (on browser):
 
