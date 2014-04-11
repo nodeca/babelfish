@@ -1,0 +1,24 @@
+{
+  "name": "babelfish",
+  "main": "index.js",
+  "version": "0.3.0",
+  "homepage": "https://github.com/nodeca/babelfish",
+  "authors": [
+    "Aleksey V Zapparov <ixti@member.fsf.org> (http://www.ixti.net/)"
+  ],
+  "description": "i18n with easy syntax for node.js",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "i18n"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
