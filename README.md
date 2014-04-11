@@ -37,19 +37,20 @@ as markup part - just escape them with `\`.
 As BabelFish supports scopes, it's really fun and nice to store translations in
 YAML files:
 
-    ---
-    ru-RU:
-      profile: Профиль
-      forums: Форумы
-      apps:
-        forums:
-          new_topic: Новая тема
-          last_post:
-            title : Последнее сообщение
-            by : от
-      demo:
-        apples: "На столе лежит #{apples.count} ((яблоко|яблока|яблок)):apples.count"
-
+```yaml
+  ---
+  ru-RU:
+    profile: Профиль
+    forums: Форумы
+    apps:
+      forums:
+        new_topic: Новая тема
+        last_post:
+          title : Последнее сообщение
+          by : от
+    demo:
+      apples: "На столе лежит #{apples.count} ((яблоко|яблока|яблок)):apples.count"
+```
 
 ## Usage
 
@@ -104,7 +105,7 @@ You can use `BabelFish#stringify` if you are ok with defaults.
 Assuming that you have serialized data and it's available on browser as
 `i18nData`, you can do following to inject them into i18n (on browser):
 
-```
+```html
 <script type="text/javascript" src="/assets/babelfish-runtime.js"></script>
 <script type="text/javascript" src="/assets/i18n.ru-RU.js"></script>
 <script type="text/javascript">
@@ -115,11 +116,9 @@ Assuming that you have serialized data and it's available on browser as
 </script>
 ```
 
-
 ## License
 
 View the [LICENSE][4] file (MIT).
-
 
 [1]: http://travis-ci.org/nodeca/babelfish
 [2]: http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
