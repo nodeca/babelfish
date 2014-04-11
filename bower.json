@@ -8,7 +8,6 @@
   ],
   "description": "i18n with easy syntax for node.js",
   "moduleType": [
-    "globals",
     "node"
   ],
   "keywords": [
