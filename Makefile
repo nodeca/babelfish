@@ -17,7 +17,7 @@ test-all: lint test
 lint:
 	if test ! `which jshint` ; then \
 		echo "You need 'jshint' installed in order to run lint." >&2 ; \
-		echo "  $ make dev-deps" >&2 ; \
+		echo "  $ npm install" >&2 ; \
 		exit 128 ; \
 		fi
 	jshint . --show-non-errors
@@ -25,10 +25,11 @@ lint:
 test: lint
 	@if test ! `which mocha` ; then \
 		echo "You need 'mocha' installed in order to run tests." >&2 ; \
-		echo "  $ make dev-deps" >&2 ; \
+		echo "  $ npm install" >&2 ; \
 		exit 128 ; \
 		fi
 	NODE_ENV=test mocha
+
 
 doc:
 	@if test ! `which ndoc` ; then \
@@ -39,14 +40,6 @@ doc:
 	rm -rf ./doc
 	ndoc --link-format "{package.homepage}/blob/${CURR_HEAD}/{file}#L{line}"
 
-dev-deps:
-	@if test ! `which npm` ; then \
-		echo "You need 'npm' installed." >&2 ; \
-		echo "  See: http://npmjs.org/" >&2 ; \
-		exit 128 ; \
-		fi
-	npm install -g jshint
-	npm install
 
 gh-pages:
 	@if test -z ${REMOTE_REPO} ; then \

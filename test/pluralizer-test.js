@@ -3,7 +3,7 @@
 'use strict';
 
 
-var Assert = require('assert');
+var assert = require('assert');
 
 
 // pluralization function
@@ -21,7 +21,7 @@ function testPluralizarionRules(definition) {
         // for each sample data
         definition.count[form].forEach(function (n) {
           var r = pluralize(lang, n, definition.forms);
-          Assert.equal(r, form, n + ' expected to be ' + form + ', got ' + r);
+          assert.strictEqual(r, form, n + ' expected to be ' + form + ', got ' + r);
         });
       });
     };
@@ -298,14 +298,14 @@ describe('BabelFish.Pluralizer', function () {
   describe('Wrong params', function () {
 
     it('Returns error message with unknown language', function () {
-      Assert.equal(
+      assert.equal(
         pluralize('unknown', 1, ['one']),
         '[pluralizer for (unknown) not exists]'
       );
     });
 
     it('Returns error message With insufficient plural form', function () {
-      Assert.equal(
+      assert.equal(
         pluralize('ru', 1.1, ['one', 'few', 'many']),
         '[plural form N3 not found in translation]'
       );

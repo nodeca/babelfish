@@ -3,7 +3,7 @@
 'use strict';
 
 
-var expect = require('chai').expect;
+var assert = require('assert');
 var BabelFish = require('../..');
 
 
@@ -13,7 +13,6 @@ describe('issue 7', function () {
 
     b.addPhrase('ru', 'n', '#{n}');
 
-    expect(b.translate('ru', 'n', {n: 0}))
-      .is.equal('0');
+    assert.strictEqual(b.translate('ru', 'n', {n: 0}), '0');
   });
 });

@@ -18,9 +18,8 @@
                       },
 
   "devDependencies" : {
-                        "lodash"    : "*",
                         "mocha"     : "*",
-                        "chai"      : "*",
+                        "jshint"    : "*",
                         "pegjs"     : "~> 0.7.0"
                       }
 }

@@ -3,9 +3,8 @@
 'use strict';
 
 
-var _ = require('lodash');
-var Assert = require('assert');
-var Parser = require('../lib/babelfish/parser');
+var assert = require('assert');
+var parser = require('../lib/babelfish/parser');
 
 
 function LiteralNode(text) {
@@ -31,15 +30,18 @@ function PluralNode(anchor, forms) {
 function redistribute_ast(ast) {
   var nodes = [], last = {};
 
-  _.each(ast, function (node) {
+  for (var node in ast) {
+    if (!ast.hasOwnProperty(node)) {
+      continue;
+    }
     if ('literal' === last.type && 'literal' === node.type) {
       last.text += node.text;
-      return;
+      continue;
     }
 
     nodes.push(node);
     last = node;
-  });
+  }
 
   return nodes;
 }
@@ -53,11 +55,11 @@ function testParsedNodes(definitions) {
       var expected, result;
 
       expected = definitions[str];
-      result = redistribute_ast(Parser.parse(str));
+      result = redistribute_ast(parser.parse(str));
 
       // make sure we have expected amount of nodes
       if (result.length !== expected.length) {
-        Assert.ok(false, 'Unexpected amount of nodes.' +
+        assert.ok(false, 'Unexpected amount of nodes.' +
                   '\nExpected:  ' + expected.length +
                   '\nActual:    ' + result.length +
                   '\n' + result.map(function (o) {
@@ -72,7 +74,7 @@ function testParsedNodes(definitions) {
       }
 
       result.forEach(function (node, idx) {
-        Assert.deepEqual(node, expected[idx]);
+        assert.deepEqual(node, expected[idx]);
       });
     };
   });

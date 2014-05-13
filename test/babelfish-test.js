@@ -3,270 +3,234 @@
 'use strict';
 
 
-var expect = require('chai').expect;
+var assert = require('assert');
 var BabelFish = require('../lib/babelfish');
 
-describe('BabelFish', function () {
+var isFunction = function isFunction(obj) {
+  return Object.prototype.toString.call(obj) === '[object Function]';
+};
 
 
-  describe('API consistence tests', function () {
+describe('API consistence tests', function () {
 
+  describe('Exported module', function () {
 
-    describe('Exported module', function () {
-
-      it('is a constructor', function () {
-        expect(BabelFish).to.be.a('function');
-        expect(new BabelFish()).to.be.instanceOf(BabelFish);
-      });
-
-      it('has `create` (constructor proxy)', function () {
-        expect(BabelFish.create).to.be.a('function');
-        expect(BabelFish.create.length).is.equal(BabelFish.length);
-        expect(BabelFish.create()).is.instanceof(BabelFish);
-      });
+    it('is a constructor', function () {
+      assert.ok(isFunction(BabelFish));
+      assert.ok((new BabelFish()) instanceof BabelFish);
     });
 
-
-    describe('Instance', function () {
-      var b = new BabelFish();
-
-      it('has `addPhrase()` method', function () {
-        expect(b.addPhrase).to.be.a('function');
-      });
-
-      it('has `getCompiledData()` method', function () {
-        expect(b.getCompiledData).to.be.a('function');
-      });
-
-      it('has `setFallback()` method', function () {
-        expect(b.setFallback).to.be.a('function');
-      });
-
-      it('has `translate()` method', function () {
-        expect(b.translate).to.be.a('function');
-      });
-
-      it('has `t()` alias', function () {
-        expect(b.t).is.equal(b.translate);
-      });
+    it('has `create` (constructor proxy)', function () {
+      assert.ok(isFunction(BabelFish.create));
+      assert.strictEqual(BabelFish.create.length, BabelFish.length);
+      assert.ok(BabelFish.create() instanceof BabelFish);
     });
   });
 
 
-  describe('Behavior and unit tests come here', function () {
+  describe('Instance', function () {
+    var b = new BabelFish();
+
+    it('has methods', function () {
+      assert.ok(isFunction(b.addPhrase));
+      assert.ok(isFunction(b.getCompiledData));
+      assert.ok(isFunction(b.setFallback));
+      assert.ok(isFunction(b.translate));
+    });
+
+    it('has `t()` alias', function () {
+      assert.strictEqual(b.t, b.translate);
+    });
+  });
+});
 
 
-    describe('When fallback is given', function () {
-      var b = BabelFish.create('en');
+describe('Behavior and unit tests come here', function () {
 
-      b.setFallback('es',    ['es-ES', 'es-MX']);
-      b.setFallback('es-ES', ['es', 'es-US']);
+  describe('When fallback is given', function () {
+    var b = BabelFish.create('en');
 
-      b.addPhrase('en',    'aaa', 'aaa (en)');
-      b.addPhrase('en',    'bbb', 'bbb (en)');
-      b.addPhrase('en',    'ccc', 'ccc (en)');
-      b.addPhrase('en',    'ddd', 'ddd (en)');
-      b.addPhrase('es',    'aaa', 'aaa (es)');
-      b.addPhrase('es-ES', 'bbb', 'bbb (es-ES)');
-      b.addPhrase('es-MX', 'ccc', 'ccc (es-MX)');
-      b.addPhrase('es-US', 'ddd', 'ddd (es-US)');
+    b.setFallback('es',    ['es-ES', 'es-MX']);
+    b.setFallback('es-ES', ['es', 'es-US']);
 
-      b.setFallback('es-US', ['es']);
+    b.addPhrase('en',    'aaa', 'aaa (en)');
+    b.addPhrase('en',    'bbb', 'bbb (en)');
+    b.addPhrase('en',    'ccc', 'ccc (en)');
+    b.addPhrase('en',    'ddd', 'ddd (en)');
+    b.addPhrase('es',    'aaa', 'aaa (es)');
+    b.addPhrase('es-ES', 'bbb', 'bbb (es-ES)');
+    b.addPhrase('es-MX', 'ccc', 'ccc (es-MX)');
+    b.addPhrase('es-US', 'ddd', 'ddd (es-US)');
 
-      it('use defaultLocale in worst case', function () {
-        expect(b.t('es', 'ddd')).is.equal('ddd (en)');
-        expect(b.t('ru', 'ddd')).is.equal('ddd (en)');
-      });
+    b.setFallback('es-US', ['es']);
 
-      it('allows specify more than one fallback locale', function () {
-        expect(b.t('es', 'aaa')).is.equal('aaa (es)');
-        expect(b.t('es', 'bbb')).is.equal('bbb (es-ES)');
-        expect(b.t('es', 'ccc')).is.equal('ccc (es-MX)');
-        expect(b.t('es', 'ddd')).is.equal('ddd (en)');
-      });
+    it('use defaultLocale in worst case', function () {
+      assert.equal(b.t('es', 'ddd'), 'ddd (en)');
+      assert.equal(b.t('ru', 'ddd'), 'ddd (en)');
+    });
 
-      it('do not recursively resolve locale fallbacks', function () {
-        expect(b.t('es-ES', 'aaa')).is.equal('aaa (es)');
-        expect(b.t('es-ES', 'bbb')).is.equal('bbb (es-ES)');
-        expect(b.t('es-ES', 'ccc')).is.equal('ccc (en)');
-        expect(b.t('es-ES', 'ddd')).is.equal('ddd (es-US)');
-      });
+    it('allows specify more than one fallback locale', function () {
+      assert.equal(b.t('es', 'aaa'), 'aaa (es)');
+      assert.equal(b.t('es', 'bbb'), 'bbb (es-ES)');
+      assert.equal(b.t('es', 'ccc'), 'ccc (es-MX)');
+      assert.equal(b.t('es', 'ddd'), 'ddd (en)');
+    });
 
-      it('allow specify fallbacks after phrases were added', function () {
-        expect(b.t('es-US', 'aaa')).is.equal('aaa (es)');
-        expect(b.t('es-US', 'bbb')).is.equal('bbb (en)');
-        expect(b.t('es-US', 'ccc')).is.equal('ccc (en)');
-        expect(b.t('es-US', 'ddd')).is.equal('ddd (es-US)');
-      });
+    it('do not recursively resolve locale fallbacks', function () {
+      assert.equal(b.t('es-ES', 'aaa'), 'aaa (es)');
+      assert.equal(b.t('es-ES', 'bbb'), 'bbb (es-ES)');
+      assert.equal(b.t('es-ES', 'ccc'), 'ccc (en)');
+      assert.equal(b.t('es-ES', 'ddd'), 'ddd (es-US)');
+    });
 
-      it('allows re-assign fallbacks', function () {
-        b.setFallback('es-US', ['es-ES', 'es-MX']);
+    it('allow specify fallbacks after phrases were added', function () {
+      assert.equal(b.t('es-US', 'aaa'), 'aaa (es)');
+      assert.equal(b.t('es-US', 'bbb'), 'bbb (en)');
+      assert.equal(b.t('es-US', 'ccc'), 'ccc (en)');
+      assert.equal(b.t('es-US', 'ddd'), 'ddd (es-US)');
+    });
 
-        expect(b.t('es', 'aaa')).is.equal('aaa (es)');
-        expect(b.t('es', 'bbb')).is.equal('bbb (es-ES)');
-        expect(b.t('es', 'ccc')).is.equal('ccc (es-MX)');
-        expect(b.t('es', 'ddd')).is.equal('ddd (en)');
+    it('allows re-assign fallbacks', function () {
+      b.setFallback('es-US', ['es-ES', 'es-MX']);
+
+      assert.equal(b.t('es', 'aaa'), 'aaa (es)');
+      assert.equal(b.t('es', 'bbb'), 'bbb (es-ES)');
+      assert.equal(b.t('es', 'ccc'), 'ccc (es-MX)');
+      assert.equal(b.t('es', 'ddd'), 'ddd (en)');
+    });
+  });
+
+
+  describe('Setting fallback for defaultLocale', function () {
+    var b = BabelFish.create('en');
+
+    it('cause exception', function () {
+      assert.throws(function () { b.setFallback('en', ['en-GB']); }, Error);
+    });
+  });
+
+
+  describe('Adding phrases', function () {
+    var b = BabelFish.create('en');
+
+    b.addPhrase('en', 'phrase1',       'foobar');
+    b.addPhrase('en', 'scope.phrase2', 'foobar');
+    b.addPhrase('en', 'scope',         {phrase3: 'foobar'});
+
+    it('allows specify phrase within `global` scope', function () {
+      assert.equal(b.t('en', 'phrase1'), 'foobar');
+    });
+
+    it('allows specify phrase prefixed with scope', function () {
+      assert.equal(b.t('en', 'scope.phrase2'), 'foobar');
+    });
+
+    it('allows specify translations as inner scope', function () {
+      assert.equal(b.t('en', 'scope.phrase3'), 'foobar');
+    });
+  });
+
+
+  describe('Getting compiled data', function () {
+    var b = BabelFish.create('en');
+
+    b.addPhrase('en', 'test.simple_string',    'test');
+    b.addPhrase('en', 'test.complex.variable', '-#{count}-');
+    b.addPhrase('en', 'test.complex.plurals',  '-((foo|bar)):count-');
+    b.addPhrase('ru', 'test.complex.plurals',  '-((ruu|bar)):count-');
+
+    it('data is a String when scope has no macros or variables', function () {
+      var compiled = b.getCompiledData('en', 'test.simple_string');
+
+      assert.strictEqual(compiled.e, 0);
+      assert.equal(compiled.t, 'test');
+    });
+
+    // locale is needed on stage of locale recompiling (to override fallback
+    // translations if needed)
+    it('data has field with actual locale of translation', function () {
+      assert.equal(b.getCompiledData('ru', 'test.simple_string').l, 'en');
+      assert.equal(b.getCompiledData('ru', 'test.complex.variable').l, 'en');
+      assert.equal(b.getCompiledData('ru', 'test.complex.plurals').l, 'ru');
+    });
+
+    it('data is a Function when scope has macros or variable', function () {
+      var data;
+      ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
+        data = b.getCompiledData('en', scope);
+        assert.strictEqual(data.e, 1);
+        assert.ok(isFunction(data.t));
       });
     });
 
+    it('returns inner scope Object when locale only requested', function () {
+      var data = b.getCompiledData('ru');
 
-    describe('Setting fallback for defaultLocale', function () {
-      var b = BabelFish.create('en');
+      assert.ok(data);
+      assert.ok(data.hasOwnProperty('test.simple_string'));
+      assert.ok(data.hasOwnProperty('test.complex.variable'));
 
-      it('cause exception', function () {
-        expect(function () { b.setFallback('en', ['en-GB']); })
-          .to.throw(Error);
-      });
+      assert.strictEqual(data['test.simple_string'].e, 0);
+      assert.strictEqual(data['test.complex.variable'].e, 1);
     });
 
+    it('`getCompiledData()` throws error if locale missed', function () {
+      assert.throws(function () { b.getCompiledData(); }, Error);
+    });
+  });
 
-    describe('Adding phrases', function () {
-      var b = BabelFish.create('en');
 
-      b.addPhrase('en', 'phrase1',       'foobar');
-      b.addPhrase('en', 'scope.phrase2', 'foobar');
-      b.addPhrase('en', 'scope',         {phrase3: 'foobar'});
+  describe('Translating a phrase', function () {
+    var b = BabelFish.create('en');
 
-      it('allows specify phrase within `global` scope', function () {
-        expect(b.t('en', 'phrase1'))
-          .is.equal('foobar');
-      });
+    b.addPhrase('en', 'a', 'a (en)');
+    b.addPhrase('en', 'b', 'b (en)');
+    b.addPhrase('en', 'c', 'c (en) ((one|other)):count');
+    b.addPhrase('fr', 'd', 'd (fr) ((une|autre)):count');
+    b.addPhrase('ru', 'b', 'b (ru) #{foo}');
+    b.addPhrase('es', 'b', 'b (es) #{f.o}');
 
-      it('allows specify phrase prefixed with scope', function () {
-        expect(b.t('en', 'scope.phrase2'))
-          .is.equal('foobar');
-      });
 
-      it('allows specify translations as inner scope', function () {
-        expect(b.t('en', 'scope.phrase3'))
-          .is.equal('foobar');
-      });
+    it('always returns a string', function () {
+      assert.equal(b.t('en', 'a'), 'a (en)');
+      assert.equal(b.t('en', 'b'), 'b (en)');
+      assert.equal(b.t('ru', 'b', {foo: 'bar'}), 'b (ru) bar');
     });
 
-    describe('Getting compiled data', function () {
-      var b = BabelFish.create('en');
-
-      b.addPhrase('en', 'test.simple_string',    'test');
-      b.addPhrase('en', 'test.complex.variable', '-#{count}-');
-      b.addPhrase('en', 'test.complex.plurals',  '-((foo|bar)):count-');
-      b.addPhrase('ru', 'test.complex.plurals',  '-((ruu|bar)):count-');
-
-      it('data is a String when scope has no macros or variables', function () {
-        var compiled = b.getCompiledData('en', 'test.simple_string');
-
-        expect(compiled.e).is.equal(0);
-        expect(compiled.t).is.equal('test');
-      });
-
-      // locale is needed on stage of locale recompiling (to override fallback
-      // translations if needed)
-      it('data has field with actual locale of translation', function () {
-        expect(b.getCompiledData('ru', 'test.simple_string').l)
-          .is.equal('en');
-        expect(b.getCompiledData('ru', 'test.complex.variable').l)
-          .is.equal('en');
-        expect(b.getCompiledData('ru', 'test.complex.plurals').l)
-          .is.equal('ru');
-      });
-
-      it('data is a Function when scope has macros or variable', function () {
-        var data;
-        ['test.complex.plurals', 'test.complex.variable'].forEach(function (scope) {
-          data = b.getCompiledData('en', scope);
-          expect(data.e).is.equal(1);
-          expect(data.t).to.be.a('function');
-        });
-      });
-
-      it('returns inner scope Object when locale only requested', function () {
-        var data = b.getCompiledData('ru');
-
-        expect(data).is.an('object');
-
-        expect(data).to.have.property('test.simple_string');
-        expect(data).to.have.property('test.complex.variable');
-
-        expect(data['test.simple_string'].e)
-          .is.equal(0);
-        expect(data['test.complex.variable'].e)
-          .is.equal(1);
-      });
-
-      it('`getCompiledData()` throws error if locale missed', function () {
-        expect(function () { b.getCompiledData(); })
-          .to.throws(Error);
-      });
+    it('ignores provided params when they are not needed', function () {
+      assert.equal(b.t('en', 'b', {foo: 'bar', bar: 'baz'}), 'b (en)');
     });
 
+    it('replaces missing params with [missed variable: <name>]', function () {
+      assert.equal(b.t('ru', 'b'), 'b (ru) [missed variable: foo]');
+      assert.equal(b.t('es', 'b'), 'b (es) [missed variable: f.o]');
+    });
 
-    describe('Translating a phrase', function () {
-      var b = BabelFish.create('en');
+    it('honors objects in params', function () {
+      assert.equal(b.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
+    });
 
-      b.addPhrase('en', 'a', 'a (en)');
-      b.addPhrase('en', 'b', 'b (en)');
-      b.addPhrase('en', 'c', 'c (en) ((one|other)):count');
-      b.addPhrase('fr', 'd', 'd (fr) ((une|autre)):count');
-      b.addPhrase('ru', 'b', 'b (ru) #{foo}');
-      b.addPhrase('es', 'b', 'b (es) #{f.o}');
+    it('reports missing translation', function () {
+      assert.equal(b.t('en', 'd', {count: 0}), 'en: No translation for [d]');
+    });
 
+    it('honors pluralization', function () {
+      assert.equal(b.t('en', 'c', {count: 0}), 'c (en) other');
+      assert.equal(b.t('en', 'c', {count: 1}), 'c (en) one');
+      assert.equal(b.t('en', 'c', {count: 2}), 'c (en) other');
+      assert.equal(b.t('fr', 'c', {count: 0}), 'c (en) other');
 
-      it('always returns a string', function () {
-        expect(b.t('en', 'a')).is.equal('a (en)');
-        expect(b.t('en', 'b')).is.equal('b (en)');
-        expect(b.t('ru', 'b', {foo: 'bar'})).is.equal('b (ru) bar');
-      });
+      // check that we use correct pluralizer
+      assert.equal(b.t('en', 'c', {count: 1}), 'c (en) one');
+      assert.equal(b.t('en', 'c', {count: 1.5}), 'c (en) other');
+      assert.equal(b.t('fr', 'd', {count: 0}), 'd (fr) une');
+      assert.equal(b.t('fr', 'd', {count: 1.5}), 'd (fr) une');
+    });
 
-      it('ignores provided params when they are not needed', function () {
-        expect(b.t('en', 'b', {foo: 'bar', bar: 'baz'}))
-          .is.equal('b (en)');
-      });
-
-      it('replaces missing params with [missed variable: <name>]', function () {
-        expect(b.t('ru', 'b'))
-          .is.equal('b (ru) [missed variable: foo]');
-        expect(b.t('es', 'b'))
-          .is.equal('b (es) [missed variable: f.o]');
-      });
-
-      it('honors objects in params', function () {
-        expect(b.t('es', 'b', {f: {o: 'bar'}}))
-          .is.equal('b (es) bar');
-      });
-
-      it('reports missing translation', function () {
-        expect(b.t('en', 'd', {count: 0}))
-          .is.equal('en: No translation for [d]');
-      });
-
-      it('honors pluralization', function () {
-        expect(b.t('en', 'c', {count: 0}))
-          .is.equal('c (en) other');
-        expect(b.t('en', 'c', {count: 1}))
-          .is.equal('c (en) one');
-        expect(b.t('en', 'c', {count: 2}))
-          .is.equal('c (en) other');
-        expect(b.t('fr', 'c', {count: 0}))
-          .is.equal('c (en) other');
-
-        // check that we use correct pluralizer
-        expect(b.t('en', 'c', {count: 1}))
-          .is.equal('c (en) one');
-        expect(b.t('en', 'c', {count: 1.5}))
-          .is.equal('c (en) other');
-        expect(b.t('fr', 'd', {count: 0}))
-          .is.equal('d (fr) une');
-        expect(b.t('fr', 'd', {count: 1.5}))
-          .is.equal('d (fr) une');
-      });
-
-      it('replaces invalid plurals amount with [invalid plurals amount: <name>(<value>)]', function () {
-        expect(b.t('en', 'c'))
-          .is.equal('c (en) [invalid plurals amount: count(undefined)]');
-        expect(b.t('en', 'c', {count: null}))
-          .is.equal('c (en) [invalid plurals amount: count(null)]');
-        expect(b.t('en', 'c', {count: 'foo'}))
-          .is.equal('c (en) [invalid plurals amount: count(foo)]');
-      });
+    it('replaces invalid plurals amount with [invalid plurals amount: <name>(<value>)]', function () {
+      assert.equal(b.t('en', 'c'), 'c (en) [invalid plurals amount: count(undefined)]');
+      assert.equal(b.t('en', 'c', {count: null}), 'c (en) [invalid plurals amount: count(null)]');
+      assert.equal(b.t('en', 'c', {count: 'foo'}), 'c (en) [invalid plurals amount: count(foo)]');
     });
   });
 });
