@@ -135,6 +135,8 @@ describe('Behavior and unit tests come here', function () {
     var b = BabelFish.create('en');
 
     b.addPhrase('en', 'test.simple_string',    'test');
+    b.addPhrase('en', 'test.object1',          { foo: 2, bar: 3 }, true);
+    b.addPhrase('en', 'test.object2',          [ 4, 5, 6 ], true);
     b.addPhrase('en', 'test.complex.variable', '-#{count}-');
     b.addPhrase('en', 'test.complex.plurals',  '-((foo|bar)):count-');
     b.addPhrase('ru', 'test.complex.plurals',  '-((ruu|bar)):count-');
@@ -163,6 +165,16 @@ describe('Behavior and unit tests come here', function () {
       });
     });
 
+    it('data is a pure object', function () {
+      assert.strictEqual(b.getCompiledData('en', 'test.object1').l, 'en');
+      assert.strictEqual(b.getCompiledData('en', 'test.object1').e, 2);
+      assert.deepEqual(b.getCompiledData('en', 'test.object1').t, { foo: 2, bar: 3 });
+
+      assert.strictEqual(b.getCompiledData('en', 'test.object2').l, 'en');
+      assert.strictEqual(b.getCompiledData('en', 'test.object2').e, 2);
+      assert.deepEqual(b.getCompiledData('en', 'test.object2').t, [ 4, 5, 6 ]);
+    });
+
     it('returns inner scope Object when locale only requested', function () {
       var data = b.getCompiledData('ru');
 
@@ -189,12 +201,19 @@ describe('Behavior and unit tests come here', function () {
     b.addPhrase('fr', 'd', 'd (fr) ((une|autre)):count');
     b.addPhrase('ru', 'b', 'b (ru) #{foo}');
     b.addPhrase('es', 'b', 'b (es) #{f.o}');
+    b.addPhrase('ru', 'e', [ 4, 5, 6 ]);
+    b.addPhrase('en', 'e', { foo: 2, bar: 3 }, true);
 
 
-    it('always returns a string', function () {
+    it('returns a string', function () {
       assert.equal(b.t('en', 'a'), 'a (en)');
       assert.equal(b.t('en', 'b'), 'b (en)');
       assert.equal(b.t('ru', 'b', {foo: 'bar'}), 'b (ru) bar');
+    });
+
+    it('returns a pure object', function () {
+      assert.deepEqual(b.t('ru', 'e'), [ 4, 5, 6 ]);
+      assert.deepEqual(b.t('en', 'e'), { foo: 2, bar: 3 });
     });
 
     it('ignores provided params when they are not needed', function () {
