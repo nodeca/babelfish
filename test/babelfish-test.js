@@ -135,8 +135,10 @@ describe('Behavior and unit tests come here', function () {
     var b = BabelFish.create('en');
 
     b.addPhrase('en', 'test.simple_string',    'test');
-    b.addPhrase('en', 'test.object1',          { foo: 2, bar: 3 }, true);
-    b.addPhrase('en', 'test.object2',          [ 4, 5, 6 ], true);
+    b.addPhrase('en', 'test.object',           { foo: 2, bar: 3 }, true);
+    b.addPhrase('en', 'test.array',            [ 4, 5, 6 ]);
+    b.addPhrase('en', 'test.number',           123);
+    b.addPhrase('en', 'test.boolean',          true);
     b.addPhrase('en', 'test.complex.variable', '-#{count}-');
     b.addPhrase('en', 'test.complex.plurals',  '-((foo|bar)):count-');
     b.addPhrase('ru', 'test.complex.plurals',  '-((ruu|bar)):count-');
@@ -166,13 +168,21 @@ describe('Behavior and unit tests come here', function () {
     });
 
     it('data is a pure object', function () {
-      assert.strictEqual(b.getCompiledData('en', 'test.object1').l, 'en');
-      assert.strictEqual(b.getCompiledData('en', 'test.object1').e, 2);
-      assert.deepEqual(b.getCompiledData('en', 'test.object1').t, { foo: 2, bar: 3 });
+      assert.strictEqual(b.getCompiledData('en', 'test.object').l, 'en');
+      assert.strictEqual(b.getCompiledData('en', 'test.object').e, 0);
+      assert.deepEqual(b.getCompiledData('en', 'test.object').t, { foo: 2, bar: 3 });
 
-      assert.strictEqual(b.getCompiledData('en', 'test.object2').l, 'en');
-      assert.strictEqual(b.getCompiledData('en', 'test.object2').e, 2);
-      assert.deepEqual(b.getCompiledData('en', 'test.object2').t, [ 4, 5, 6 ]);
+      assert.strictEqual(b.getCompiledData('en', 'test.array').l, 'en');
+      assert.strictEqual(b.getCompiledData('en', 'test.array').e, 0);
+      assert.deepEqual(b.getCompiledData('en', 'test.array').t, [ 4, 5, 6 ]);
+
+      assert.strictEqual(b.getCompiledData('en', 'test.number').l, 'en');
+      assert.strictEqual(b.getCompiledData('en', 'test.number').e, 0);
+      assert.strictEqual(b.getCompiledData('en', 'test.number').t, 123);
+
+      assert.strictEqual(b.getCompiledData('en', 'test.boolean').l, 'en');
+      assert.strictEqual(b.getCompiledData('en', 'test.boolean').e, 0);
+      assert.strictEqual(b.getCompiledData('en', 'test.boolean').t, true);
     });
 
     it('returns inner scope Object when locale only requested', function () {
