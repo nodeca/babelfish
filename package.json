@@ -1,6 +1,6 @@
 {
   "name"            : "babelfish",
-  "version"         : "0.3.0",
+  "version"         : "0.4.0",
   "description"     : "i18n with easy syntax for node.js",
   "keywords"        : ["i18n"],
   "homepage"        : "https://github.com/nodeca/babelfish",

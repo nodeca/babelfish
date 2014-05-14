@@ -1,3 +1,11 @@
+0.4.0 / 2014-04-01
+------------------
+
+- Added objects support. Now `addPhrase()` can also accept `Number`, `Array`,
+  `Boolean` and `Object`. That allows to store i18n data for external libs
+  (calendars, time/date generators, ...), when flattened keys format is not ok.
+
+
 0.3.0 / 2014-04-01
 ------------------
 
