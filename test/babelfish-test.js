@@ -135,7 +135,7 @@ describe('Behavior and unit tests come here', function () {
     var b = BabelFish.create('en');
 
     b.addPhrase('en', 'test.simple_string',    'test');
-    b.addPhrase('en', 'test.object',           { foo: 2, bar: 3 }, true);
+    b.addPhrase('en', 'test.object',           { foo: 2, bar: 3 }, false);
     b.addPhrase('en', 'test.array',            [ 4, 5, 6 ]);
     b.addPhrase('en', 'test.number',           123);
     b.addPhrase('en', 'test.boolean',          true);
@@ -212,7 +212,7 @@ describe('Behavior and unit tests come here', function () {
     b.addPhrase('ru', 'b', 'b (ru) #{foo}');
     b.addPhrase('es', 'b', 'b (es) #{f.o}');
     b.addPhrase('ru', 'e', [ 4, 5, 6 ]);
-    b.addPhrase('en', 'e', { foo: 2, bar: 3 }, true);
+    b.addPhrase('en', 'e', { foo: 2, bar: 3 }, false);
 
 
     it('returns a string', function () {
@@ -262,4 +262,69 @@ describe('Behavior and unit tests come here', function () {
       assert.equal(b.t('en', 'c', {count: 'foo'}), 'c (en) [invalid plurals amount: count(foo)]');
     });
   });
+
+
+  describe('Flatten checks', function () {
+    var data = {
+      foo: {
+        bar: 3,
+        baz: {
+          bad: 4
+        }
+      }
+    };
+
+    it('default flatten', function () {
+      var b = BabelFish.create('en');
+
+      b.addPhrase('en', 'test', data);
+      assert.equal(b.hasPhrase('en', 'test.foo'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), true);
+    });
+
+    it('flatten level 0', function () {
+      var b = BabelFish.create('en');
+
+      b.addPhrase('en', 'test', data, 0);
+      assert.equal(b.hasPhrase('en', 'test'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), false);
+    });
+
+    it('flatten level 1', function () {
+      var b = BabelFish.create('en');
+
+      b.addPhrase('en', 'test', data, 1);
+      assert.equal(b.hasPhrase('en', 'test.foo'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), false);
+    });
+
+    it('flatten level 2', function () {
+      var b = BabelFish.create('en');
+
+      b.addPhrase('en', 'test', data, 2);
+      assert.equal(b.hasPhrase('en', 'test.foo'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), false);
+    });
+
+    it('flatten level 3', function () {
+      var b = BabelFish.create('en');
+
+      b.addPhrase('en', 'test', data, 3);
+      assert.equal(b.hasPhrase('en', 'test.foo'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), true);
+    });
+
+  });
+
 });

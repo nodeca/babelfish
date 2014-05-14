@@ -97,13 +97,14 @@ i18n.getCompiledData('ru-RU');
 // Or use `i18n.stringify(locale)` to get string, eval-able to object.
 
 
-// Use objects instead of strings (object/array/number/boolean)
+// Use objects instead of strings (object/array/number/boolean) - can be
+// useful to prepare bulk data for external libraries
 i18n.addPhrase('en-GB', 'demo.boolean',  true);
 i18n.addPhrase('en-GB', 'demo.number',   123);
 i18n.addPhrase('en-GB', 'demo.array',    [1, 2, 3]);
 // fourth param required for hashes (objects) to disable flattening,
 // other types are autodetected
-i18n.addPhrase('en-GB', 'demo.array',    { foo:1, bar:"2" }, true);
+i18n.addPhrase('en-GB', 'demo.array',    { foo:1, bar:"2" }, false);
 ```
 
 **NOTICE**
