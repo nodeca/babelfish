@@ -1,16 +1,36 @@
 BabelFish - i18n for node.js
 ============================
 
-[![Build Status](https://secure.travis-ci.org/nodeca/babelfish.png)][1]
+[![Build Status](https://travis-ci.org/nodeca/babelfish.svg?branch=master)](https://travis-ci.org/nodeca/babelfish)
 
 Internationalisation with easy syntax for node.js. Classic solutions use multiple phrases
 for plurals. But we define plurals inline - that's more compact, and easier to maintain.
 Also, phrases are grouped into nested scopes, like in Ruby.
 
-We support all pluralisation rules from [unicode CLDR][2], version [2.0.1][3].
+We support all pluralisation rules from [unicode CLDR](http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html),
+version [2.0.1](http://cldr.unicode.org/index/downloads).
+
+### Installation
+
+__node.js:__
+
+```bash
+$ npm install babelfish
+```
+
+__browser:__
+
+If you need AMD module, use [browserify](https://github.com/nodeca/babelfish)
+to build.
+
+```bash
+$ npm install babelfish
+$ cd node_modules/babelfish
+$ browserify -r ./ -s Babelfish > babelfish_browser.js
+```
 
 
-## Phrases Syntax
+### Phrases Syntax
 
 -  `#{varname}` Echoes value of variable
 -  `((Singular|Plural1|Plural2)):count` Plural form
@@ -26,15 +46,15 @@ Thus following variants are equal:
 - `I have #{count} ((nail|nails)):count`
 
 
-#### Escape chars
+##### Escape chars
 
 If you need `#{`, `((`, `|` or `))` somewhere in text, where it can be considered
 as markup part - just escape them with `\`.
 
 
-#### Example with YAML
+##### Example with YAML
 
-As BabelFish supports scopes, it's really fun and nice to store translations in
+As BabelFish flatten scopes, it's really fun and nice to store translations in
 YAML files:
 
 ```yaml
@@ -52,7 +72,7 @@ YAML files:
       apples: "На столе лежит #{apples.count} ((яблоко|яблока|яблок)):apples.count"
 ```
 
-## Usage
+### Usage
 
 ``` javascript
 // Create new instance of BabelFish with default language/locale: 'en-GB'
@@ -126,11 +146,6 @@ Assuming that you have serialized data and it's available on browser as
 </script>
 ```
 
-## License
+### License
 
-View the [LICENSE][4] file (MIT).
-
-[1]: http://travis-ci.org/nodeca/babelfish
-[2]: http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
-[3]: http://cldr.unicode.org/index/downloads
-[4]: https://github.com/nodeca/babelfish.tools/blob/master/LICENSE
+View the [LICENSE](https://github.com/nodeca/babelfish.tools/blob/master/LICENSE) file (MIT).
