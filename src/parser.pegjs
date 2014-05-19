@@ -6,7 +6,7 @@ start
 // - `((girl|girls))`
 // - `((girl|girls)):chicks_count`
 plural
-  = "((" forms:plural_forms "))" anchor:plural_anchor? {
+  = '((' forms:plural_forms '))' anchor:plural_anchor? {
       return {
         type:   'plural',
         forms:  forms,
@@ -18,7 +18,7 @@ plural
 // List of plural forms, e.g.:
 // - `girl|girls`
 plural_forms
-  = part:plural_part "|" more:plural_forms {
+  = part:plural_part '|' more:plural_forms {
       return [part].concat(more);
     }
   / part:plural_part {
@@ -30,22 +30,25 @@ plural_forms
 // - `girl`
 // - `girls`
 plural_part
-  = chars:plural_char+ {
-      return chars.join('');
+  = plural_char+ {
+      return text();
     }
 
 
 // Single char of the plural form
 // returns simple char or unescapes `\|` & `\))`)
 plural_char
-  = " " char:plural_char { return " " + char; }
-  / "\\" char:[\\|)(] { return char; }
-  / [^ |)]
+  = '\\' char:[\\|)(] {
+      return char;
+    }
+  / !('|' / '))') . {
+      return text();
+    }
 
 
 // Name of a variable containing count for plurals
 plural_anchor
-  = ":" name:identifier {
+  = ':' name:identifier {
       return name;
     }
 
@@ -54,7 +57,7 @@ plural_anchor
 // - `#{count}`
 // - `#{user.name}`
 variable
-  = "#{" anchor:identifier "}" {
+  = '#{' anchor:identifier '}' {
       return {
         type:   'variable',
         anchor: anchor
@@ -67,8 +70,8 @@ variable
 // - `foo.bar`
 // - `$myElement`
 identifier
-  = a:identifier_part "." b:identifier+ {
-      return a + "." + b;
+  = a:identifier_part '.' b:identifier+ {
+      return text()
     }
   / identifier_part
 
@@ -76,7 +79,7 @@ identifier
 // Single part of a JS identifier (everything except dot)
 identifier_part
   = a:[a-zA-Z_$] b:[a-zA-Z0-9_$]* {
-      return a + b.join("");
+      return text();
     }
 
 
@@ -93,5 +96,7 @@ literal
 
 // Any non-special character or escaped sequence
 literal_char
-  = "\\" char:("\\" / "#" / "(") { return char; }
+  = '\\' char:[\\#()] {
+      return char;
+    }
   / .
