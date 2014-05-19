@@ -35,10 +35,12 @@ plural_part
     }
 
 
-// Single char of the plural form (returns simple char or unescapes `\|`)
+// Single char of the plural form
+// returns simple char or unescapes `\|` & `\))`)
 plural_char
   = " " char:plural_char { return " " + char; }
-  / "\\" char:[\\|)(] { return String(char); }
+  / "\\#{"
+  / "\\" char:[\\|)(] { return char; }
   / [^ \\|)]
 
 
@@ -85,14 +87,12 @@ literal
   = char:literal_char {
       return {
         type: 'literal',
-        text: String(char)
+        text: char
       };
     }
 
 
-// Any non-special character
+// Any non-special character or escaped sequence
 literal_char
-  = "\\" char:[\\(#] {
-      return String(char);
-    }
+  = "\\" char:("\\" / "#" / "(") { return char; }
   / .
