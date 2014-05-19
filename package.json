@@ -20,6 +20,6 @@
   "devDependencies" : {
                         "mocha"     : "*",
                         "jshint"    : "*",
-                        "pegjs"     : "~> 0.7.0"
+                        "pegjs"     : "~ 0.8.0"
                       }
 }

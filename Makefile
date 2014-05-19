@@ -78,7 +78,7 @@ publish:
 todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
 
-lib/babelfish/parser.js:
+parser:
 	@if test ! `which pegjs` ; then \
 		echo "You need 'pegjs' installed in order to compile parser." >&2 ; \
 		echo "  $ make dev-deps" >&2 ; \
