@@ -39,9 +39,8 @@ plural_part
 // returns simple char or unescapes `\|` & `\))`)
 plural_char
   = " " char:plural_char { return " " + char; }
-  / "\\#{"
   / "\\" char:[\\|)(] { return char; }
-  / [^ \\|)]
+  / [^ |)]
 
 
 // Name of a variable containing count for plurals
