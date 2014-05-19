@@ -148,14 +148,14 @@ Assuming that you have serialized data and it's available on browser as
 </script>
 ```
 
-### Known issue and workarounds
+### Known issues and workarounds
 
 This cases are not covered right now:
 
 1. __No separate definition for plural zero value__. Solution: make 2 phrases
   and write select condition in template.
 2. __No support for variables in plurals__, like
- `У меня (#{count} гвоздь|#{count} гвоздя|много гвоздей)`.
+ `У меня ((#{count} гвоздь|#{count} гвоздя|много гвоздей))`.
  Solution: make phrase selector like `((phrase_key_one|phrase_key_two|phrase_key_many))`,
  and translate in 2 stages.
 
