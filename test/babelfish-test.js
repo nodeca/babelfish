@@ -261,6 +261,26 @@ describe('Behavior and unit tests come here', function () {
       assert.equal(b.t('en', 'c', {count: null}), 'c (en) [invalid plurals amount: count(null)]');
       assert.equal(b.t('en', 'c', {count: 'foo'}), 'c (en) [invalid plurals amount: count(foo)]');
     });
+
+    describe('variables in plurals', function () {
+      var b = BabelFish.create('en');
+
+      b.addPhrase('en', 'nested1', '((#{count}|many))');
+      b.addPhrase('en', 'nested2', '((#{var1} #{var2}|many))');
+      b.addPhrase('en', 'escaped', '((\\#{count}|many))');
+
+      it('should replace variable in plural', function () {
+        assert.equal(b.t('en', 'nested1', {count: 1}), '1');
+        assert.equal(b.t('en', 'nested1', {count: 2}), 'many');
+        assert.equal(b.t('en', 'nested2', {count: 1, var1: 4, var2: 5}), '4 5');
+        assert.equal(b.t('en', 'nested2', {count: 2, var1: 4, var2: 5}), 'many');
+      });
+
+      it('should preserve escaped sequence in plural', function () {
+        assert.equal(b.t('en', 'escaped', {count: 1}), '#{count}');
+        assert.equal(b.t('en', 'escaped', {count: 2}), 'many');
+      });
+    });
   });
 
 
