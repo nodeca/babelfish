@@ -32,12 +32,12 @@ $ browserify -r ./ -s Babelfish > babelfish_browser.js
 
 ### Phrases Syntax
 
--  `#{varname}` Echoes value of variable
--  `((Singular|Plural1|Plural2)):count` Plural form
+- `#{varname}` Echoes value of variable
+- `((Singular|Plural1|Plural2)):count` Plural form
 
 example:
 
-    А у меня в кармане #{nails_count} ((гвоздь|гвоздя|гвоздей)):nails_count
+- `А у меня в кармане #{nails_count} ((гвоздь|гвоздя|гвоздей)):nails_count`
 
 You can also omit anchor variable for plurals, by default it will be `count`.
 Thus following variants are equal:
