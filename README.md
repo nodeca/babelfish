@@ -114,7 +114,8 @@ i18n.t('uk-UA', 'demo.hello', params);  // -> 'Здоровенькі були, 
 i18n.t('uk-UA', 'demo.conv.wazup');     // -> 'Как дела?'
 i18n.t('uk-UA', 'demo.conv.alright');   // -> 'Alright, man!'
 
-// Simple form for `{ count: XXX }` - numbers are coerced
+// When params is number or strings, it will be coerced to
+// `{ count: XXX, value: XXX }` - use any of those in phrase.
 i18n.t('en-GB', 'demo.coerce', 5);      // -> 'Total: 5.'
 
 
