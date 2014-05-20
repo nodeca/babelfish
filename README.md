@@ -45,6 +45,10 @@ Thus following variants are equal:
 - `I have #{count} ((nail|nails))`
 - `I have #{count} ((nail|nails)):count`
 
+Also you can use variables in plural parts:
+
+- `I have ((one nail|#{count} nails))`
+
 
 ##### Escape chars
 
@@ -150,18 +154,12 @@ Assuming that you have serialized data and it's available on browser as
 
 ### Known issues and workarounds
 
-This cases are not covered right now:
-
-1. __No separate definition for plural zero value__. Solution: make 2 phrases
+- __No separate definition for plural zero value__. Solution: make 2 phrases
   and write select condition in template.
-2. __No support for variables in plurals__, like
- `У меня ((#{count} гвоздь|#{count} гвоздя|много гвоздей))`.
- Solution: make phrase selector like `((phrase_key_one|phrase_key_two|phrase_key_many))`,
- and translate in 2 stages.
 
 Since those cases are rare, that's acceptabale trade-off for having fun with 99%
-of other translations. But if you wish,
-[you can help to imporve](https://github.com/nodeca/babelfish/issues/14) babelfish.
+of other translations. But [you can help to imporve](https://github.com/nodeca/babelfish/issues/14)
+babelfish.
 
 
 ### License
