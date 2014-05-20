@@ -1,4 +1,12 @@
-0.4.0 / 2014-04-01
+0.5.0 / 2014-04-20
+------------------
+
+- Added variables support in plurals.
+- Added zero-form and other strict numbers forms for plurals.
+- Coerce number XXX to { count: XXX } in `translate()`;
+
+
+0.4.0 / 2014-04-19
 ------------------
 
 - Added objects support. Now `addPhrase()` can also accept `Number`, `Array`,
