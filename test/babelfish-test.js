@@ -135,10 +135,6 @@ describe('Behavior and unit tests come here', function () {
     var b = BabelFish.create('en');
 
     b.addPhrase('en', 'test.simple_string',    'test');
-    b.addPhrase('en', 'test.object',           { foo: 2, bar: 3 }, false);
-    b.addPhrase('en', 'test.array',            [ 4, 5, 6 ]);
-    b.addPhrase('en', 'test.number',           123);
-    b.addPhrase('en', 'test.boolean',          true);
     b.addPhrase('en', 'test.complex.variable', '-#{count}-');
     b.addPhrase('en', 'test.complex.plurals',  '-((foo|bar)):count-');
     b.addPhrase('ru', 'test.complex.plurals',  '-((ruu|bar)):count-');
@@ -168,21 +164,16 @@ describe('Behavior and unit tests come here', function () {
     });
 
     it('data is a pure object', function () {
-      assert.strictEqual(b.getCompiledData('en', 'test.object').l, 'en');
-      assert.strictEqual(b.getCompiledData('en', 'test.object').e, 0);
-      assert.deepEqual(b.getCompiledData('en', 'test.object').t, { foo: 2, bar: 3 });
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'test.object',           { foo: 2, bar: 3 }, false);
+      b.addPhrase('en', 'test.array',            [ 4, 5, 6 ]);
+      b.addPhrase('en', 'test.number',           123);
+      b.addPhrase('en', 'test.boolean',          true);
 
-      assert.strictEqual(b.getCompiledData('en', 'test.array').l, 'en');
-      assert.strictEqual(b.getCompiledData('en', 'test.array').e, 0);
-      assert.deepEqual(b.getCompiledData('en', 'test.array').t, [ 4, 5, 6 ]);
-
-      assert.strictEqual(b.getCompiledData('en', 'test.number').l, 'en');
-      assert.strictEqual(b.getCompiledData('en', 'test.number').e, 0);
-      assert.strictEqual(b.getCompiledData('en', 'test.number').t, 123);
-
-      assert.strictEqual(b.getCompiledData('en', 'test.boolean').l, 'en');
-      assert.strictEqual(b.getCompiledData('en', 'test.boolean').e, 0);
-      assert.strictEqual(b.getCompiledData('en', 'test.boolean').t, true);
+      assert.deepEqual(b.getCompiledData('en', 'test.object'), { l: 'en', e: 0, t: { foo: 2, bar: 3 } });
+      assert.deepEqual(b.getCompiledData('en', 'test.array'), { l: 'en', e: 0, t: [ 4, 5, 6 ] });
+      assert.deepEqual(b.getCompiledData('en', 'test.number'), { l: 'en', e: 0, t: 123 });
+      assert.deepEqual(b.getCompiledData('en', 'test.boolean'), { l: 'en', e: 0, t: true });
     });
 
     it('returns inner scope Object when locale only requested', function () {
@@ -203,73 +194,103 @@ describe('Behavior and unit tests come here', function () {
 
 
   describe('Translating a phrase', function () {
-    var b = BabelFish.create('en');
-
-    b.addPhrase('en', 'a', 'a (en)');
-    b.addPhrase('en', 'b', 'b (en)');
-    b.addPhrase('en', 'c', 'c (en) ((one|other)):count');
-    b.addPhrase('fr', 'd', 'd (fr) ((une|autre)):count');
-    b.addPhrase('ru', 'b', 'b (ru) #{foo}');
-    b.addPhrase('es', 'b', 'b (es) #{f.o}');
-    b.addPhrase('ru', 'e', [ 4, 5, 6 ]);
-    b.addPhrase('en', 'e', { foo: 2, bar: 3 }, false);
-
 
     it('returns a string', function () {
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'a', 'a (en)');
+      b.addPhrase('en', 'b', 'b (en)');
+      b.addPhrase('ru', 'b', 'b (ru) #{foo}');
+
       assert.equal(b.t('en', 'a'), 'a (en)');
       assert.equal(b.t('en', 'b'), 'b (en)');
       assert.equal(b.t('ru', 'b', {foo: 'bar'}), 'b (ru) bar');
     });
 
     it('returns a pure object', function () {
-      assert.deepEqual(b.t('ru', 'e'), [ 4, 5, 6 ]);
-      assert.deepEqual(b.t('en', 'e'), { foo: 2, bar: 3 });
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'a', { foo: 2, bar: 3 }, false);
+      b.addPhrase('en', 'b', [ 4, 5, 6 ]);
+      b.addPhrase('en', 'c', 123);
+      b.addPhrase('en', 'd', true);
+
+      assert.deepEqual(b.t('en', 'a'), { foo: 2, bar: 3 });
+      assert.deepEqual(b.t('en', 'b'), [ 4, 5, 6 ]);
+      assert.strictEqual(b.t('en', 'c'), 123);
+      assert.strictEqual(b.t('en', 'd'), true);
     });
 
     it('ignores provided params when they are not needed', function () {
-      assert.equal(b.t('en', 'b', {foo: 'bar', bar: 'baz'}), 'b (en)');
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'a', 'a (en)');
+
+      assert.equal(b.t('en', 'a', {foo: 'bar', bar: 'baz'}), 'a (en)');
     });
 
     it('replaces missing params with [missed variable: <name>]', function () {
-      assert.equal(b.t('ru', 'b'), 'b (ru) [missed variable: foo]');
-      assert.equal(b.t('es', 'b'), 'b (es) [missed variable: f.o]');
+      var b = BabelFish.create('en');
+      b.addPhrase('ru', 'a', 'a (ru) #{foo}');
+      b.addPhrase('es', 'a', 'a (es) #{f.o}');
+
+      assert.equal(b.t('ru', 'a'), 'a (ru) [missed variable: foo]');
+      assert.equal(b.t('es', 'a'), 'a (es) [missed variable: f.o]');
     });
 
     it('honors objects in params', function () {
-      assert.equal(b.t('es', 'b', {f: {o: 'bar'}}), 'b (es) bar');
+      var b = BabelFish.create('en');
+      b.addPhrase('es', 'a', 'a (es) #{f.o}');
+
+      assert.equal(b.t('es', 'a', {f: {o: 'bar'}}), 'a (es) bar');
     });
 
     it('reports missing translation', function () {
+      var b = BabelFish.create('en');
+      b.addPhrase('fr', 'd', 'd (fr) ((une|autre)):count');
+
       assert.equal(b.t('en', 'd', {count: 0}), 'en: No translation for [d]');
     });
 
     it('honors pluralization', function () {
-      assert.equal(b.t('en', 'c', {count: 0}), 'c (en) other');
-      assert.equal(b.t('en', 'c', {count: 1}), 'c (en) one');
-      assert.equal(b.t('en', 'c', {count: 2}), 'c (en) other');
-      assert.equal(b.t('fr', 'c', {count: 0}), 'c (en) other');
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'a', 'a (en) ((one|other)):count');
+      b.addPhrase('fr', 'b', 'b (fr) ((une|autre)):count');
+
+      assert.equal(b.t('en', 'a', {count: 0}), 'a (en) other');
+      assert.equal(b.t('en', 'a', {count: 1}), 'a (en) one');
+      assert.equal(b.t('en', 'a', {count: 2}), 'a (en) other');
+      assert.equal(b.t('fr', 'a', {count: 0}), 'a (en) other');
 
       // check that we use correct pluralizer
-      assert.equal(b.t('en', 'c', {count: 1}), 'c (en) one');
-      assert.equal(b.t('en', 'c', {count: 1.5}), 'c (en) other');
-      assert.equal(b.t('fr', 'd', {count: 0}), 'd (fr) une');
-      assert.equal(b.t('fr', 'd', {count: 1.5}), 'd (fr) une');
+      assert.equal(b.t('en', 'a', {count: 1}),   'a (en) one');
+      assert.equal(b.t('en', 'a', {count: 1.5}), 'a (en) other');
+      assert.equal(b.t('fr', 'b', {count: 0}),   'b (fr) une');
+      assert.equal(b.t('fr', 'b', {count: 1.5}), 'b (fr) une');
+    });
+
+    it('honors pluralization with default anchor', function () {
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'a', 'a (en) ((one|other))');
+
+      assert.equal(b.t('en', 'a', {count: 0}), 'a (en) other');
+      assert.equal(b.t('en', 'a', {count: 1}), 'a (en) one');
+      assert.equal(b.t('en', 'a', {count: 2}), 'a (en) other');
     });
 
     it('replaces invalid plurals amount with [invalid plurals amount: <name>(<value>)]', function () {
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'c', 'c (en) ((one|other)):count');
+
       assert.equal(b.t('en', 'c'), 'c (en) [invalid plurals amount: count(undefined)]');
       assert.equal(b.t('en', 'c', {count: null}), 'c (en) [invalid plurals amount: count(null)]');
       assert.equal(b.t('en', 'c', {count: 'foo'}), 'c (en) [invalid plurals amount: count(foo)]');
     });
 
     describe('variables in plurals', function () {
-      var b = BabelFish.create('en');
-
-      b.addPhrase('en', 'nested1', '((#{count}|many))');
-      b.addPhrase('en', 'nested2', '((#{var1} #{var2}|many))');
-      b.addPhrase('en', 'escaped', '((\\#{count}|many))');
 
       it('should replace variable in plural', function () {
+        var b = BabelFish.create('en');
+        b.addPhrase('en', 'nested1', '((#{count}|many))');
+        b.addPhrase('en', 'nested2', '((#{var1} #{var2}|many))');
+
         assert.equal(b.t('en', 'nested1', {count: 1}), '1');
         assert.equal(b.t('en', 'nested1', {count: 2}), 'many');
         assert.equal(b.t('en', 'nested2', {count: 1, var1: 4, var2: 5}), '4 5');
@@ -277,6 +298,9 @@ describe('Behavior and unit tests come here', function () {
       });
 
       it('should preserve escaped sequence in plural', function () {
+        var b = BabelFish.create('en');
+        b.addPhrase('en', 'escaped', '((\\#{count}|many))');
+
         assert.equal(b.t('en', 'escaped', {count: 1}), '#{count}');
         assert.equal(b.t('en', 'escaped', {count: 2}), 'many');
       });
