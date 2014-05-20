@@ -91,6 +91,7 @@ var i18n = require('babelfish').create('en-GB');
 i18n.addPhrase('en-GB', 'demo.hello',         'Hello, #{user.name}.');
 i18n.addPhrase('en-GB', 'demo.conv.wazup',    'Whats up?');
 i18n.addPhrase('en-GB', 'demo.conv.alright',  'Alright, man!');
+i18n.addPhrase('en-GB', 'demo.coerce',        'Total: #{count}.');
 
 i18n.addPhrase('ru-RU', 'demo.hello',         'Привет, #{user.name}.');
 i18n.addPhrase('ru-RU', 'demo.conv.wazup',    'Как дела?');
@@ -112,6 +113,9 @@ i18n.t('ru-RU', 'demo.conv.alright');   // -> 'Alright, man!'
 i18n.t('uk-UA', 'demo.hello', params);  // -> 'Здоровенькі були, ixti.'
 i18n.t('uk-UA', 'demo.conv.wazup');     // -> 'Как дела?'
 i18n.t('uk-UA', 'demo.conv.alright');   // -> 'Alright, man!'
+
+// Simple form for `{ count: XXX }` - numbers are coerced
+i18n.t('en-GB', 'demo.coerce', 5);      // -> 'Total: 5.'
 
 
 // You may want to get "compiled" translations to serialize later

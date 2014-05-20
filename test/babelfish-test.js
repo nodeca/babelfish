@@ -219,6 +219,13 @@ describe('Behavior and unit tests come here', function () {
       assert.strictEqual(b.t('en', 'd'), true);
     });
 
+    it('coerces numbers', function () {
+      var b = BabelFish.create('en');
+      b.addPhrase('en', 'a', 'total #{count}');
+
+      assert.equal(b.t('en', 'a', 5), 'total 5');
+    });
+
     it('ignores provided params when they are not needed', function () {
       var b = BabelFish.create('en');
       b.addPhrase('en', 'a', 'a (en)');
