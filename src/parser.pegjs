@@ -73,6 +73,9 @@ plural_char
 
 
 // Name of a variable containing count for plurals
+// We allow dor notation, but limit values to valid JS identifiers,
+// because translations can have some text chars without space
+// right after anchor.
 plural_anchor
   = ':' name:identifier {
       return name;
@@ -96,15 +99,16 @@ variable
 // - `foo.bar`
 // - `$myElement`
 identifier
-  = a:identifier_part '.' b:identifier+ {
+  = identifier_part '.' identifier+ {
       return text()
     }
   / identifier_part
 
 
 // Single part of a JS identifier (everything except dot)
+// Letters are specially limited to english only
 identifier_part
-  = a:[a-zA-Z_$] b:[a-zA-Z0-9_$]* {
+  = [a-zA-Z_$] [a-zA-Z0-9_$]* {
       return text();
     }
 
