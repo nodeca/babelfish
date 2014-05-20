@@ -1,5 +1,5 @@
 start
-  = (plural / variable / literal)*
+  = (literal / plural / variable)*
 
 
 // Plurals macros
@@ -86,12 +86,13 @@ identifier_part
 // Any text, e.g.:
 // - `Hello, World!`
 literal
-  = char:literal_char {
+  = (!(plural / variable) literal_char)+ {
       return {
         type: 'literal',
-        text: char
+        text: text()
       };
     }
+
 
 
 // Any non-special character or escaped sequence
