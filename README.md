@@ -49,6 +49,10 @@ Also you can use variables in plural parts:
 
 - `I have ((one nail|#{count} nails))`
 
+Need special zero form or overwrite any specific value? No problems:
+
+- `I have ((=0 no nails|#{count} nail|#{count} nails))`
+
 
 ##### Escape chars
 
@@ -151,16 +155,6 @@ Assuming that you have serialized data and it's available on browser as
   i18n._storage['ru-RU'] = i18nData;
 </script>
 ```
-
-### Known issues and workarounds
-
-- __No separate definition for plural zero value__. Solution: make 2 phrases
-  and write select condition in template.
-
-Since those cases are rare, that's acceptabale trade-off for having fun with 99%
-of other translations. But [you can help to imporve](https://github.com/nodeca/babelfish/issues/14)
-babelfish.
-
 
 ### License
 

@@ -281,6 +281,28 @@ describe('Behavior and unit tests come here', function () {
         assert.equal(b.t('en', 'escaped', {count: 2}), 'many');
       });
     });
+
+    describe('strict values', function () {
+
+      it('rewritten zero form', function () {
+        var b = BabelFish.create('en');
+        b.addPhrase('en', 'test', '((=0 no nails|#{count} nail|#{count} nails))');
+
+        assert.equal(b.t('en', 'test', {count: 0}), 'no nails');
+        assert.equal(b.t('en', 'test', {count: 1}), '1 nail');
+        assert.equal(b.t('en', 'test', {count: 2}), '2 nails');
+      });
+
+      it('rewritten "2" value', function () {
+        var b = BabelFish.create('en');
+        b.addPhrase('en', 'test', '((=2 two nails|#{count} nail|#{count} nails))');
+
+        assert.equal(b.t('en', 'test', {count: 0}), '0 nails');
+        assert.equal(b.t('en', 'test', {count: 1}), '1 nail');
+        assert.equal(b.t('en', 'test', {count: 2}), 'two nails');
+      });
+    });
+
   });
 
 

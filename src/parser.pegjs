@@ -1,3 +1,20 @@
+{
+  function regularForms(forms) {
+    var result = [];
+    for (var i=0; i<forms.length; i++) {
+      if (forms[i].strict === undefined) { result.push(forms[i].text); }
+    }
+    return result;
+  }
+  function strictForms(forms) {
+    var result = {};
+    for (var i=0; i<forms.length; i++) {
+      if (forms[i].strict !== undefined) { result[forms[i].strict] = forms[i].text; }
+    }
+    return result;
+  }
+}
+
 start
   = (literal / plural / variable)*
 
@@ -9,7 +26,8 @@ plural
   = '((' forms:plural_forms '))' anchor:plural_anchor? {
       return {
         type:   'plural',
-        forms:  forms,
+        forms:  regularForms(forms),
+        strict: strictForms(forms),
         anchor: anchor || 'count'
       };
     }
@@ -30,8 +48,16 @@ plural_forms
 // - `girl`
 // - `girls`
 plural_part
-  = plural_char+ {
-      return text();
+  = '=' strict:[0-9]+ ' '? form:plural_char+ {
+      return {
+        strict: strict.join(''),
+        text: form.join('')
+      }
+    }
+  / plural_char+ {
+      return {
+        text: text()
+      };
     }
 
 
