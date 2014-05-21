@@ -1,3 +1,10 @@
+0.6.0 / 2014-04-21
+------------------
+
+- Coerce plain strings & numbers params to `count` & `value` in `translate()`.
+- Added bower support.
+
+
 0.5.0 / 2014-04-20
 ------------------
 

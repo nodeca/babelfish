@@ -20,13 +20,8 @@ $ npm install babelfish
 
 __browser:__
 
-If you need AMD module, use [browserify](https://github.com/nodeca/babelfish)
-to build.
-
 ```bash
-$ npm install babelfish
-$ cd node_modules/babelfish
-$ browserify -r ./ -s Babelfish > babelfish_browser.js
+$ bower install babelfish
 ```
 
 
