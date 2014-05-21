@@ -14,6 +14,7 @@ GITHUB_PROJ := nodeca/${NPM_PACKAGE}
 
 test-all: lint test
 
+
 lint:
 	if test ! `which jshint` ; then \
 		echo "You need 'jshint' installed in order to run lint." >&2 ; \
@@ -21,6 +22,7 @@ lint:
 		exit 128 ; \
 		fi
 	jshint . --show-non-errors
+
 
 test: lint
 	@if test ! `which mocha` ; then \
@@ -59,6 +61,28 @@ gh-pages:
 	rm -rf ${TMP_PATH}
 
 
+parser:
+	@if test ! `which pegjs` ; then \
+		echo "You need 'pegjs' installed in order to compile parser." >&2 ; \
+		echo "  $ npm install" >&2 ; \
+		exit 128 ; \
+	fi
+	pegjs -o size src/parser.pegjs lib/babelfish/parser.js
+
+
+browserify:
+	rm -rf ./dist
+	mkdir dist
+	# Browserify
+	( echo -n "/* ${NPM_PACKAGE} ${NPM_VERSION} ${GITHUB_PROJ} */" ; \
+		browserify -r ./ -s Babelfish \
+		) > dist/babelfish.js
+	# Minify
+	uglifyjs dist/babelfish.js -c -m \
+		--preamble "/* ${NPM_PACKAGE} ${NPM_VERSION} ${GITHUB_PROJ} */" \
+		> dist/babelfish.min.js
+
+
 publish:
 	@if test 0 -ne `git status --porcelain | wc -l` ; then \
 		echo "Unclean working tree. Commit or stash changes first." >&2 ; \
@@ -77,14 +101,6 @@ publish:
 
 todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
-
-parser:
-	@if test ! `which pegjs` ; then \
-		echo "You need 'pegjs' installed in order to compile parser." >&2 ; \
-		echo "  $ make dev-deps" >&2 ; \
-		exit 128 ; \
-	fi
-	pegjs src/parser.pegjs lib/babelfish/parser.js
 
 
 .PHONY: lint test doc dev-deps gh-pages todo
