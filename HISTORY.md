@@ -1,11 +1,23 @@
-0.6.0 / 2014-04-21
+1.0.0 / 2014-05-21
+------------------
+
+- Big rewrite with api change. Internal data simplified. Phrases are now
+  compiled in lazy way on `translate()` call.
+- Deprecated `getCompiledData()`, `create()`.
+- Constructor function can be called as factory (without `new`).
+- Added `load()` method in pair to `stringify()`.
+- `stringify()` now save fallback info too.
+- `hasPhrase()` option `noFallback` to disable phrase search in fallbacks.
+
+
+0.6.0 / 2014-05-21
 ------------------
 
 - Coerce plain strings & numbers params to `count` & `value` in `translate()`.
 - Added bower support.
 
 
-0.5.0 / 2014-04-20
+0.5.0 / 2014-05-20
 ------------------
 
 - Added variables support in plurals.
@@ -13,7 +25,7 @@
 - Coerce number XXX to { count: XXX } in `translate()`;
 
 
-0.4.0 / 2014-04-19
+0.4.0 / 2014-05-15
 ------------------
 
 - Added objects support. Now `addPhrase()` can also accept `Number`, `Array`,

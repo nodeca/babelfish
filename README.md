@@ -24,6 +24,9 @@ __browser:__
 $ bower install babelfish
 ```
 
+You need [es5-shim](https://github.com/es-shims/es5-shim) for old browsers
+compatibility.
+
 
 ### Phrases Syntax
 
@@ -61,25 +64,26 @@ As BabelFish flatten scopes, it's really fun and nice to store translations in
 YAML files:
 
 ```yaml
-  ---
-  ru-RU:
-    profile: Профиль
-    forums: Форумы
-    apps:
-      forums:
-        new_topic: Новая тема
-        last_post:
-          title : Последнее сообщение
-          by : от
-    demo:
-      apples: "На столе лежит #{apples.count} ((яблоко|яблока|яблок)):apples.count"
+---
+ru-RU:
+  profile: Профиль
+  forums: Форумы
+  apps:
+    forums:
+      new_topic: Новая тема
+      last_post:
+        title : Последнее сообщение
+        by : от
+  demo:
+    apples: "На столе лежит #{count} ((яблоко|яблока|яблок))"
 ```
 
 ### Usage
 
-``` javascript
+```javascript
 // Create new instance of BabelFish with default language/locale: 'en-GB'
-var i18n = require('babelfish').create('en-GB');
+var BabelFish = require('babelfish');
+var i18n = new BabelFish('en-GB');
 
 
 // Fill in some phrases
@@ -114,17 +118,13 @@ i18n.t('uk-UA', 'demo.conv.alright');   // -> 'Alright, man!'
 i18n.t('en-GB', 'demo.coerce', 5);      // -> 'Total: 5.'
 
 
-// You may want to get "compiled" translations to serialize later
-i18n.getCompiledData('ru-RU');
-// -> {
-//      'demo.hello'        : { e: 1, l: "ru-RU", t: [Function] },
-//      'demo.conv.wazup'   : { e: 0, l: "ru-RU", t: 'Как дела?' },
-//      'demo.conv.alright' : { e: 0, l: "ru-RU", t: 'Alright, man!' }
-//    }
+// You may want to "dump" translations to load in browser later
+// Dump will include all fallback translations and fallback rules
+var locale_dump = i18n.stringify('ru-RU');
 
-// Or get compilet translations as direct evalable string,
-// for browser asset generation:
-i18n.stringify(locale);
+var i18n_new = require('babelfish')('en-GB'); // init without `new` also works
+i18n_new.load(locale_dump);
+
 
 
 // Use objects instead of strings (object/array/number/boolean) - can be
@@ -137,24 +137,6 @@ i18n.addPhrase('en-GB', 'demo.array',    [1, 2, 3]);
 i18n.addPhrase('en-GB', 'demo.array',    { foo:1, bar:"2" }, false);
 ```
 
-**NOTICE**
-`BabelFish#getCompiledData` just exports an object with strings/functions.
-You are responsible to serialize it and then inject into browser runtime.
-You can use `BabelFish#stringify` if you are ok with defaults.
-
-Assuming that you have serialized data and it's available on browser as
-`i18nData`, you can do following to inject them into i18n (on browser):
-
-```html
-<script type="text/javascript" src="/assets/babelfish-runtime.js"></script>
-<script type="text/javascript" src="/assets/i18n.ru-RU.js"></script>
-<script type="text/javascript">
-  var i18n = new BabelFish('en-GB');
-
-  // We assume `i18n.ru-RU.js` exports `i18nData` global variable
-  i18n._storage['ru-RU'] = i18nData;
-</script>
-```
 
 ### License
 
