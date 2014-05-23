@@ -157,6 +157,13 @@ describe('Behavior and unit tests come here', function () {
       assert.equal(b.t('en', 'a', 5), 'total 5');
     });
 
+    it('unescape #', function () {
+      var b = new BabelFish('en');
+      b.addPhrase('en', 'a', 'total \\#{count}');
+
+      assert.equal(b.t('en', 'a', 5), 'total #{count}');
+    });
+
     it('ignores provided params when they are not needed', function () {
       var b = new BabelFish('en');
       b.addPhrase('en', 'a', 'a (en)');
@@ -237,10 +244,11 @@ describe('Behavior and unit tests come here', function () {
 
       it('should preserve escaped sequence in plural', function () {
         var b = new BabelFish('en');
-        b.addPhrase('en', 'escaped', '((\\#{count}|many))');
+        b.addPhrase('en', 'escaped', '((=0 \\#{count} strict|\\#{count} one|few))');
 
-        assert.equal(b.t('en', 'escaped', {count: 1}), '#{count}');
-        assert.equal(b.t('en', 'escaped', {count: 2}), 'many');
+        assert.equal(b.t('en', 'escaped', {count: 0}), '#{count} strict');
+        assert.equal(b.t('en', 'escaped', {count: 1}), '#{count} one');
+        assert.equal(b.t('en', 'escaped', {count: 2}), 'few');
       });
     });
 
@@ -262,6 +270,13 @@ describe('Behavior and unit tests come here', function () {
         assert.equal(b.t('en', 'test', {count: 0}), '0 nails');
         assert.equal(b.t('en', 'test', {count: 1}), '1 nail');
         assert.equal(b.t('en', 'test', {count: 2}), 'two nails');
+      });
+
+      it('rewritten zero form with param', function () {
+        var b = new BabelFish('en');
+        b.addPhrase('en', 'test', '((=0 no nails [#{count}]|#{count} nail|#{count} nails))');
+
+        assert.equal(b.t('en', 'test', {count: 0}), 'no nails [0]');
       });
     });
 
