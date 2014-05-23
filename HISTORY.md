@@ -1,4 +1,4 @@
-1.0.0 / 2014-05-21
+1.0.0 / 2014-05-23
 ------------------
 
 - Big rewrite with api change. Internal data simplified. Phrases are now
