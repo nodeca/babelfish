@@ -116,10 +116,10 @@ identifier_part
 // Any text, e.g.:
 // - `Hello, World!`
 literal
-  = (!(plural / variable) literal_char)+ {
+  = literal_chars:(!(plural / variable) lc:literal_char { return lc; })+ {
       return {
         type: 'literal',
-        text: text()
+        text: literal_chars.join('')
       };
     }
 
