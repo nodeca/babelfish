@@ -1,4 +1,4 @@
-/* babelfish 1.0.0 nodeca/babelfish */!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Babelfish=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+/* babelfish 1.0.1 nodeca/babelfish */!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Babelfish=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 module.exports = _dereq_('./lib/babelfish');
 
 },{"./lib/babelfish":2}],2:[function(_dereq_,module,exports){
@@ -369,7 +369,7 @@ BabelFish.prototype.setFallback = function _setFallback(locale, fallbacks) {
 // Compiles given string into function. Used to compile phrases,
 // which contains `plurals`, `variables`, etc.
 function compile(self, str, locale) {
-  var nodes, lang, buf, key, strict_exec, forms_exec, plurals_cache;
+  var nodes, buf, key, strict_exec, forms_exec, plurals_cache;
 
   // Quick check to avoid parse in most cases :)
   if (str.indexOf('#{') === -1 &&
@@ -379,7 +379,6 @@ function compile(self, str, locale) {
   }
 
   nodes = parser.parse(str);
-  lang  = locale.split('-').shift(); // to select pluralizer rule
 
   if (1 === nodes.length && 'literal' === nodes[0].type) {
     return nodes[0].text;
@@ -392,7 +391,7 @@ function compile(self, str, locale) {
   plurals_cache = self._plurals_cache[locale];
 
   buf = [];
-  buf.push(['var str = "", strict, strict_exec, forms, forms_exec, plrl;']);
+  buf.push(['var str = "", strict, strict_exec, forms, forms_exec, plrl, cache, loc, anchor;']);
   buf.push('params = flatten(params);');
 
   forEach(nodes, function (node) {
@@ -430,7 +429,7 @@ function compile(self, str, locale) {
         }
 
         strict_exec[key] = true;
-        if (!plurals_cache.hasPhrase(locale, text)) {
+        if (!plurals_cache.hasPhrase(locale, text, true)) {
           plurals_cache.addPhrase(locale, text, text);
         }
       });
@@ -451,25 +450,27 @@ function compile(self, str, locale) {
         }
 
         forms_exec[text] = true;
-        if (!plurals_cache.hasPhrase(locale, text)) {
+        if (!plurals_cache.hasPhrase(locale, text, true)) {
           plurals_cache.addPhrase(locale, text, text);
         }
       });
 
-      buf.push(format('cache = this._plurals_cache[%j];', locale));
+      buf.push(format('loc = %j;', locale));
+      buf.push(format('anchor = params[%j];', key));
+      buf.push(format('cache = this._plurals_cache[loc];'));
       buf.push(format('strict = %j;', node.strict));
       buf.push(format('strict_exec = %j;', strict_exec));
       buf.push(format('forms = %j;', node.forms));
       buf.push(format('forms_exec = %j;', forms_exec));
-      buf.push(format('if (+(params[%j]) != params[%j]) {', key, key));
-      buf.push(format('  str += "[invalid plurals amount: %s(" + params[%j] + ")]";', key, key));
+      buf.push(       'if (+(anchor) != anchor) {');
+      buf.push(format('  str += "[invalid plurals amount: %s(" + anchor + ")]";', key));
       buf.push(       '} else {');
-      buf.push(format('  if (strict[params[%j]] !== undefined) {', key));
-      buf.push(format('    plrl = strict[params[%j]];', key));
-      buf.push(format('    str += strict_exec[params[%j]] ? cache.t(%j, plrl, params) : plrl;', key, locale));
+      buf.push(       '  if (strict[anchor] !== undefined) {');
+      buf.push(       '    plrl = strict[anchor];');
+      buf.push(       '    str += strict_exec[anchor] ? cache.t(loc, plrl, params) : plrl;');
       buf.push(       '  } else {');
-      buf.push(format('    plrl = pluralizer(%j, +params[%j], forms);', lang, key));
-      buf.push(format('    str += forms_exec[plrl] ? cache.t(%j, plrl, params) : plrl;', locale));
+      buf.push(       '    plrl = pluralizer(loc.split("-")[0], +anchor, forms);');
+      buf.push(       '    str += forms_exec[plrl] ? cache.t(loc, plrl, params) : plrl;');
       buf.push(       '  }');
       buf.push(       '}');
       return;
@@ -526,7 +527,9 @@ BabelFish.prototype.translate = function _translate(locale, phrase, params) {
 
   // compile data if not done yet
   if (!data.hasOwnProperty('compiled')) {
-    data.compiled = compile(this, data.translation, locale);
+    // We should use locale from phrase, because of possible fallback,
+    // to keep plural locales in sync.
+    data.compiled = compile(this, data.translation, data.locale);
   }
 
   // return simple string immediately
@@ -557,7 +560,7 @@ BabelFish.prototype.translate = function _translate(locale, phrase, params) {
  **/
 BabelFish.prototype.hasPhrase = function _hasPhrase(locale, phrase, noFallback) {
   return noFallback ?
-    this._store.hasOwnProperty(makePhraseKey(locale, phrase))
+    this._storage.hasOwnProperty(makePhraseKey(locale, phrase))
   :
     searchPhraseKey(this, locale, phrase) ? true : false;
 };
