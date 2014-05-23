@@ -1,3 +1,10 @@
+1.0.1 / 2014-05-23
+------------------
+
+- Fixed partials locale for generated cache/
+- `hasPhrase()` fix for `noFollback = true`.
+
+
 1.0.0 / 2014-05-23
 ------------------
 
