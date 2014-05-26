@@ -1,5 +1,5 @@
-BabelFish - i18n for node.js
-============================
+BabelFish - human friendly i18n for javascript
+==============================================
 
 [![Build Status](https://travis-ci.org/nodeca/babelfish.svg?branch=master)](https://travis-ci.org/nodeca/babelfish)
 
@@ -45,7 +45,7 @@ Thus following variants are equal:
 
 Also you can use variables in plural parts:
 
-- `I have ((one nail|#{count} nails))`
+- `I have ((#{count} nail|#{count} nails))`
 
 Need special zero form or overwrite any specific value? No problems:
 
@@ -75,7 +75,7 @@ ru-RU:
         title : Последнее сообщение
         by : от
   demo:
-    apples: "На столе лежит #{count} ((яблоко|яблока|яблок))"
+    apples: На столе лежит #{count} ((яблоко|яблока|яблок))
 ```
 
 ### Usage
@@ -98,7 +98,7 @@ i18n.addPhrase('ru-RU', 'demo.conv.wazup',    'Как дела?');
 i18n.addPhrase('uk-UA', 'demo.hello',         'Здоровенькі були, #{user.name}.');
 
 
-// Set locale fallback so we use most appropriate translation
+// Set locale fallback to use the most appropriate translation when possible
 i18n.setFallback('uk-UA', 'ru-RU');
 
 
@@ -118,7 +118,7 @@ i18n.t('uk-UA', 'demo.conv.alright');   // -> 'Alright, man!'
 i18n.t('en-GB', 'demo.coerce', 5);      // -> 'Total: 5.'
 
 
-// You may want to "dump" translations to load in browser later
+// You may wish to "dump" translations to load in browser later
 // Dump will include all fallback translations and fallback rules
 var locale_dump = i18n.stringify('ru-RU');
 
@@ -126,9 +126,9 @@ var i18n_new = require('babelfish')('en-GB'); // init without `new` also works
 i18n_new.load(locale_dump);
 
 
-
 // Use objects instead of strings (object/array/number/boolean) - can be
-// useful to prepare bulk data for external libraries
+// useful to prepare bulk data for external libraries.
+// Note, only JSON-supported types are ok (no date & regex)
 i18n.addPhrase('en-GB', 'demo.boolean',  true);
 i18n.addPhrase('en-GB', 'demo.number',   123);
 i18n.addPhrase('en-GB', 'demo.array',    [1, 2, 3]);
