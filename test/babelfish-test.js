@@ -229,6 +229,27 @@ describe('Behavior and unit tests come here', function () {
       assert.equal(b.t('en', 'c', {count: 'foo'}), 'c (en) [invalid plurals amount: count(foo)]');
     });
 
+    describe('language name separators', function () {
+
+      it('`-` sould be ok', function () {
+        var b = new BabelFish('en');
+        b.addPhrase('en-US', 'a', 'a (en) ((one|other))');
+
+        assert.equal(b.t('en-US', 'a', {count: 0}), 'a (en) other');
+        assert.equal(b.t('en-US', 'a', {count: 1}), 'a (en) one');
+        assert.equal(b.t('en-US', 'a', {count: 2}), 'a (en) other');
+      });
+
+      it('`_` sould be ok', function () {
+        var b = new BabelFish('en');
+        b.addPhrase('en_US', 'a', 'a (en) ((one|other))');
+
+        assert.equal(b.t('en_US', 'a', {count: 0}), 'a (en) other');
+        assert.equal(b.t('en_US', 'a', {count: 1}), 'a (en) one');
+        assert.equal(b.t('en_US', 'a', {count: 2}), 'a (en) other');
+      });
+    });
+
     describe('variables in plurals', function () {
 
       it('should replace variable in plural', function () {

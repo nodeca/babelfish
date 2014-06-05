@@ -1,3 +1,9 @@
+1.0.2 / 2014-06-05
+------------------
+
+- Fixed pluralizer for locale names with low dash separator ("en_US")
+
+
 1.0.1 / 2014-05-23
 ------------------
 
