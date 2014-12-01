@@ -138,6 +138,11 @@ i18n.addPhrase('en-GB', 'demo.array',    { foo:1, bar:"2" }, false);
 ```
 
 
+### Implementations in other languages
+
+- Perl - [Locale::Babelfish](https://metacpan.org/pod/Locale::Babelfish)
+
+
 ### License
 
 View the [LICENSE](https://github.com/nodeca/babelfish.tools/blob/master/LICENSE) file (MIT).
