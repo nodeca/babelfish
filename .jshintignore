@@ -1,7 +1,0 @@
-.git/
-dist/
-doc/
-node_modules/
-tmp/
-browser/
-lib/babelfish/parser.js

@@ -34,7 +34,7 @@ function redistribute_ast(ast) {
     if (!ast.hasOwnProperty(node)) {
       continue;
     }
-    if ('literal' === last.type && 'literal' === node.type) {
+    if (last.type === 'literal' && node.type === 'literal') {
       last.text += node.text;
       continue;
     }
@@ -108,18 +108,18 @@ describe('BabelFish.Parser', function () {
 
       'String with plurals ((a|b)):c': [
         new LiteralNode('String with plurals '),
-        new PluralNode('c', ['a', 'b'])
+        new PluralNode('c', [ 'a', 'b' ])
       ],
 
       'Plurals with ((a\\)b\\|c\\(d|e)):myvar, escaping': [
         new LiteralNode('Plurals with '),
-        new PluralNode('myvar', ['a)b|c(d', 'e']),
+        new PluralNode('myvar', [ 'a)b|c(d', 'e' ]),
         new LiteralNode(', escaping')
       ],
 
       'Plurals with ((a|b)):_compl3x.$variable.': [
         new LiteralNode('Plurals with '),
-        new PluralNode('_compl3x.$variable', ['a', 'b']),
+        new PluralNode('_compl3x.$variable', [ 'a', 'b' ]),
         new LiteralNode('.')
       ],
 
@@ -129,13 +129,13 @@ describe('BabelFish.Parser', function () {
 
       'Plurals with single ((abc)):$myvar forms': [
         new LiteralNode('Plurals with single '),
-        new PluralNode('$myvar', ['abc']),
+        new PluralNode('$myvar', [ 'abc' ]),
         new LiteralNode(' forms')
       ],
 
       'Plurals with lots of forms ((b|c|d|e|f|g|h)):a': [
         new LiteralNode('Plurals with lots of forms '),
-        new PluralNode('a', ['b', 'c', 'd', 'e', 'f', 'g', 'h'])
+        new PluralNode('a', [ 'b', 'c', 'd', 'e', 'f', 'g', 'h' ])
       ],
 
       'Escape \\((a|b)):plurals and \\#{variables}': [
@@ -148,18 +148,18 @@ describe('BabelFish.Parser', function () {
 
       'Escape backslash ((a\\\\|b)):c': [
         new LiteralNode('Escape backslash '),
-        new PluralNode('c', ['a\\', 'b'])
+        new PluralNode('c', [ 'a\\', 'b' ])
       ],
 
       'Automagically set ((anchor|to|count)) when plural have no anchor': [
         new LiteralNode('Automagically set '),
-        new PluralNode('count', ['anchor', 'to', 'count']),
+        new PluralNode('count', [ 'anchor', 'to', 'count' ]),
         new LiteralNode(' when plural have no anchor')
       ],
 
       'Treat ((trailing|semicolumn)): literally and use automagic anchor': [
         new LiteralNode('Treat '),
-        new PluralNode('count', ['trailing', 'semicolumn']),
+        new PluralNode('count', [ 'trailing', 'semicolumn' ]),
         new LiteralNode(': literally and use automagic anchor')
       ]
     });

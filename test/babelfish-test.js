@@ -43,8 +43,8 @@ describe('Behavior and unit tests come here', function () {
   describe('When fallback is given', function () {
     var b = new BabelFish('en');
 
-    b.setFallback('es',    ['es-ES', 'es-MX']);
-    b.setFallback('es-ES', ['es', 'es-US']);
+    b.setFallback('es',    [ 'es-ES', 'es-MX' ]);
+    b.setFallback('es-ES', [ 'es', 'es-US' ]);
 
     b.addPhrase('en',    'aaa', 'aaa (en)');
     b.addPhrase('en',    'bbb', 'bbb (en)');
@@ -55,7 +55,7 @@ describe('Behavior and unit tests come here', function () {
     b.addPhrase('es-MX', 'ccc', 'ccc (es-MX)');
     b.addPhrase('es-US', 'ddd', 'ddd (es-US)');
 
-    b.setFallback('es-US', ['es']);
+    b.setFallback('es-US', [ 'es' ]);
 
     it('use defaultLocale in worst case', function () {
       assert.equal(b.t('es', 'ddd'), 'ddd (en)');
@@ -84,7 +84,7 @@ describe('Behavior and unit tests come here', function () {
     });
 
     it('allows re-assign fallbacks', function () {
-      b.setFallback('es-US', ['es-ES', 'es-MX']);
+      b.setFallback('es-US', [ 'es-ES', 'es-MX' ]);
 
       assert.equal(b.t('es', 'aaa'), 'aaa (es)');
       assert.equal(b.t('es', 'bbb'), 'bbb (es-ES)');
@@ -98,7 +98,7 @@ describe('Behavior and unit tests come here', function () {
     var b = new BabelFish('en');
 
     it('cause exception', function () {
-      assert.throws(function () { b.setFallback('en', ['en-GB']); }, Error);
+      assert.throws(function () { b.setFallback('en', [ 'en-GB' ]); }, Error);
     });
   });
 
@@ -108,7 +108,7 @@ describe('Behavior and unit tests come here', function () {
 
     b.addPhrase('en', 'phrase1',       'foobar');
     b.addPhrase('en', 'scope.phrase2', 'foobar');
-    b.addPhrase('en', 'scope',         {phrase3: 'foobar'});
+    b.addPhrase('en', 'scope',         { phrase3: 'foobar' });
 
     it('allows specify phrase within `global` scope', function () {
       assert.equal(b.t('en', 'phrase1'), 'foobar');
@@ -134,7 +134,7 @@ describe('Behavior and unit tests come here', function () {
 
       assert.equal(b.t('en', 'a'), 'a (en)');
       assert.equal(b.t('en', 'b'), 'b (en)');
-      assert.equal(b.t('ru', 'b', {foo: 'bar'}), 'b (ru) bar');
+      assert.equal(b.t('ru', 'b', { foo: 'bar' }), 'b (ru) bar');
     });
 
     it('returns a pure object', function () {
@@ -168,7 +168,7 @@ describe('Behavior and unit tests come here', function () {
       var b = new BabelFish('en');
       b.addPhrase('en', 'a', 'a (en)');
 
-      assert.equal(b.t('en', 'a', {foo: 'bar', bar: 'baz'}), 'a (en)');
+      assert.equal(b.t('en', 'a', { foo: 'bar', bar: 'baz' }), 'a (en)');
     });
 
     it('replaces missing params with [missed variable: <name>]', function () {
@@ -184,14 +184,14 @@ describe('Behavior and unit tests come here', function () {
       var b = new BabelFish('en');
       b.addPhrase('es', 'a', 'a (es) #{f.o}');
 
-      assert.equal(b.t('es', 'a', {f: {o: 'bar'}}), 'a (es) bar');
+      assert.equal(b.t('es', 'a', { f: { o: 'bar' } }), 'a (es) bar');
     });
 
     it('reports missing translation', function () {
       var b = new BabelFish('en');
       b.addPhrase('fr', 'd', 'd (fr) ((une|autre)):count');
 
-      assert.equal(b.t('en', 'd', {count: 0}), 'en: No translation for [d]');
+      assert.equal(b.t('en', 'd', { count: 0 }), 'en: No translation for [d]');
     });
 
     it('honors pluralization', function () {
@@ -199,25 +199,25 @@ describe('Behavior and unit tests come here', function () {
       b.addPhrase('en', 'a', 'a (en) ((one|other)):count');
       b.addPhrase('fr', 'b', 'b (fr) ((une|autre)):count');
 
-      assert.equal(b.t('en', 'a', {count: 0}), 'a (en) other');
-      assert.equal(b.t('en', 'a', {count: 1}), 'a (en) one');
-      assert.equal(b.t('en', 'a', {count: 2}), 'a (en) other');
-      assert.equal(b.t('fr', 'a', {count: 0}), 'a (en) other');
+      assert.equal(b.t('en', 'a', { count: 0 }), 'a (en) other');
+      assert.equal(b.t('en', 'a', { count: 1 }), 'a (en) one');
+      assert.equal(b.t('en', 'a', { count: 2 }), 'a (en) other');
+      assert.equal(b.t('fr', 'a', { count: 0 }), 'a (en) other');
 
       // check that we use correct pluralizer
-      assert.equal(b.t('en', 'a', {count: 1}),   'a (en) one');
-      assert.equal(b.t('en', 'a', {count: 1.5}), 'a (en) other');
-      assert.equal(b.t('fr', 'b', {count: 0}),   'b (fr) une');
-      assert.equal(b.t('fr', 'b', {count: 1.5}), 'b (fr) une');
+      assert.equal(b.t('en', 'a', { count: 1 }),   'a (en) one');
+      assert.equal(b.t('en', 'a', { count: 1.5 }), 'a (en) other');
+      assert.equal(b.t('fr', 'b', { count: 0 }),   'b (fr) une');
+      assert.equal(b.t('fr', 'b', { count: 1.5 }), 'b (fr) une');
     });
 
     it('honors pluralization with default anchor', function () {
       var b = new BabelFish('en');
       b.addPhrase('en', 'a', 'a (en) ((one|other))');
 
-      assert.equal(b.t('en', 'a', {count: 0}), 'a (en) other');
-      assert.equal(b.t('en', 'a', {count: 1}), 'a (en) one');
-      assert.equal(b.t('en', 'a', {count: 2}), 'a (en) other');
+      assert.equal(b.t('en', 'a', { count: 0 }), 'a (en) other');
+      assert.equal(b.t('en', 'a', { count: 1 }), 'a (en) one');
+      assert.equal(b.t('en', 'a', { count: 2 }), 'a (en) other');
     });
 
     it('replaces invalid plurals amount with [invalid plurals amount: <name>(<value>)]', function () {
@@ -225,8 +225,8 @@ describe('Behavior and unit tests come here', function () {
       b.addPhrase('en', 'c', 'c (en) ((one|other)):count');
 
       assert.equal(b.t('en', 'c'), 'c (en) [invalid plurals amount: count(undefined)]');
-      assert.equal(b.t('en', 'c', {count: null}), 'c (en) [invalid plurals amount: count(null)]');
-      assert.equal(b.t('en', 'c', {count: 'foo'}), 'c (en) [invalid plurals amount: count(foo)]');
+      assert.equal(b.t('en', 'c', { count: null }), 'c (en) [invalid plurals amount: count(null)]');
+      assert.equal(b.t('en', 'c', { count: 'foo' }), 'c (en) [invalid plurals amount: count(foo)]');
     });
 
     describe('language name separators', function () {
@@ -235,18 +235,18 @@ describe('Behavior and unit tests come here', function () {
         var b = new BabelFish('en');
         b.addPhrase('en-US', 'a', 'a (en) ((one|other))');
 
-        assert.equal(b.t('en-US', 'a', {count: 0}), 'a (en) other');
-        assert.equal(b.t('en-US', 'a', {count: 1}), 'a (en) one');
-        assert.equal(b.t('en-US', 'a', {count: 2}), 'a (en) other');
+        assert.equal(b.t('en-US', 'a', { count: 0 }), 'a (en) other');
+        assert.equal(b.t('en-US', 'a', { count: 1 }), 'a (en) one');
+        assert.equal(b.t('en-US', 'a', { count: 2 }), 'a (en) other');
       });
 
       it('`_` sould be ok', function () {
         var b = new BabelFish('en');
         b.addPhrase('en_US', 'a', 'a (en) ((one|other))');
 
-        assert.equal(b.t('en_US', 'a', {count: 0}), 'a (en) other');
-        assert.equal(b.t('en_US', 'a', {count: 1}), 'a (en) one');
-        assert.equal(b.t('en_US', 'a', {count: 2}), 'a (en) other');
+        assert.equal(b.t('en_US', 'a', { count: 0 }), 'a (en) other');
+        assert.equal(b.t('en_US', 'a', { count: 1 }), 'a (en) one');
+        assert.equal(b.t('en_US', 'a', { count: 2 }), 'a (en) other');
       });
     });
 
@@ -257,19 +257,19 @@ describe('Behavior and unit tests come here', function () {
         b.addPhrase('en', 'nested1', '((#{count}|many))');
         b.addPhrase('en', 'nested2', '((#{var1} #{var2}|many))');
 
-        assert.equal(b.t('en', 'nested1', {count: 1}), '1');
-        assert.equal(b.t('en', 'nested1', {count: 2}), 'many');
-        assert.equal(b.t('en', 'nested2', {count: 1, var1: 4, var2: 5}), '4 5');
-        assert.equal(b.t('en', 'nested2', {count: 2, var1: 4, var2: 5}), 'many');
+        assert.equal(b.t('en', 'nested1', { count: 1 }), '1');
+        assert.equal(b.t('en', 'nested1', { count: 2 }), 'many');
+        assert.equal(b.t('en', 'nested2', { count: 1, var1: 4, var2: 5 }), '4 5');
+        assert.equal(b.t('en', 'nested2', { count: 2, var1: 4, var2: 5 }), 'many');
       });
 
       it('should preserve escaped sequence in plural', function () {
         var b = new BabelFish('en');
         b.addPhrase('en', 'escaped', '((=0 \\#{count} strict|\\#{count} one|few))');
 
-        assert.equal(b.t('en', 'escaped', {count: 0}), '#{count} strict');
-        assert.equal(b.t('en', 'escaped', {count: 1}), '#{count} one');
-        assert.equal(b.t('en', 'escaped', {count: 2}), 'few');
+        assert.equal(b.t('en', 'escaped', { count: 0 }), '#{count} strict');
+        assert.equal(b.t('en', 'escaped', { count: 1 }), '#{count} one');
+        assert.equal(b.t('en', 'escaped', { count: 2 }), 'few');
       });
     });
 
@@ -279,25 +279,25 @@ describe('Behavior and unit tests come here', function () {
         var b = new BabelFish('en');
         b.addPhrase('en', 'test', '((=0 no nails|#{count} nail|#{count} nails))');
 
-        assert.equal(b.t('en', 'test', {count: 0}), 'no nails');
-        assert.equal(b.t('en', 'test', {count: 1}), '1 nail');
-        assert.equal(b.t('en', 'test', {count: 2}), '2 nails');
+        assert.equal(b.t('en', 'test', { count: 0 }), 'no nails');
+        assert.equal(b.t('en', 'test', { count: 1 }), '1 nail');
+        assert.equal(b.t('en', 'test', { count: 2 }), '2 nails');
       });
 
       it('rewritten "2" value', function () {
         var b = new BabelFish('en');
         b.addPhrase('en', 'test', '((=2 two nails|#{count} nail|#{count} nails))');
 
-        assert.equal(b.t('en', 'test', {count: 0}), '0 nails');
-        assert.equal(b.t('en', 'test', {count: 1}), '1 nail');
-        assert.equal(b.t('en', 'test', {count: 2}), 'two nails');
+        assert.equal(b.t('en', 'test', { count: 0 }), '0 nails');
+        assert.equal(b.t('en', 'test', { count: 1 }), '1 nail');
+        assert.equal(b.t('en', 'test', { count: 2 }), 'two nails');
       });
 
       it('rewritten zero form with param', function () {
         var b = new BabelFish('en');
         b.addPhrase('en', 'test', '((=0 no nails [#{count}]|#{count} nail|#{count} nails))');
 
-        assert.equal(b.t('en', 'test', {count: 0}), 'no nails [0]');
+        assert.equal(b.t('en', 'test', { count: 0 }), 'no nails [0]');
       });
     });
 
@@ -372,7 +372,7 @@ describe('Behavior and unit tests come here', function () {
     var b = new BabelFish('en');
     b.addPhrase('en', 'string', 'test');
     b.addPhrase('en', 'number', 123);
-    b.addPhrase('ru', 'object', { foo: 'bar'}, 0);
+    b.addPhrase('ru', 'object', { foo: 'bar' }, 0);
 
     var data_ru = {
       en: {
@@ -380,7 +380,7 @@ describe('Behavior and unit tests come here', function () {
         number: 123
       },
       ru: {
-        object: { foo: 'bar'}
+        object: { foo: 'bar' }
       }
     };
 

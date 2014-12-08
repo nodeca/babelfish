@@ -16,12 +16,7 @@ test-all: lint test
 
 
 lint:
-	if test ! `which jshint` ; then \
-		echo "You need 'jshint' installed in order to run lint." >&2 ; \
-		echo "  $ npm install" >&2 ; \
-		exit 128 ; \
-		fi
-	jshint . --show-non-errors
+	eslint --reset ./
 
 
 test: lint

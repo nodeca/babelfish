@@ -13,6 +13,6 @@ describe('issue 7', function () {
 
     b.addPhrase('ru', 'n', '#{n}');
 
-    assert.strictEqual(b.translate('ru', 'n', {n: 0}), '0');
+    assert.strictEqual(b.translate('ru', 'n', { n: 0 }), '0');
   });
 });
