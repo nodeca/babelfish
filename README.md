@@ -1,11 +1,12 @@
-BabelFish - human friendly i18n for javascript
-==============================================
+BabelFish - human friendly i18n for JS
+======================================
 
 [![Build Status](https://travis-ci.org/nodeca/babelfish.svg?branch=master)](https://travis-ci.org/nodeca/babelfish)
 
-Internationalisation with easy syntax for node.js. Classic solutions use multiple phrases
-for plurals. But we define plurals inline - that's more compact, and easier to maintain.
-Also, phrases are grouped into nested scopes, like in Ruby.
+Internationalisation with easy syntax for node.js and browser. Classic solutions
+use multiple phrases for plurals. But we define plurals inline - that's more
+compact, and easy for programmers. Also, phrases are grouped into nested scopes,
+like in Ruby.
 
 We support all pluralisation rules from [unicode CLDR](http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html),
 version [2.0.1](http://cldr.unicode.org/index/downloads).
