@@ -2,6 +2,7 @@ BabelFish - human friendly i18n for JS
 ======================================
 
 [![Build Status](https://travis-ci.org/nodeca/babelfish.svg?branch=master)](https://travis-ci.org/nodeca/babelfish)
+[![NPM version](https://img.shields.io/npm/v/babelfish.svg)](https://www.npmjs.org/package/babelfish)
 
 Internationalisation with easy syntax for node.js and browser. Classic solutions
 use multiple phrases for plurals. But we define plurals inline - that's more
