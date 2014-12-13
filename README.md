@@ -147,4 +147,4 @@ i18n.addPhrase('en-GB', 'demo.array',    { foo:1, bar:"2" }, false);
 
 ### License
 
-View the [LICENSE](https://github.com/nodeca/babelfish.tools/blob/master/LICENSE) file (MIT).
+View the [LICENSE](https://github.com/nodeca/babelfish/blob/master/LICENSE) file (MIT).
