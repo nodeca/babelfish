@@ -27,12 +27,13 @@
     "test": "make test"
   },
   "devDependencies": {
+    "browserify": "*",
     "eslint": "0.10.0",
     "eslint-plugin-nodeca": "~1.0.3",
     "istanbul": "*",
     "mocha": "*",
-    "browserify": "*",
-    "uglify-js": "*",
-    "pegjs": "~ 0.8.0"
+    "pegjs": "~ 0.8.0",
+    "plurals-cldr": "~ 1.0.0",
+    "uglify-js": "*"
   }
 }
