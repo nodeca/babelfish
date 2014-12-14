@@ -16,16 +16,16 @@ test-all: lint test
 
 
 lint:
-	eslint --reset ./
+	./node_modules/.bin/eslint --reset ./
 
 
 test: lint
-	@if test ! `which mocha` ; then \
-		echo "You need 'mocha' installed in order to run tests." >&2 ; \
-		echo "  $ npm install" >&2 ; \
-		exit 128 ; \
-		fi
 	NODE_ENV=test mocha
+
+
+coverage:
+	rm -rf coverage
+	./node_modules/.bin/istanbul cover node_modules/.bin/_mocha
 
 
 doc:
@@ -98,5 +98,5 @@ todo:
 	grep 'TODO' -n -r ./lib 2>/dev/null || test true
 
 
-.PHONY: lint test doc dev-deps gh-pages todo
+.PHONY: lint test doc dev-deps gh-pages todo coverage
 .SILENT: lint test doc todo

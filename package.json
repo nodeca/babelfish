@@ -29,6 +29,7 @@
   "devDependencies": {
     "eslint": "0.10.0",
     "eslint-plugin-nodeca": "~1.0.3",
+    "istanbul": "*",
     "mocha": "*",
     "browserify": "*",
     "uglify-js": "*",

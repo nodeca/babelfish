@@ -1,2 +1,3 @@
-dist
+dist/
+coverage/
 lib/babelfish/parser.js
