@@ -52,7 +52,7 @@ gh-pages:
 		git commit -q -m 'Recreated docs'
 	cd ${TMP_PATH} && \
 		git remote add remote ${REMOTE_REPO} && \
-		git push --force remote +master:gh-pages 
+		git push --force remote +master:gh-pages
 	rm -rf ${TMP_PATH}
 
 
@@ -62,7 +62,7 @@ parser:
 		echo "  $ npm install" >&2 ; \
 		exit 128 ; \
 	fi
-	pegjs -o size src/parser.pegjs lib/babelfish/parser.js
+	pegjs -o size src/parser.pegjs lib/parser.js
 
 
 browserify:

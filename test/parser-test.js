@@ -4,7 +4,7 @@
 
 
 var assert = require('assert');
-var parser = require('../lib/babelfish/parser');
+var parser = require('../lib/parser');
 
 
 function LiteralNode(text) {
