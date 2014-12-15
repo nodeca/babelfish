@@ -127,7 +127,7 @@ literal
 
 // Any non-special character or escaped sequence
 literal_char
-  = '\\' char:[\\#()] {
+  = '\\' char:[\\#()|] {
       return char;
     }
   / .
