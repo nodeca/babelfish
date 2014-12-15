@@ -31,6 +31,7 @@
     "eslint": "0.10.0",
     "eslint-plugin-nodeca": "~1.0.3",
     "istanbul": "*",
+    "lodash": "*",
     "mocha": "*",
     "pegjs": "~ 0.8.0",
     "plurals-cldr": "~ 1.0.0",
