@@ -1,0 +1,26 @@
+"-" and "_" should be ok
+|
+^en-US: test
+^en_US: test
+|
+^en-US: test
+^en_US: test
+.
+
+
+should be case insensitive
+.
+^en-US: test
+.
+^en-us: test
+^eN-Us: test
+
+
+should try fallback to shorter locale
+.
+^en: test
+.
+^en: test
+^en-US: test
+^en_UK: test
+.

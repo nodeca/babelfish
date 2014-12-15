@@ -1,0 +1,61 @@
+use appropriate translation, and fallback to default if not available
+.
+^en:test (en) I have ((=0 no nails|1 nail|#{count} nails total))
+^ru:test (ru) У меня #{count} ((гвоздь|гвоздя|гвоздей))
+.
+^ru:test (ru) У меня 0 гвоздей^^0
+^ru:test (ru) У меня 1 гвоздь^^1
+^ru:test (ru) У меня 2 гвоздя^^2
+^ru:test (ru) У меня 9 гвоздей^^9
+^en:test (en) I have no nails^^0
+^en:test (en) I have 1 nail^^1
+^en:test (en) I have 2 nails total^^2
+^en:test (en) I have 9 nails total^^9
+^fr:test (en) I have no nails^^0
+^fr:test (en) I have 1 nail^^1
+^fr:test (en) I have 2 nails total^^2
+^fr:test (en) I have 9 nails total^^9
+.
+
+
+flatten objects in params
+.
+#{f.o}
+.
+bar^^{ "f": { "o": "bar" } }
+.
+
+
+ignore params when not needed
+.
+test
+.
+test^^12345
+.
+
+
+reports missing translations
+.
+^fr:test (fr)
+.
+^en:en: No translation for [test]
+^ru:ru: No translation for [test]
+.
+
+
+report missing variable
+|
+#{foo}
+#{f.o}
+|
+[missed variable: foo]
+[missed variable: f.o]
+|
+
+
+Empty string should be ok
+.
+
+.
+
+.
