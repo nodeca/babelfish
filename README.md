@@ -143,6 +143,7 @@ i18n.addPhrase('en-GB', 'demo.array',    { foo:1, bar:"2" }, false);
 ### Implementations in other languages
 
 - Perl - [Locale::Babelfish](https://metacpan.org/pod/Locale::Babelfish)
+- Ruby - https://github.com/regru/babelfish-ruby
 
 
 ### License
