@@ -1,13 +1,26 @@
+1.1.0 / 2015-02-01
+------------------
+
+- Moved pluralizer to external package `plurals-cldr`.
+- Fixed fallbacks serialize/load.
+- Allow `|` escaping.
+- Recompiled REG parser with speed optimization.
+- Reorganized tests:
+  - moved as much as possible to fixtures
+  - 100% coverage
+  - coveralls reports
+
+
 1.0.2 / 2014-06-05
 ------------------
 
-- Fixed pluralizer for locale names with low dash separator ("en_US")
+- Fixed pluralizer for locale names with low dash separator ("en_US").
 
 
 1.0.1 / 2014-05-23
 ------------------
 
-- Fixed partials locale for generated cache/
+- Fixed partials locale for generated cache.
 - `hasPhrase()` fix for `noFollback = true`.
 
 
@@ -64,9 +77,9 @@
 0.1.3 / 2013-03-19
 ------------------
 
-- Migrated tests to mocha
-- Fixed docs errors
-- Added params check to `getCompiledData()`
+- Migrated tests to mocha.
+- Fixed docs errors.
+- Added params check to `getCompiledData()`.
 - Drop `underscore` dependency.
 - Change browserifier to `webmake`.
 
@@ -74,20 +87,20 @@
 0.1.2 / 2012-10-23
 ------------------
 
-- Fixed handling 0 in #{variables}, thanks to @elmigranto
-- Updated README samples
+- Fixed handling 0 in #{variables}, thanks to @elmigranto.
+- Updated README samples.
 
 
 0.1.1 / 2012-10-15
 ------------------
 
-- Refactor internal storage
-- Fix flattenParams()
-- Improved error reporting on missing params
-- Add hasPhrase()
+- Refactor internal storage.
+- Fix flattenParams().
+- Improved error reporting on missing params.
+- Add hasPhrase().
 
 
 0.1.0 / 2012-08-14
 ------------------
 
-- Initial release
+- Initial release.
