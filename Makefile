@@ -50,7 +50,7 @@ gh-pages:
 
 
 parser:
-	./node_modules/.bin/pegjs -o size src/parser.pegjs lib/parser.js
+	./node_modules/.bin/pegjs -o speed src/parser.pegjs lib/parser.js
 
 
 browserify:
