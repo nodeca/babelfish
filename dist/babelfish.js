@@ -1,7 +1,4 @@
-/* babelfish 1.0.2 nodeca/babelfish */!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Babelfish=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-module.exports = _dereq_('./lib/babelfish');
-
-},{"./lib/babelfish":2}],2:[function(_dereq_,module,exports){
+/* babelfish 1.1.0 nodeca/babelfish */!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Babelfish=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
  *  class BabelFish
  *
@@ -26,8 +23,8 @@ module.exports = _dereq_('./lib/babelfish');
 'use strict';
 
 
-var parser = _dereq_('./babelfish/parser');
-var pluralizer = _dereq_('./babelfish/pluralizer');
+var parser = require('./parser');
+var plural = require('plurals-cldr');
 
 function _class(obj) { return Object.prototype.toString.call(obj); }
 
@@ -37,6 +34,7 @@ function isBoolean(obj)  { return obj === true || obj === false; }
 function isFunction(obj) { return _class(obj) === '[object Function]'; }
 function isObject(obj)   { return _class(obj) === '[object Object]'; }
 
+/*istanbul ignore next*/
 var isArray = Array.isArray || function _isArray(obj) {
   return _class(obj) === '[object Array]';
 };
@@ -59,6 +57,7 @@ var nativeForEach = Array.prototype.forEach;
 // The cornerstone, an `each` implementation, aka `forEach`.
 // Handles objects with the built-in `forEach`, arrays, and raw objects.
 // Delegates to **ECMAScript 5**'s native `forEach` if available.
+/*istanbul ignore next*/
 function forEach(obj, iterator, context) {
   if (obj === null) {
     return;
@@ -81,6 +80,7 @@ function forEach(obj, iterator, context) {
 
 var formatRegExp = /%[sdj%]/g;
 
+/*istanbul ignore next*/
 function format(f) {
   var i = 1;
   var args = arguments;
@@ -129,7 +129,7 @@ function flatten(obj) {
   var params = {};
 
   forEach(obj || {}, function (val, key) {
-    if (val && 'object' === typeof val) {
+    if (val && typeof val === 'object') {
       forEach(flatten(val), function (sub_val, sub_key) {
         params[key + '.' + sub_key] = sub_val;
       });
@@ -165,10 +165,10 @@ function searchPhraseKey(self, locale, phrase) {
   if (fb_cache.hasOwnProperty(key)) { return fb_cache[key]; }
 
   // scan fallbacks & cache result
-  var fb = self._fallbacks[locale] || [self._defaultLocale];
+  var fb = self._fallbacks[locale] || [ self._defaultLocale ];
   var fb_key;
 
-  for (var i=0, l=fb.length; i<l; i++) {
+  for (var i = 0, l = fb.length; i < l; i++) {
     fb_key = makePhraseKey(fb[i], phrase);
     if (storage.hasOwnProperty(fb_key)) {
       // found - update cache and return result
@@ -182,6 +182,21 @@ function searchPhraseKey(self, locale, phrase) {
   return null;
 }
 
+
+function pluralizer(lang, val, forms) {
+  var idx = plural.indexOf(lang, val);
+
+  if (idx === -1) {
+    return format('[pluralizer for "%s" locale not found]', lang);
+  }
+
+  if (typeof forms[idx] === 'undefined') {
+    return format('[plural form %d ("%s") not found in translation]',
+                      idx, plural.forms(lang)[idx]);
+  }
+
+  return forms[idx];
+}
 
 // public api (module)
 ////////////////////////////////////////////////////////////////////////////////
@@ -287,7 +302,9 @@ BabelFish.prototype.addPhrase = function _addPhrase(locale, phrase, translation,
     fl = flattenLevel ? Infinity : 0;
   } else if (isNumber(flattenLevel)) {
     fl = Math.floor(flattenLevel);
-    fl = (fl < 0) ? 0 : fl;
+    if (fl < 0) {
+      throw new TypeError('Invalid flatten level (should be >= 0).');
+    }
   } else {
     fl = Infinity;
   }
@@ -295,7 +312,7 @@ BabelFish.prototype.addPhrase = function _addPhrase(locale, phrase, translation,
   if (isObject(translation) && (fl > 0)) {
     // recursive object walk, until flattenLevel allows
     forEach(translation, function (val, key) {
-      self.addPhrase(locale, phrase + '.' + key, val, fl-1);
+      self.addPhrase(locale, phrase + '.' + key, val, fl - 1);
     });
     return;
   }
@@ -355,16 +372,18 @@ BabelFish.prototype.setFallback = function _setFallback(locale, fallbacks) {
   var def = this._defaultLocale;
 
   if (def === locale) {
-    throw new Error('Default locale can\'t have fallbacks');
+    throw new Error("Default locale can't have fallbacks");
   }
 
-  var fb = isArray(fallbacks) ? fallbacks.slice() : [fallbacks];
-  if (fb[fb.length-1] !== def) { fb.push(def); }
+  var fb = isArray(fallbacks) ? fallbacks.slice() : [ fallbacks ];
+  if (fb[fb.length - 1] !== def) { fb.push(def); }
 
   this._fallbacks[locale] = fb;
   this._fallbacks_cache = {};
 };
 
+
+var CAN_HAVE_DIRECTIVES_RE = /#\{|\(\(|\\\\/;
 
 // Compiles given string into function. Used to compile phrases,
 // which contains `plurals`, `variables`, etc.
@@ -372,15 +391,11 @@ function compile(self, str, locale) {
   var nodes, buf, key, strict_exec, forms_exec, plurals_cache;
 
   // Quick check to avoid parse in most cases :)
-  if (str.indexOf('#{') === -1 &&
-      str.indexOf('((') === -1 &&
-      str.indexOf('\\') === -1) {
-    return str;
-  }
+  if (!CAN_HAVE_DIRECTIVES_RE.test(str)) { return str; }
 
   nodes = parser.parse(str);
 
-  if (1 === nodes.length && 'literal' === nodes[0].type) {
+  if (nodes.length === 1 && nodes[0].type === 'literal') {
     return nodes[0].text;
   }
 
@@ -391,16 +406,16 @@ function compile(self, str, locale) {
   plurals_cache = self._plurals_cache[locale];
 
   buf = [];
-  buf.push(['var str = "", strict, strict_exec, forms, forms_exec, plrl, cache, loc, loc_plzr, anchor;']);
+  buf.push([ 'var str = "", strict, strict_exec, forms, forms_exec, plrl, cache, loc, loc_plzr, anchor;' ]);
   buf.push('params = flatten(params);');
 
   forEach(nodes, function (node) {
-    if ('literal' === node.type) {
+    if (node.type === 'literal') {
       buf.push(format('str += %j;', node.text));
       return;
     }
 
-    if ('variable' === node.type) {
+    if (node.type === 'variable') {
       key = node.anchor;
       buf.push(format(
         'str += ("undefined" === typeof (params[%j])) ? "[missed variable: %s]" : params[%j];',
@@ -409,81 +424,76 @@ function compile(self, str, locale) {
       return;
     }
 
-    if ('plural' === node.type) {
-      key = node.anchor;
-      // check if plural parts are plain strings or executable,
-      // and add executable to "cache" instance of babelfish
-      // plural part text will be used as translation key
-      strict_exec = {};
-      forEach(node.strict, function (text, key) {
-        if (text === '') {
-          strict_exec[key] = false;
-          return;
-        }
-        var parsed = parser.parse(text);
-        if (1 === parsed.length && 'literal' === parsed[0].type) {
-          strict_exec[key] = false;
-          // patch with unescaped value for direct extract
-          node.strict[key] = parsed[0].text;
-          return;
-        }
-
-        strict_exec[key] = true;
-        if (!plurals_cache.hasPhrase(locale, text, true)) {
-          plurals_cache.addPhrase(locale, text, text);
-        }
-      });
-
-      forms_exec = {};
-      forEach(node.forms, function (text, idx) {
-        if (text === '') {
-          forms_exec[''] = false;
-          return;
-        }
-        var parsed = parser.parse(text), unescaped;
-        if (1 === parsed.length && 'literal' === parsed[0].type) {
-          // patch with unescaped value for direct extract
-          unescaped = parsed[0].text;
-          node.forms[idx] = unescaped;
-          forms_exec[unescaped] = false;
-          return;
-        }
-
-        forms_exec[text] = true;
-        if (!plurals_cache.hasPhrase(locale, text, true)) {
-          plurals_cache.addPhrase(locale, text, text);
-        }
-      });
-
-      buf.push(format('loc = %j;', locale));
-      buf.push(format('loc_plzr = %j;', locale.split(/[-_]/)[0]));
-      buf.push(format('anchor = params[%j];', key));
-      buf.push(format('cache = this._plurals_cache[loc];'));
-      buf.push(format('strict = %j;', node.strict));
-      buf.push(format('strict_exec = %j;', strict_exec));
-      buf.push(format('forms = %j;', node.forms));
-      buf.push(format('forms_exec = %j;', forms_exec));
-      buf.push(       'if (+(anchor) != anchor) {');
-      buf.push(format('  str += "[invalid plurals amount: %s(" + anchor + ")]";', key));
-      buf.push(       '} else {');
-      buf.push(       '  if (strict[anchor] !== undefined) {');
-      buf.push(       '    plrl = strict[anchor];');
-      buf.push(       '    str += strict_exec[anchor] ? cache.t(loc, plrl, params) : plrl;');
-      buf.push(       '  } else {');
-      buf.push(       '    plrl = pluralizer(loc_plzr, +anchor, forms);');
-      buf.push(       '    str += forms_exec[plrl] ? cache.t(loc, plrl, params) : plrl;');
-      buf.push(       '  }');
-      buf.push(       '}');
-      return;
-    }
-
     // should never happen
-    throw new Error('Unknown node type');
+    /*istanbul ignore next*/
+    if (node.type !== 'plural') { throw new Error('Unknown node type'); }
+
+    //
+    // Compile plural
+    //
+
+    key = node.anchor;
+    // check if plural parts are plain strings or executable,
+    // and add executable to "cache" instance of babelfish
+    // plural part text will be used as translation key
+    strict_exec = {};
+    forEach(node.strict, function (text, k) {
+      var parsed = parser.parse(text);
+      if (parsed.length === 1 && parsed[0].type === 'literal') {
+        strict_exec[k] = false;
+        // patch with unescaped value for direct extract
+        node.strict[k] = parsed[0].text;
+        return;
+      }
+
+      strict_exec[k] = true;
+      if (!plurals_cache.hasPhrase(locale, text, true)) {
+        plurals_cache.addPhrase(locale, text, text);
+      }
+    });
+
+    forms_exec = {};
+    forEach(node.forms, function (text, idx) {
+      var parsed = parser.parse(text), unescaped;
+      if (parsed.length === 1 && parsed[0].type === 'literal') {
+        // patch with unescaped value for direct extract
+        unescaped = parsed[0].text;
+        node.forms[idx] = unescaped;
+        forms_exec[unescaped] = false;
+        return;
+      }
+
+      forms_exec[text] = true;
+      if (!plurals_cache.hasPhrase(locale, text, true)) {
+        plurals_cache.addPhrase(locale, text, text);
+      }
+    });
+    /*eslint-disable space-in-parens*/
+    buf.push(format('loc = %j;', locale));
+    buf.push(format('loc_plzr = %j;', locale.split(/[-_]/)[0]));
+    buf.push(format('anchor = params[%j];', key));
+    buf.push(format('cache = this._plurals_cache[loc];'));
+    buf.push(format('strict = %j;', node.strict));
+    buf.push(format('strict_exec = %j;', strict_exec));
+    buf.push(format('forms = %j;', node.forms));
+    buf.push(format('forms_exec = %j;', forms_exec));
+    buf.push(       'if (+(anchor) != anchor) {');
+    buf.push(format('  str += "[invalid plurals amount: %s(" + anchor + ")]";', key));
+    buf.push(       '} else {');
+    buf.push(       '  if (strict[anchor] !== undefined) {');
+    buf.push(       '    plrl = strict[anchor];');
+    buf.push(       '    str += strict_exec[anchor] ? cache.t(loc, plrl, params) : plrl;');
+    buf.push(       '  } else {');
+    buf.push(       '    plrl = pluralizer(loc_plzr, +anchor, forms);');
+    buf.push(       '    str += forms_exec[plrl] ? cache.t(loc, plrl, params) : plrl;');
+    buf.push(       '  }');
+    buf.push(       '}');
+    return;
   });
 
   buf.push('return str;');
 
-  /*jslint evil:true*/
+  /*eslint-disable no-new-func*/
   return new Function('params', 'flatten', 'pluralizer', buf.join('\n'));
 }
 
@@ -543,7 +553,7 @@ BabelFish.prototype.translate = function _translate(locale, phrase, params) {
   //
 
   // Sugar: coerce numbers & strings to { count: X, value: X }
-  if (isNumber(params) || isString (params)) {
+  if (isNumber(params) || isString(params)) {
     params = { count: params, value: params };
   }
 
@@ -604,14 +614,18 @@ BabelFish.prototype.stringify = function _stringify(locale) {
     result[l][key] = self._storage[k].translation;
   });
 
-  // Get fallback rule. Cut auto-added fallback to default locale
-  var fallback = (self._fallbacks[locale] || []).pop();
-
-  return JSON.stringify({
-
-    fallback: { locale: fallback },
+  var out = {
+    fallback: {},
     locales: result
-  });
+  };
+
+  // Get fallback rule. Cut auto-added fallback to default locale
+  var fallback = (self._fallbacks[locale] || []).slice(0, -1);
+  if (fallback.length) {
+    out.fallback[locale] = fallback;
+  }
+
+  return JSON.stringify(out);
 };
 
 
@@ -634,14 +648,14 @@ BabelFish.prototype.load = function _load(data) {
   });
 
   forEach(data.fallback, function (rule, locale) {
-    if (rule.length) { self.setFallback(locale, rule); }
+    self.setFallback(locale, rule);
   });
 };
 
 // export module
 module.exports = BabelFish;
 
-},{"./babelfish/parser":3,"./babelfish/pluralizer":4}],3:[function(_dereq_,module,exports){
+},{"./parser":2,"plurals-cldr":3}],2:[function(require,module,exports){
 module.exports = (function() {
   /*
    * Generated by PEG.js 0.8.0.
@@ -673,110 +687,94 @@ module.exports = (function() {
 
         peg$FAILED = {},
 
-        peg$startRuleIndices = { start: 0 },
-        peg$startRuleIndex   = 0,
+        peg$startRuleFunctions = { start: peg$parsestart },
+        peg$startRuleFunction  = peg$parsestart,
 
-        peg$consts = [
-          [],
-          peg$FAILED,
-          "((",
-          { type: "literal", value: "((", description: "\"((\"" },
-          "))",
-          { type: "literal", value: "))", description: "\"))\"" },
-          null,
-          function(forms, anchor) {
-                return {
-                  type:   'plural',
-                  forms:  regularForms(forms),
-                  strict: strictForms(forms),
-                  anchor: anchor || 'count'
-                };
-              },
-          "|",
-          { type: "literal", value: "|", description: "\"|\"" },
-          function(part, more) {
-                return [part].concat(more);
-              },
-          function(part) {
-                return [part];
-              },
-          "=",
-          { type: "literal", value: "=", description: "\"=\"" },
-          /^[0-9]/,
-          { type: "class", value: "[0-9]", description: "[0-9]" },
-          " ",
-          { type: "literal", value: " ", description: "\" \"" },
-          function(strict, form) {
-                return {
-                  strict: strict.join(''),
-                  text: form.join('')
-                }
-              },
-          function() {
-                return {
-                  text: text()
-                };
-              },
-          "\\",
-          { type: "literal", value: "\\", description: "\"\\\\\"" },
-          /^[\\|)(]/,
-          { type: "class", value: "[\\\\|)(]", description: "[\\\\|)(]" },
-          function(char) {
-                return char;
-              },
-          void 0,
-          { type: "any", description: "any character" },
-          function() {
-                return text();
-              },
-          ":",
-          { type: "literal", value: ":", description: "\":\"" },
-          function(name) {
-                return name;
-              },
-          "#{",
-          { type: "literal", value: "#{", description: "\"#{\"" },
-          "}",
-          { type: "literal", value: "}", description: "\"}\"" },
-          function(anchor) {
-                return {
-                  type:   'variable',
-                  anchor: anchor
-                };
-              },
-          ".",
-          { type: "literal", value: ".", description: "\".\"" },
-          function() {
-                return text()
-              },
-          /^[a-zA-Z_$]/,
-          { type: "class", value: "[a-zA-Z_$]", description: "[a-zA-Z_$]" },
-          /^[a-zA-Z0-9_$]/,
-          { type: "class", value: "[a-zA-Z0-9_$]", description: "[a-zA-Z0-9_$]" },
-          function(lc) { return lc; },
-          function(literal_chars) {
-                return {
-                  type: 'literal',
-                  text: literal_chars.join('')
-                };
-              },
-          /^[\\#()]/,
-          { type: "class", value: "[\\\\#()]", description: "[\\\\#()]" }
-        ],
-
-        peg$bytecode = [
-          peg$decode("  7)*) \"7!*# \"7&,/&7)*) \"7!*# \"7&\""),
-          peg$decode("!.\"\"\"2\"3#+S$7\"+I%.$\"\"2$3%+9%7%*# \" &+)%4$6'$\"\" %$$# !$## !$\"# !\"# !"),
-          peg$decode("!7#+C$.(\"\"2(3)+3%7\"+)%4#6*#\"\" %$## !$\"# !\"# !*/ \"!7#+' 4!6+!! %"),
-          peg$decode("!.,\"\"2,3-+}$  0.\"\"1!3/+,$,)&0.\"\"1!3/\"\"\" !+X%.0\"\"2031*# \" &+B%  7$+&$,#&7$\"\"\" !+)%4$62$\"\" %$$# !$## !$\"# !\"# !*= \"!  7$+&$,#&7$\"\"\" !+& 4!63! %"),
-          peg$decode("!.4\"\"2435+8$06\"\"1!37+(%4\"68\"! %$\"# !\"# !*a \"!!8.(\"\"2(3)*) \".$\"\"2$3%9*$$\"\" 9\"# !+6$-\"\"1!3:+'%4\"6;\" %$\"# !\"# !"),
-          peg$decode("!.<\"\"2<3=+2$7'+(%4\"6>\"! %$\"# !\"# !"),
-          peg$decode("!.?\"\"2?3@+B$7'+8%.A\"\"2A3B+(%4#6C#!!%$## !$\"# !\"# !"),
-          peg$decode("!7(+P$.D\"\"2D3E+@%  7'+&$,#&7'\"\"\" !+'%4#6F# %$## !$\"# !\"# !*# \"7("),
-          peg$decode("!0G\"\"1!3H+E$  0I\"\"1!3J,)&0I\"\"1!3J\"+'%4\"6;\" %$\"# !\"# !"),
-          peg$decode("!  !!87!*# \"7&9*$$\"\" 9\"# !+2$7*+(%4\"6K\"! %$\"# !\"# !+T$,Q&!!87!*# \"7&9*$$\"\" 9\"# !+2$7*+(%4\"6K\"! %$\"# !\"# !\"\"\" !+' 4!6L!! %"),
-          peg$decode("!.4\"\"2435+8$0M\"\"1!3N+(%4\"68\"! %$\"# !\"# !*( \"-\"\"1!3:")
-        ],
+        peg$c0 = [],
+        peg$c1 = peg$FAILED,
+        peg$c2 = "((",
+        peg$c3 = { type: "literal", value: "((", description: "\"((\"" },
+        peg$c4 = "))",
+        peg$c5 = { type: "literal", value: "))", description: "\"))\"" },
+        peg$c6 = null,
+        peg$c7 = function(forms, anchor) {
+              return {
+                type:   'plural',
+                forms:  regularForms(forms),
+                strict: strictForms(forms),
+                anchor: anchor || 'count'
+              };
+            },
+        peg$c8 = "|",
+        peg$c9 = { type: "literal", value: "|", description: "\"|\"" },
+        peg$c10 = function(part, more) {
+              return [part].concat(more);
+            },
+        peg$c11 = function(part) {
+              return [part];
+            },
+        peg$c12 = "=",
+        peg$c13 = { type: "literal", value: "=", description: "\"=\"" },
+        peg$c14 = /^[0-9]/,
+        peg$c15 = { type: "class", value: "[0-9]", description: "[0-9]" },
+        peg$c16 = " ",
+        peg$c17 = { type: "literal", value: " ", description: "\" \"" },
+        peg$c18 = function(strict, form) {
+              return {
+                strict: strict.join(''),
+                text: form.join('')
+              }
+            },
+        peg$c19 = function() {
+              return {
+                text: text()
+              };
+            },
+        peg$c20 = "\\",
+        peg$c21 = { type: "literal", value: "\\", description: "\"\\\\\"" },
+        peg$c22 = /^[\\|)(]/,
+        peg$c23 = { type: "class", value: "[\\\\|)(]", description: "[\\\\|)(]" },
+        peg$c24 = function(char) {
+              return char;
+            },
+        peg$c25 = void 0,
+        peg$c26 = { type: "any", description: "any character" },
+        peg$c27 = function() {
+              return text();
+            },
+        peg$c28 = ":",
+        peg$c29 = { type: "literal", value: ":", description: "\":\"" },
+        peg$c30 = function(name) {
+              return name;
+            },
+        peg$c31 = "#{",
+        peg$c32 = { type: "literal", value: "#{", description: "\"#{\"" },
+        peg$c33 = "}",
+        peg$c34 = { type: "literal", value: "}", description: "\"}\"" },
+        peg$c35 = function(anchor) {
+              return {
+                type:   'variable',
+                anchor: anchor
+              };
+            },
+        peg$c36 = ".",
+        peg$c37 = { type: "literal", value: ".", description: "\".\"" },
+        peg$c38 = function() {
+              return text()
+            },
+        peg$c39 = /^[a-zA-Z_$]/,
+        peg$c40 = { type: "class", value: "[a-zA-Z_$]", description: "[a-zA-Z_$]" },
+        peg$c41 = /^[a-zA-Z0-9_$]/,
+        peg$c42 = { type: "class", value: "[a-zA-Z0-9_$]", description: "[a-zA-Z0-9_$]" },
+        peg$c43 = function(lc) { return lc; },
+        peg$c44 = function(literal_chars) {
+              return {
+                type: 'literal',
+                text: literal_chars.join('')
+              };
+            },
+        peg$c45 = /^[\\#()|]/,
+        peg$c46 = { type: "class", value: "[\\\\#()|]", description: "[\\\\#()|]" },
 
         peg$currPos          = 0,
         peg$reportedPos      = 0,
@@ -789,11 +787,11 @@ module.exports = (function() {
         peg$result;
 
     if ("startRule" in options) {
-      if (!(options.startRule in peg$startRuleIndices)) {
+      if (!(options.startRule in peg$startRuleFunctions)) {
         throw new Error("Can't start parsing from rule \"" + options.startRule + "\".");
       }
 
-      peg$startRuleIndex = peg$startRuleIndices[options.startRule];
+      peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
     }
 
     function text() {
@@ -944,263 +942,588 @@ module.exports = (function() {
       );
     }
 
-    function peg$decode(s) {
-      var bc = new Array(s.length), i;
+    function peg$parsestart() {
+      var s0, s1;
 
-      for (i = 0; i < s.length; i++) {
-        bc[i] = s.charCodeAt(i) - 32;
+      s0 = [];
+      s1 = peg$parseliteral();
+      if (s1 === peg$FAILED) {
+        s1 = peg$parseplural();
+        if (s1 === peg$FAILED) {
+          s1 = peg$parsevariable();
+        }
       }
-
-      return bc;
-    }
-
-    function peg$parseRule(index) {
-      var bc    = peg$bytecode[index],
-          ip    = 0,
-          ips   = [],
-          end   = bc.length,
-          ends  = [],
-          stack = [],
-          params, i;
-
-      function protect(object) {
-        return Object.prototype.toString.apply(object) === "[object Array]" ? [] : object;
-      }
-
-      while (true) {
-        while (ip < end) {
-          switch (bc[ip]) {
-            case 0:
-              stack.push(protect(peg$consts[bc[ip + 1]]));
-              ip += 2;
-              break;
-
-            case 1:
-              stack.push(peg$currPos);
-              ip++;
-              break;
-
-            case 2:
-              stack.pop();
-              ip++;
-              break;
-
-            case 3:
-              peg$currPos = stack.pop();
-              ip++;
-              break;
-
-            case 4:
-              stack.length -= bc[ip + 1];
-              ip += 2;
-              break;
-
-            case 5:
-              stack.splice(-2, 1);
-              ip++;
-              break;
-
-            case 6:
-              stack[stack.length - 2].push(stack.pop());
-              ip++;
-              break;
-
-            case 7:
-              stack.push(stack.splice(stack.length - bc[ip + 1], bc[ip + 1]));
-              ip += 2;
-              break;
-
-            case 8:
-              stack.pop();
-              stack.push(input.substring(stack[stack.length - 1], peg$currPos));
-              ip++;
-              break;
-
-            case 9:
-              ends.push(end);
-              ips.push(ip + 3 + bc[ip + 1] + bc[ip + 2]);
-
-              if (stack[stack.length - 1]) {
-                end = ip + 3 + bc[ip + 1];
-                ip += 3;
-              } else {
-                end = ip + 3 + bc[ip + 1] + bc[ip + 2];
-                ip += 3 + bc[ip + 1];
-              }
-
-              break;
-
-            case 10:
-              ends.push(end);
-              ips.push(ip + 3 + bc[ip + 1] + bc[ip + 2]);
-
-              if (stack[stack.length - 1] === peg$FAILED) {
-                end = ip + 3 + bc[ip + 1];
-                ip += 3;
-              } else {
-                end = ip + 3 + bc[ip + 1] + bc[ip + 2];
-                ip += 3 + bc[ip + 1];
-              }
-
-              break;
-
-            case 11:
-              ends.push(end);
-              ips.push(ip + 3 + bc[ip + 1] + bc[ip + 2]);
-
-              if (stack[stack.length - 1] !== peg$FAILED) {
-                end = ip + 3 + bc[ip + 1];
-                ip += 3;
-              } else {
-                end = ip + 3 + bc[ip + 1] + bc[ip + 2];
-                ip += 3 + bc[ip + 1];
-              }
-
-              break;
-
-            case 12:
-              if (stack[stack.length - 1] !== peg$FAILED) {
-                ends.push(end);
-                ips.push(ip);
-
-                end = ip + 2 + bc[ip + 1];
-                ip += 2;
-              } else {
-                ip += 2 + bc[ip + 1];
-              }
-
-              break;
-
-            case 13:
-              ends.push(end);
-              ips.push(ip + 3 + bc[ip + 1] + bc[ip + 2]);
-
-              if (input.length > peg$currPos) {
-                end = ip + 3 + bc[ip + 1];
-                ip += 3;
-              } else {
-                end = ip + 3 + bc[ip + 1] + bc[ip + 2];
-                ip += 3 + bc[ip + 1];
-              }
-
-              break;
-
-            case 14:
-              ends.push(end);
-              ips.push(ip + 4 + bc[ip + 2] + bc[ip + 3]);
-
-              if (input.substr(peg$currPos, peg$consts[bc[ip + 1]].length) === peg$consts[bc[ip + 1]]) {
-                end = ip + 4 + bc[ip + 2];
-                ip += 4;
-              } else {
-                end = ip + 4 + bc[ip + 2] + bc[ip + 3];
-                ip += 4 + bc[ip + 2];
-              }
-
-              break;
-
-            case 15:
-              ends.push(end);
-              ips.push(ip + 4 + bc[ip + 2] + bc[ip + 3]);
-
-              if (input.substr(peg$currPos, peg$consts[bc[ip + 1]].length).toLowerCase() === peg$consts[bc[ip + 1]]) {
-                end = ip + 4 + bc[ip + 2];
-                ip += 4;
-              } else {
-                end = ip + 4 + bc[ip + 2] + bc[ip + 3];
-                ip += 4 + bc[ip + 2];
-              }
-
-              break;
-
-            case 16:
-              ends.push(end);
-              ips.push(ip + 4 + bc[ip + 2] + bc[ip + 3]);
-
-              if (peg$consts[bc[ip + 1]].test(input.charAt(peg$currPos))) {
-                end = ip + 4 + bc[ip + 2];
-                ip += 4;
-              } else {
-                end = ip + 4 + bc[ip + 2] + bc[ip + 3];
-                ip += 4 + bc[ip + 2];
-              }
-
-              break;
-
-            case 17:
-              stack.push(input.substr(peg$currPos, bc[ip + 1]));
-              peg$currPos += bc[ip + 1];
-              ip += 2;
-              break;
-
-            case 18:
-              stack.push(peg$consts[bc[ip + 1]]);
-              peg$currPos += peg$consts[bc[ip + 1]].length;
-              ip += 2;
-              break;
-
-            case 19:
-              stack.push(peg$FAILED);
-              if (peg$silentFails === 0) {
-                peg$fail(peg$consts[bc[ip + 1]]);
-              }
-              ip += 2;
-              break;
-
-            case 20:
-              peg$reportedPos = stack[stack.length - 1 - bc[ip + 1]];
-              ip += 2;
-              break;
-
-            case 21:
-              peg$reportedPos = peg$currPos;
-              ip++;
-              break;
-
-            case 22:
-              params = bc.slice(ip + 4, ip + 4 + bc[ip + 3]);
-              for (i = 0; i < bc[ip + 3]; i++) {
-                params[i] = stack[stack.length - 1 - params[i]];
-              }
-
-              stack.splice(
-                stack.length - bc[ip + 2],
-                bc[ip + 2],
-                peg$consts[bc[ip + 1]].apply(null, params)
-              );
-
-              ip += 4 + bc[ip + 3];
-              break;
-
-            case 23:
-              stack.push(peg$parseRule(bc[ip + 1]));
-              ip += 2;
-              break;
-
-            case 24:
-              peg$silentFails++;
-              ip++;
-              break;
-
-            case 25:
-              peg$silentFails--;
-              ip++;
-              break;
-
-            default:
-              throw new Error("Invalid opcode: " + bc[ip] + ".");
+      while (s1 !== peg$FAILED) {
+        s0.push(s1);
+        s1 = peg$parseliteral();
+        if (s1 === peg$FAILED) {
+          s1 = peg$parseplural();
+          if (s1 === peg$FAILED) {
+            s1 = peg$parsevariable();
           }
         }
+      }
 
-        if (ends.length > 0) {
-          end = ends.pop();
-          ip = ips.pop();
+      return s0;
+    }
+
+    function peg$parseplural() {
+      var s0, s1, s2, s3, s4;
+
+      s0 = peg$currPos;
+      if (input.substr(peg$currPos, 2) === peg$c2) {
+        s1 = peg$c2;
+        peg$currPos += 2;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c3); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parseplural_forms();
+        if (s2 !== peg$FAILED) {
+          if (input.substr(peg$currPos, 2) === peg$c4) {
+            s3 = peg$c4;
+            peg$currPos += 2;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c5); }
+          }
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parseplural_anchor();
+            if (s4 === peg$FAILED) {
+              s4 = peg$c6;
+            }
+            if (s4 !== peg$FAILED) {
+              peg$reportedPos = s0;
+              s1 = peg$c7(s2, s4);
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$c1;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$c1;
+          }
         } else {
-          break;
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseplural_forms() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      s1 = peg$parseplural_part();
+      if (s1 !== peg$FAILED) {
+        if (input.charCodeAt(peg$currPos) === 124) {
+          s2 = peg$c8;
+          peg$currPos++;
+        } else {
+          s2 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c9); }
+        }
+        if (s2 !== peg$FAILED) {
+          s3 = peg$parseplural_forms();
+          if (s3 !== peg$FAILED) {
+            peg$reportedPos = s0;
+            s1 = peg$c10(s1, s3);
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$c1;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = peg$parseplural_part();
+        if (s1 !== peg$FAILED) {
+          peg$reportedPos = s0;
+          s1 = peg$c11(s1);
+        }
+        s0 = s1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseplural_part() {
+      var s0, s1, s2, s3, s4, s5;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 61) {
+        s1 = peg$c12;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c13); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = [];
+        if (peg$c14.test(input.charAt(peg$currPos))) {
+          s3 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s3 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c15); }
+        }
+        if (s3 !== peg$FAILED) {
+          while (s3 !== peg$FAILED) {
+            s2.push(s3);
+            if (peg$c14.test(input.charAt(peg$currPos))) {
+              s3 = input.charAt(peg$currPos);
+              peg$currPos++;
+            } else {
+              s3 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c15); }
+            }
+          }
+        } else {
+          s2 = peg$c1;
+        }
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 32) {
+            s3 = peg$c16;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c17); }
+          }
+          if (s3 === peg$FAILED) {
+            s3 = peg$c6;
+          }
+          if (s3 !== peg$FAILED) {
+            s4 = [];
+            s5 = peg$parseplural_char();
+            if (s5 !== peg$FAILED) {
+              while (s5 !== peg$FAILED) {
+                s4.push(s5);
+                s5 = peg$parseplural_char();
+              }
+            } else {
+              s4 = peg$c1;
+            }
+            if (s4 !== peg$FAILED) {
+              peg$reportedPos = s0;
+              s1 = peg$c18(s2, s4);
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$c1;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$c1;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = [];
+        s2 = peg$parseplural_char();
+        if (s2 !== peg$FAILED) {
+          while (s2 !== peg$FAILED) {
+            s1.push(s2);
+            s2 = peg$parseplural_char();
+          }
+        } else {
+          s1 = peg$c1;
+        }
+        if (s1 !== peg$FAILED) {
+          peg$reportedPos = s0;
+          s1 = peg$c19();
+        }
+        s0 = s1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseplural_char() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 92) {
+        s1 = peg$c20;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c21); }
+      }
+      if (s1 !== peg$FAILED) {
+        if (peg$c22.test(input.charAt(peg$currPos))) {
+          s2 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s2 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c23); }
+        }
+        if (s2 !== peg$FAILED) {
+          peg$reportedPos = s0;
+          s1 = peg$c24(s2);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$currPos;
+        s1 = peg$currPos;
+        peg$silentFails++;
+        if (input.charCodeAt(peg$currPos) === 124) {
+          s2 = peg$c8;
+          peg$currPos++;
+        } else {
+          s2 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c9); }
+        }
+        if (s2 === peg$FAILED) {
+          if (input.substr(peg$currPos, 2) === peg$c4) {
+            s2 = peg$c4;
+            peg$currPos += 2;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c5); }
+          }
+        }
+        peg$silentFails--;
+        if (s2 === peg$FAILED) {
+          s1 = peg$c25;
+        } else {
+          peg$currPos = s1;
+          s1 = peg$c1;
+        }
+        if (s1 !== peg$FAILED) {
+          if (input.length > peg$currPos) {
+            s2 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s2 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c26); }
+          }
+          if (s2 !== peg$FAILED) {
+            peg$reportedPos = s0;
+            s1 = peg$c27();
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$c1;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
         }
       }
 
-      return stack[0];
+      return s0;
+    }
+
+    function peg$parseplural_anchor() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 58) {
+        s1 = peg$c28;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c29); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parseidentifier();
+        if (s2 !== peg$FAILED) {
+          peg$reportedPos = s0;
+          s1 = peg$c30(s2);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+
+      return s0;
+    }
+
+    function peg$parsevariable() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      if (input.substr(peg$currPos, 2) === peg$c31) {
+        s1 = peg$c31;
+        peg$currPos += 2;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c32); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parseidentifier();
+        if (s2 !== peg$FAILED) {
+          if (input.charCodeAt(peg$currPos) === 125) {
+            s3 = peg$c33;
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c34); }
+          }
+          if (s3 !== peg$FAILED) {
+            peg$reportedPos = s0;
+            s1 = peg$c35(s2);
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$c1;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseidentifier() {
+      var s0, s1, s2, s3, s4;
+
+      s0 = peg$currPos;
+      s1 = peg$parseidentifier_part();
+      if (s1 !== peg$FAILED) {
+        if (input.charCodeAt(peg$currPos) === 46) {
+          s2 = peg$c36;
+          peg$currPos++;
+        } else {
+          s2 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c37); }
+        }
+        if (s2 !== peg$FAILED) {
+          s3 = [];
+          s4 = peg$parseidentifier();
+          if (s4 !== peg$FAILED) {
+            while (s4 !== peg$FAILED) {
+              s3.push(s4);
+              s4 = peg$parseidentifier();
+            }
+          } else {
+            s3 = peg$c1;
+          }
+          if (s3 !== peg$FAILED) {
+            peg$reportedPos = s0;
+            s1 = peg$c38();
+            s0 = s1;
+          } else {
+            peg$currPos = s0;
+            s0 = peg$c1;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+      if (s0 === peg$FAILED) {
+        s0 = peg$parseidentifier_part();
+      }
+
+      return s0;
+    }
+
+    function peg$parseidentifier_part() {
+      var s0, s1, s2, s3;
+
+      s0 = peg$currPos;
+      if (peg$c39.test(input.charAt(peg$currPos))) {
+        s1 = input.charAt(peg$currPos);
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c40); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = [];
+        if (peg$c41.test(input.charAt(peg$currPos))) {
+          s3 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s3 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c42); }
+        }
+        while (s3 !== peg$FAILED) {
+          s2.push(s3);
+          if (peg$c41.test(input.charAt(peg$currPos))) {
+            s3 = input.charAt(peg$currPos);
+            peg$currPos++;
+          } else {
+            s3 = peg$FAILED;
+            if (peg$silentFails === 0) { peg$fail(peg$c42); }
+          }
+        }
+        if (s2 !== peg$FAILED) {
+          peg$reportedPos = s0;
+          s1 = peg$c27();
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+
+      return s0;
+    }
+
+    function peg$parseliteral() {
+      var s0, s1, s2, s3, s4;
+
+      s0 = peg$currPos;
+      s1 = [];
+      s2 = peg$currPos;
+      s3 = peg$currPos;
+      peg$silentFails++;
+      s4 = peg$parseplural();
+      if (s4 === peg$FAILED) {
+        s4 = peg$parsevariable();
+      }
+      peg$silentFails--;
+      if (s4 === peg$FAILED) {
+        s3 = peg$c25;
+      } else {
+        peg$currPos = s3;
+        s3 = peg$c1;
+      }
+      if (s3 !== peg$FAILED) {
+        s4 = peg$parseliteral_char();
+        if (s4 !== peg$FAILED) {
+          peg$reportedPos = s2;
+          s3 = peg$c43(s4);
+          s2 = s3;
+        } else {
+          peg$currPos = s2;
+          s2 = peg$c1;
+        }
+      } else {
+        peg$currPos = s2;
+        s2 = peg$c1;
+      }
+      if (s2 !== peg$FAILED) {
+        while (s2 !== peg$FAILED) {
+          s1.push(s2);
+          s2 = peg$currPos;
+          s3 = peg$currPos;
+          peg$silentFails++;
+          s4 = peg$parseplural();
+          if (s4 === peg$FAILED) {
+            s4 = peg$parsevariable();
+          }
+          peg$silentFails--;
+          if (s4 === peg$FAILED) {
+            s3 = peg$c25;
+          } else {
+            peg$currPos = s3;
+            s3 = peg$c1;
+          }
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parseliteral_char();
+            if (s4 !== peg$FAILED) {
+              peg$reportedPos = s2;
+              s3 = peg$c43(s4);
+              s2 = s3;
+            } else {
+              peg$currPos = s2;
+              s2 = peg$c1;
+            }
+          } else {
+            peg$currPos = s2;
+            s2 = peg$c1;
+          }
+        }
+      } else {
+        s1 = peg$c1;
+      }
+      if (s1 !== peg$FAILED) {
+        peg$reportedPos = s0;
+        s1 = peg$c44(s1);
+      }
+      s0 = s1;
+
+      return s0;
+    }
+
+    function peg$parseliteral_char() {
+      var s0, s1, s2;
+
+      s0 = peg$currPos;
+      if (input.charCodeAt(peg$currPos) === 92) {
+        s1 = peg$c20;
+        peg$currPos++;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c21); }
+      }
+      if (s1 !== peg$FAILED) {
+        if (peg$c45.test(input.charAt(peg$currPos))) {
+          s2 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s2 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c46); }
+        }
+        if (s2 !== peg$FAILED) {
+          peg$reportedPos = s0;
+          s1 = peg$c24(s2);
+          s0 = s1;
+        } else {
+          peg$currPos = s0;
+          s0 = peg$c1;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$c1;
+      }
+      if (s0 === peg$FAILED) {
+        if (input.length > peg$currPos) {
+          s0 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s0 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c26); }
+        }
+      }
+
+      return s0;
     }
 
 
@@ -1220,7 +1543,7 @@ module.exports = (function() {
       }
 
 
-    peg$result = peg$parseRule(peg$startRuleIndex);
+    peg$result = peg$startRuleFunction();
 
     if (peg$result !== peg$FAILED && peg$currPos === input.length) {
       return peg$result;
@@ -1239,437 +1562,595 @@ module.exports = (function() {
   };
 })();
 
-},{}],4:[function(_dereq_,module,exports){
-//
-// CLDR Version 21
-// http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
-//
-// Charts: http://cldr.unicode.org/index/charts
-// Latest: http://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html
-//
-// TODO: update to latest
-//
+},{}],3:[function(require,module,exports){
+/*
+ * Plural functions support (cardinal & ordinal forms)
+ *
+ * Autogenerated from CLDR:
+ *
+ *   Version:   26
+ *   $Revision: 10807 $
+ */
+
 'use strict';
 
 
 // pluralizers cache
-var PLURALIZERS = {};
+var s = {};
 
+function normalize(loc) {
+  var l;
+  if (s[loc]) { return loc; }
+  l = loc.toLowerCase().replace('_', '-');
+  if (s[l]) { return l; }
+  l = l.split('-')[0];
+  if (s[l]) { return l; }
+  return null;
+}
 
-module.exports = function pluralize(lang, count, forms) {
-  var idx;
+function forms(loc) {
+  var l = normalize(loc);
+  return s[l] ? s[l].c : null;
+}
 
-  if (!PLURALIZERS[lang]) {
-    return '[pluralizer for (' + lang + ') not exists]';
+function indexOf(loc, value) {
+  var l = normalize(loc);
+  if (!l) {
+    return -1;
   }
 
-  idx = PLURALIZERS[lang](count);
-
-  if (undefined === forms[idx]) {
-    return '[plural form N' + idx + ' not found in translation]';
+  if (!s[l].cFn) {
+    return 0;
   }
 
-  return forms[idx];
-};
+  var sval  = String(value),
+      f = sval.indexOf('.') < 0 ? '' : sval.split('.')[1],
+      v = f.length,
+      n = +value,
+      i = +(sval.split('.')[0]),
+      t = f.length === 0 ? 0 : +f.replace(/0+$/, '');
+
+  return s[l].cFn(n, i, v, +f, t);
+}
+
+function plural(loc, value) {
+  var l = normalize(loc);
+  if (!l) {
+    return null;
+  }
+  return s[l].c[indexOf(l, value)];
+}
 
 
-// HELPERS
+function o_forms(loc) {
+  var l = normalize(loc);
+  return s[l] ? s[l].o : null;
+}
+
+function o_indexOf(loc, value) {
+  var l = normalize(loc);
+  if (!l) {
+    return -1;
+  }
+
+  if (!s[l].oFn) {
+    return 0;
+  }
+
+  var sval  = String(value),
+      f = sval.indexOf('.') < 0 ? '' : sval.split('.')[1],
+      v = f.length,
+      n = +value,
+      i = +(sval.split('.')[0]),
+      t = f.length === 0 ? 0 : +f.replace(/0+$/, '');
+
+  return s[l].oFn(n, i, v, +f, t);
+}
+
+function ordinal(loc, value) {
+  var l = normalize(loc);
+  if (!s[l]) {
+    return null;
+  }
+  return s[l].o[o_indexOf(l, value)];
+}
+
+module.exports                  = plural;
+module.exports.indexOf          = indexOf;
+module.exports.forms            = forms;
+module.exports.ordinal          = ordinal;
+module.exports.ordinal.indexOf  = o_indexOf;
+module.exports.ordinal.forms    = o_forms;
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
+var FORMS = [ 'zero', 'one', 'two', 'few', 'many', 'other' ];
+
+function unpack(i) { return FORMS[i]; }
 
 // adds given `rule` pluralizer for given `locales` into `storage`
 function add(locales, rule) {
   var i;
-  for (i = 0; i < locales.length; i += 1) {
-    PLURALIZERS[locales[i]] = rule;
+
+  rule.c = rule.c ? rule.c.map(unpack) : [ 'other' ];
+  rule.o = rule.o ? rule.o.map(unpack) : [ 'other' ];
+
+  for (i = 0; i < locales.length; i++) {
+    s[locales[i]] = rule;
   }
 }
 
-// check if number is int or float
-function is_int(input) {
-  return (0 === input % 1);
-}
+function B(x, y, val) { return x <= val && val <= y && val % 1 === 0; }
+function IN(set, val) { return set.indexOf(val) >= 0; }
 
-// PLURALIZATION RULES
+
+add([ 'af', 'asa', 'bem', 'bez', 'bg', 'brx', 'cgg', 'chr', 'ckb', 'dv', 'ee', 'el', 'eo', 'es', 'eu', 'fo', 'fur', 'gsw', 'ha', 'haw', 'jgo', 'jmc', 'kaj', 'kcg', 'kkj', 'kl', 'ks', 'ksb', 'ku', 'ky', 'lb', 'lg', 'mas', 'mgo', 'ml', 'mn', 'nah', 'nb', 'nd', 'nn', 'nnh', 'no', 'nr', 'ny', 'nyn', 'om', 'or', 'os', 'pap', 'ps', 'rm', 'rof', 'rwk', 'saq', 'seh', 'sn', 'so', 'ss', 'ssy', 'st', 'syr', 'ta', 'te', 'teo', 'tig', 'tk', 'tn', 'tr', 'ts', 'ug', 'uz', 've', 'vo', 'vun', 'wae', 'xh', 'xog' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  }
+});
+
+add([ 'ak', 'bh', 'guw', 'ln', 'mg', 'nso', 'pa', 'ti', 'wa' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return B(0, 1, n) ? 0 : 1;
+  }
+});
+
+add([ 'am', 'fa', 'kn', 'zu' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return i === 0 || n === 1 ? 0 : 1;
+  }
+});
+
+add([ 'ar' ], {
+  c: [ 0, 1, 2, 3, 4, 5 ],
+  cFn: function (n) {
+    var n100 = n % 100;
+    return n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : B(3, 10, n100) ? 3 : B(11, 99, n100) ? 4 : 5;
+  }
+});
+
+add([ 'ast', 'de', 'et', 'fi', 'fy', 'gl', 'ji', 'nl', 'sw', 'ur', 'yi' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v) {
+    return i === 1 && v === 0 ? 0 : 1;
+  }
+});
+
+add([ 'az' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 1, 3, 4, 5 ],
+  oFn: function (n, i) {
+    var i10 = i % 10, i100 = i % 100, i1000 = i % 1000;
+    return IN([ 1, 2, 5, 7, 8 ], i10) || IN([ 20, 50, 70, 80 ], i100) ? 0 : IN([ 3, 4 ], i10) || IN([ 100, 200, 300, 400, 500, 600, 700, 800, 900 ], i1000) ? 1 : i === 0 || i10 === 6 || IN([ 40, 60, 90 ], i100) ? 2 : 3;
+  }
+});
+
+add([ 'be' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n) {
+    var n10 = n % 10, n100 = n % 100;
+    return n10 === 1 && n100 !== 11 ? 0 : B(2, 4, n10) && !B(12, 14, n100) ? 1 : n10 === 0 || B(5, 9, n10) || B(11, 14, n100) ? 2 : 3;
+  }
+});
+
+add([ 'bm', 'bo', 'dz', 'id', 'ig', 'ii', 'in', 'ja', 'jbo', 'jv', 'jw', 'kde', 'kea', 'km', 'ko', 'lkt', 'my', 'nqo', 'root', 'sah', 'ses', 'sg', 'th', 'to', 'wo', 'yo', 'zh' ], {
+});
+
+add([ 'bn' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return i === 0 || n === 1 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 4, 5 ],
+  oFn: function (n) {
+    return IN([ 1, 5, 7, 8, 9, 10 ], n) ? 0 : IN([ 2, 3 ], n) ? 1 : n === 4 ? 2 : n === 6 ? 3 : 4;
+  }
+});
+
+add([ 'br' ], {
+  c: [ 1, 2, 3, 4, 5 ],
+  cFn: function (n) {
+    var n10 = n % 10, n100 = n % 100, n1000000 = n % 1000000;
+    return n10 === 1 && !IN([ 11, 71, 91 ], n100) ? 0 : n10 === 2 && !IN([ 12, 72, 92 ], n100) ? 1 : (B(3, 4, n10) || n10 === 9) && (!B(10, 19, n100) && !B(70, 79, n100) && !B(90, 99, n100)) ? 2 : n !== 0 && n1000000 === 0 ? 3 : 4;
+  }
+});
+
+add([ 'bs', 'hr', 'sh', 'sr' ], {
+  c: [ 1, 3, 5 ],
+  cFn: function (n, i, v, f) {
+    var i10 = i % 10, i100 = i % 100, f10 = f % 10, f100 = f % 100;
+    return v === 0 && i10 === 1 && i100 !== 11 || f10 === 1 && f100 !== 11 ? 0 : v === 0 && B(2, 4, i10) && !B(12, 14, i100) || B(2, 4, f10) && !B(12, 14, f100) ? 1 : 2;
+  }
+});
+
+add([ 'ca' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v) {
+    return i === 1 && v === 0 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 5 ],
+  oFn: function (n) {
+    return IN([ 1, 3 ], n) ? 0 : n === 2 ? 1 : n === 4 ? 2 : 3;
+  }
+});
+
+add([ 'cs', 'sk' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n, i, v) {
+    return i === 1 && v === 0 ? 0 : B(2, 4, i) && v === 0 ? 1 : v !== 0 ? 2 : 3;
+  }
+});
+
+add([ 'cy' ], {
+  c: [ 0, 1, 2, 3, 4, 5 ],
+  cFn: function (n) {
+    return n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 ? 3 : n === 6 ? 4 : 5;
+  },
+  o: [ 0, 1, 2, 3, 4, 5 ],
+  oFn: function (n) {
+    return IN([ 0, 7, 8, 9 ], n) ? 0 : n === 1 ? 1 : n === 2 ? 2 : IN([ 3, 4 ], n) ? 3 : IN([ 5, 6 ], n) ? 4 : 5;
+  }
+});
+
+add([ 'da' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v, f, t) {
+    return n === 1 || t !== 0 && IN([ 0, 1 ], i) ? 0 : 1;
+  }
+});
+
+add([ 'dsb', 'hsb' ], {
+  c: [ 1, 2, 3, 5 ],
+  cFn: function (n, i, v, f) {
+    var i100 = i % 100, f100 = f % 100;
+    return v === 0 && i100 === 1 || f100 === 1 ? 0 : v === 0 && i100 === 2 || f100 === 2 ? 1 : v === 0 && B(3, 4, i100) || B(3, 4, f100) ? 2 : 3;
+  }
+});
+
+add([ 'en' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v) {
+    return i === 1 && v === 0 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 5 ],
+  oFn: function (n) {
+    var n10 = n % 10, n100 = n % 100;
+    return n10 === 1 && n100 !== 11 ? 0 : n10 === 2 && n100 !== 12 ? 1 : n10 === 3 && n100 !== 13 ? 2 : 3;
+  }
+});
+
+add([ 'ff', 'kab' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return IN([ 0, 1 ], i) ? 0 : 1;
+  }
+});
+
+add([ 'fil', 'tl' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v, f) {
+    var i10 = i % 10, f10 = f % 10;
+    return v === 0 && IN([ 1, 2, 3 ], i) || v === 0 && !IN([ 4, 6, 9 ], i10) || v !== 0 && !IN([ 4, 6, 9 ], f10) ? 0 : 1;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : 1;
+  }
+});
+
+add([ 'fr', 'hy' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return IN([ 0, 1 ], i) ? 0 : 1;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : 1;
+  }
+});
+
+add([ 'ga' ], {
+  c: [ 1, 2, 3, 4, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : n === 2 ? 1 : B(3, 6, n) ? 2 : B(7, 10, n) ? 3 : 4;
+  }
+});
+
+add([ 'gd' ], {
+  c: [ 1, 2, 3, 5 ],
+  cFn: function (n) {
+    return IN([ 1, 11 ], n) ? 0 : IN([ 2, 12 ], n) ? 1 : (B(3, 10, n) || B(13, 19, n)) ? 2 : 3;
+  }
+});
+
+add([ 'gu', 'hi' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return i === 0 || n === 1 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 4, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : IN([ 2, 3 ], n) ? 1 : n === 4 ? 2 : n === 6 ? 3 : 4;
+  }
+});
+
+add([ 'gv' ], {
+  c: [ 1, 2, 3, 4, 5 ],
+  cFn: function (n, i, v) {
+    var i10 = i % 10, i100 = i % 100;
+    return v === 0 && i10 === 1 ? 0 : v === 0 && i10 === 2 ? 1 : v === 0 && IN([ 0, 20, 40, 60, 80 ], i100) ? 2 : v !== 0 ? 3 : 4;
+  }
+});
+
+add([ 'he', 'iw' ], {
+  c: [ 1, 2, 4, 5 ],
+  cFn: function (n, i, v) {
+    var n10 = n % 10;
+    return i === 1 && v === 0 ? 0 : i === 2 && v === 0 ? 1 : v === 0 && !B(0, 10, n) && n10 === 0 ? 2 : 3;
+  }
+});
+
+add([ 'hu' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return IN([ 1, 5 ], n) ? 0 : 1;
+  }
+});
+
+add([ 'is' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v, f, t) {
+    var i10 = i % 10, i100 = i % 100;
+    return t === 0 && i10 === 1 && i100 !== 11 || t !== 0 ? 0 : 1;
+  }
+});
+
+add([ 'it' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v) {
+    return i === 1 && v === 0 ? 0 : 1;
+  },
+  o: [ 4, 5 ],
+  oFn: function (n) {
+    return IN([ 11, 8, 80, 800 ], n) ? 0 : 1;
+  }
+});
+
+add([ 'iu', 'kw', 'naq', 'se', 'sma', 'smi', 'smj', 'smn', 'sms' ], {
+  c: [ 1, 2, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : n === 2 ? 1 : 2;
+  }
+});
+
+add([ 'ka' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 1, 4, 5 ],
+  oFn: function (n, i) {
+    var i100 = i % 100;
+    return i === 1 ? 0 : i === 0 || (B(2, 20, i100) || i100 === 40 || i100 === 60 || i100 === 80) ? 1 : 2;
+  }
+});
+
+add([ 'kk' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 4, 5 ],
+  oFn: function (n) {
+    var n10 = n % 10;
+    return n10 === 6 || n10 === 9 || n10 === 0 && n !== 0 ? 0 : 1;
+  }
+});
+
+add([ 'ksh' ], {
+  c: [ 0, 1, 5 ],
+  cFn: function (n) {
+    return n === 0 ? 0 : n === 1 ? 1 : 2;
+  }
+});
+
+add([ 'lag' ], {
+  c: [ 0, 1, 5 ],
+  cFn: function (n, i) {
+    return n === 0 ? 0 : IN([ 0, 1 ], i) && n !== 0 ? 1 : 2;
+  }
+});
+
+add([ 'lo', 'ms', 'vi' ], {
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : 1;
+  }
+});
+
+add([ 'lt' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n, i, v, f) {
+    var n10 = n % 10, n100 = n % 100;
+    return n10 === 1 && !B(11, 19, n100) ? 0 : B(2, 9, n10) && !B(11, 19, n100) ? 1 : f !== 0 ? 2 : 3;
+  }
+});
+
+add([ 'lv', 'prg' ], {
+  c: [ 0, 1, 5 ],
+  cFn: function (n, i, v, f) {
+    var n10 = n % 10, n100 = n % 100, f100 = f % 100, f10 = f % 10;
+    return n10 === 0 || B(11, 19, n100) || v === 2 && B(11, 19, f100) ? 0 : n10 === 1 && n100 !== 11 || v === 2 && f10 === 1 && f100 !== 11 || v !== 2 && f10 === 1 ? 1 : 2;
+  }
+});
+
+add([ 'mk' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v, f) {
+    var i10 = i % 10, f10 = f % 10;
+    return v === 0 && i10 === 1 || f10 === 1 ? 0 : 1;
+  },
+  o: [ 1, 2, 4, 5 ],
+  oFn: function (n, i) {
+    var i10 = i % 10, i100 = i % 100;
+    return i10 === 1 && i100 !== 11 ? 0 : i10 === 2 && i100 !== 12 ? 1 : IN([ 7, 8 ], i10) && !IN([ 17, 18 ], i100) ? 2 : 3;
+  }
+});
+
+add([ 'mo', 'ro' ], {
+  c: [ 1, 3, 5 ],
+  cFn: function (n, i, v) {
+    var n100 = n % 100;
+    return i === 1 && v === 0 ? 0 : v !== 0 || n === 0 || n !== 1 && B(1, 19, n100) ? 1 : 2;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : 1;
+  }
+});
+
+add([ 'mr' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return i === 0 || n === 1 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : IN([ 2, 3 ], n) ? 1 : n === 4 ? 2 : 3;
+  }
+});
+
+add([ 'mt' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n) {
+    var n100 = n % 100;
+    return n === 1 ? 0 : n === 0 || B(2, 10, n100) ? 1 : B(11, 19, n100) ? 2 : 3;
+  }
+});
+
+add([ 'ne' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return B(1, 4, n) ? 0 : 1;
+  }
+});
+
+add([ 'pl' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n, i, v) {
+    var i10 = i % 10, i100 = i % 100;
+    return i === 1 && v === 0 ? 0 : v === 0 && B(2, 4, i10) && !B(12, 14, i100) ? 1 : v === 0 && i !== 1 && B(0, 1, i10) || v === 0 && B(5, 9, i10) || v === 0 && B(12, 14, i100) ? 2 : 3;
+  }
+});
+
+add([ 'pt' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return B(0, 2, n) && n !== 2 ? 0 : 1;
+  }
+});
+
+add([ 'pt-pt' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v) {
+    return n === 1 && v === 0 ? 0 : 1;
+  }
+});
+
+add([ 'ru' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n, i, v) {
+    var i10 = i % 10, i100 = i % 100;
+    return v === 0 && i10 === 1 && i100 !== 11 ? 0 : v === 0 && B(2, 4, i10) && !B(12, 14, i100) ? 1 : v === 0 && i10 === 0 || v === 0 && B(5, 9, i10) || v === 0 && B(11, 14, i100) ? 2 : 3;
+  }
+});
+
+add([ 'shi' ], {
+  c: [ 1, 3, 5 ],
+  cFn: function (n, i) {
+    return i === 0 || n === 1 ? 0 : B(2, 10, n) ? 1 : 2;
+  }
+});
+
+add([ 'si' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v, f) {
+    return IN([ 0, 1 ], n) || i === 0 && f === 1 ? 0 : 1;
+  }
+});
+
+add([ 'sl' ], {
+  c: [ 1, 2, 3, 5 ],
+  cFn: function (n, i, v) {
+    var i100 = i % 100;
+    return v === 0 && i100 === 1 ? 0 : v === 0 && i100 === 2 ? 1 : v === 0 && B(3, 4, i100) || v !== 0 ? 2 : 3;
+  }
+});
+
+add([ 'sq' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 1, 4, 5 ],
+  oFn: function (n) {
+    var n10 = n % 10, n100 = n % 100;
+    return n === 1 ? 0 : n10 === 4 && n100 !== 14 ? 1 : 2;
+  }
+});
+
+add([ 'sv' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v) {
+    return i === 1 && v === 0 ? 0 : 1;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    var n10 = n % 10, n100 = n % 100;
+    return IN([ 1, 2 ], n10) && !IN([ 11, 12 ], n100) ? 0 : 1;
+  }
+});
+
+add([ 'tzm' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return B(0, 1, n) || B(11, 99, n) ? 0 : 1;
+  }
+});
+
+add([ 'uk' ], {
+  c: [ 1, 3, 4, 5 ],
+  cFn: function (n, i, v) {
+    var i10 = i % 10, i100 = i % 100;
+    return v === 0 && i10 === 1 && i100 !== 11 ? 0 : v === 0 && B(2, 4, i10) && !B(12, 14, i100) ? 1 : v === 0 && i10 === 0 || v === 0 && B(5, 9, i10) || v === 0 && B(11, 14, i100) ? 2 : 3;
+  },
+  o: [ 3, 5 ],
+  oFn: function (n) {
+    var n10 = n % 10, n100 = n % 100;
+    return n10 === 3 && n100 !== 13 ? 0 : 1;
+  }
+});
+
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
+},{}],"/":[function(require,module,exports){
+module.exports = require('./lib/babelfish');
 
-// Azerbaijani, Bambara, Burmese, Chinese, Dzongkha, Georgian, Hungarian, Igbo,
-// Indonesian, Japanese, Javanese, Kabuverdianu, Kannada, Khmer, Korean,
-// Koyraboro Senni, Lao, Makonde, Malay, Persian, Root, Sakha, Sango,
-// Sichuan Yi, Thai, Tibetan, Tonga, Turkish, Vietnamese, Wolof, Yoruba
-
-add(['az', 'bm', 'my', 'zh', 'dz', 'ka', 'hu', 'ig',
-  'id', 'ja', 'jv', 'kea', 'kn', 'km', 'ko',
-  'ses', 'lo', 'kde', 'ms', 'fa', 'root', 'sah', 'sg',
-  'ii',  'th', 'bo', 'to', 'tr', 'vi', 'wo', 'yo'], function () {
-  return 0;
-});
-
-
-// Manx
-
-add(['gv'], function (n) {
-  var m10 = n % 10, m20 = n % 20;
-
-  if ((m10 === 1 || m10 === 2 || m20 === 0) && is_int(n)) {
-    return 0;
-  }
-
-  return 1;
-});
-
-
-// Central Morocco Tamazight
-
-add(['tzm'], function (n) {
-  if (n === 0 || n === 1 || (11 <= n && n <= 99 && is_int(n))) {
-    return 0;
-  }
-
-  return 1;
-});
-
-
-// Macedonian
-
-add(['mk'], function (n) {
-  if ((n % 10 === 1) && (n !== 11) && is_int(n)) {
-    return 0;
-  }
-
-  return 1;
-});
-
-
-// Akan, Amharic, Bihari, Filipino, Gun, Hindi,
-// Lingala, Malagasy, Northern Sotho, Tagalog, Tigrinya, Walloon
-
-add(['ak', 'am', 'bh', 'fil', 'guw', 'hi',
-  'ln', 'mg', 'nso', 'tl', 'ti', 'wa'], function (n) {
-  return (n === 0 || n === 1) ? 0 : 1;
-});
-
-
-// Afrikaans, Albanian, Basque, Bemba, Bengali, Bodo, Bulgarian, Catalan,
-// Cherokee, Chiga, Danish, Divehi, Dutch, English, Esperanto, Estonian, Ewe,
-// Faroese, Finnish, Friulian, Galician, Ganda, German, Greek, Gujarati, Hausa,
-// Hawaiian, Hebrew, Icelandic, Italian, Kalaallisut, Kazakh, Kurdish,
-// Luxembourgish, Malayalam, Marathi, Masai, Mongolian, Nahuatl, Nepali,
-// Norwegian, Norwegian Bokmål, Norwegian Nynorsk, Nyankole, Oriya, Oromo,
-// Papiamento, Pashto, Portuguese, Punjabi, Romansh, Saho, Samburu, Soga,
-// Somali, Spanish, Swahili, Swedish, Swiss German, Syriac, Tamil, Telugu,
-// Turkmen, Urdu, Walser, Western Frisian, Zulu
-
-add(['af', 'sq', 'eu', 'bem', 'bn', 'brx', 'bg', 'ca',
-  'chr', 'cgg', 'da', 'dv', 'nl', 'en', 'eo', 'et', 'ee',
-  'fo', 'fi', 'fur', 'gl', 'lg', 'de', 'el', 'gu', 'ha',
-  'haw', 'he', 'is', 'it', 'kl', 'kk', 'ku',
-  'lb', 'ml', 'mr', 'mas', 'mn', 'nah', 'ne',
-  'no', 'nb', 'nn', 'nyn', 'or', 'om',
-  'pap', 'ps', 'pt', 'pa', 'rm', 'ssy', 'saq', 'xog',
-  'so', 'es', 'sw', 'sv', 'gsw', 'syr', 'ta', 'te',
-  'tk', 'ur', 'wae', 'fy', 'zu'], function (n) {
-  return (1 === n) ? 0 : 1;
-});
-
-
-// Latvian
-
-add(['lv'], function (n) {
-  if (n === 0) {
-    return 0;
-  }
-
-  if ((n % 10 === 1) && (n % 100 !== 11) && is_int(n)) {
-    return 1;
-  }
-
-  return 2;
-});
-
-
-// Colognian
-
-add(['ksh'], function (n) {
-  return (n === 0) ? 0 : ((n === 1) ? 1 : 2);
-});
-
-
-// Cornish, Inari Sami, Inuktitut, Irish, Lule Sami, Northern Sami,
-// Sami Language, Skolt Sami, Southern Sami
-
-add(['kw', 'smn', 'iu', 'ga', 'smj', 'se',
-  'smi', 'sms', 'sma'], function (n) {
-  return (n === 1) ? 0 : ((n === 2) ? 1 : 2);
-});
-
-
-// Belarusian, Bosnian, Croatian, Russian, Serbian, Serbo-Croatian, Ukrainian
-
-add(['be', 'bs', 'hr', 'ru', 'sr', 'sh', 'uk'], function (n) {
-  var m10 = n % 10, m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 3;
-  }
-
-  // one → n mod 10 is 1 and n mod 100 is not 11;
-  if (1 === m10 && 11 !== m100) {
-    return 0;
-  }
-
-  // few → n mod 10 in 2..4 and n mod 100 not in 12..14;
-  if (2 <= m10 && m10 <= 4 && !(12 <= m100 && m100 <= 14)) {
-    return 1;
-  }
-
-  // many → n mod 10 is 0 or n mod 10 in 5..9 or n mod 100 in 11..14;
-/*  if (0 === m10 || (5 <= m10 && m10 <= 9) || (11 <= m100 && m100 <= 14)) {
-    return 2;
-  }
-
-  // other
-  return 3;*/
-  return 2;
-});
-
-
-// Polish
-
-add(['pl'], function (n) {
-  var m10 = n % 10, m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 3;
-  }
-
-  // one → n is 1;
-  if (n === 1) {
-    return 0;
-  }
-
-  // few → n mod 10 in 2..4 and n mod 100 not in 12..14;
-  if (2 <= m10 && m10 <= 4 && !(12 <= m100 && m100 <= 14)) {
-    return 1;
-  }
-
-  // many → n is not 1 and n mod 10 in 0..1 or
-  // n mod 10 in 5..9 or n mod 100 in 12..14
-  // (all other except partials)
-  return 2;
-});
-
-
-// Lithuanian
-
-add(['lt'], function (n) {
-  var m10 = n % 10, m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 2;
-  }
-
-  // one → n mod 10 is 1 and n mod 100 not in 11..19
-  if (m10 === 1 && !(11 <= m100 && m100 <= 19)) {
-    return 0;
-  }
-
-  // few → n mod 10 in 2..9 and n mod 100 not in 11..19
-  if (2 <= m10 && m10 <= 9 && !(11 <= m100 && m100 <= 19)) {
-    return 1;
-  }
-
-  // other
-  return 2;
-});
-
-
-// Tachelhit
-
-add(['shi'], function (n) {
-  return (0 <= n && n <= 1) ? 0 : ((is_int(n) && 2 <= n && n <= 10) ? 1 : 2);
-});
-
-
-// Moldavian, Romanian
-
-add(['mo', 'ro'], function (n) {
-  var m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 2;
-  }
-
-  // one → n is 1
-  if (n === 1) {
-    return 0;
-  }
-
-  // few → n is 0 OR n is not 1 AND n mod 100 in 1..19
-  if (n === 0 || (1 <= m100 && m100 <= 19)) {
-    return 1;
-  }
-
-  // other
-  return 2;
-});
-
-
-// Czech, Slovak
-
-add(['cs', 'sk'], function (n) {
-  // one → n is 1
-  if (n === 1) {
-    return 0;
-  }
-
-  // few → n in 2..4
-  if (n === 2 || n === 3 || n === 4) {
-    return 1;
-  }
-
-  // other
-  return 2;
-});
-
-
-
-// Slovenian
-
-add(['sl'], function (n) {
-  var m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 3;
-  }
-
-  // one → n mod 100 is 1
-  if (m100 === 1) {
-    return 0;
-  }
-
-  // one → n mod 100 is 2
-  if (m100 === 2) {
-    return 1;
-  }
-
-  // one → n mod 100 in 3..4
-  if (m100 === 3 || m100 === 4) {
-    return 2;
-  }
-
-  // other
-  return 3;
-});
-
-
-// Maltese
-
-add(['mt'], function (n) {
-  var m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 3;
-  }
-
-  // one → n is 1
-  if (n === 1) {
-    return 0;
-  }
-
-  // few → n is 0 or n mod 100 in 2..10
-  if (n === 0 || (2 <= m100 && m100 <= 10)) {
-    return 1;
-  }
-
-  // many → n mod 100 in 11..19
-  if (11 <= m100 && m100 <= 19) {
-    return 2;
-  }
-
-  // other
-  return 3;
-});
-
-
-// Arabic
-
-add(['ar'], function (n) {
-  var m100 = n % 100;
-
-  if (!is_int(n)) {
-    return 5;
-  }
-
-  if (n === 0) {
-    return 0;
-  }
-  if (n === 1) {
-    return 1;
-  }
-  if (n === 2) {
-    return 2;
-  }
-
-  // few → n mod 100 in 3..10
-  if (3 <= m100 && m100 <= 10) {
-    return 3;
-  }
-
-  // many → n mod 100 in 11..99
-  if (11 <= m100 && m100 <= 99) {
-    return 4;
-  }
-
-  // other
-  return 5;
-});
-
-
-// Breton, Welsh
-
-add(['br', 'cy'], function (n) {
-
-  if (n === 0) {
-    return 0;
-  }
-  if (n === 1) {
-    return 1;
-  }
-  if (n === 2) {
-    return 2;
-  }
-  if (n === 3) {
-    return 3;
-  }
-  if (n === 6) {
-    return 4;
-  }
-
-  return 5;
-});
-
-
-// FRACTIONAL PARTS - SPECIAL CASES
-////////////////////////////////////////////////////////////////////////////////
-
-
-// French, Fulah, Kabyle
-
-add(['fr', 'ff', 'kab'], function (n) {
-  return (0 <= n && n < 2) ? 0 : 1;
-});
-
-
-// Langi
-
-add(['lag'], function (n) {
-  return (n === 0) ? 0 : ((0 < n && n < 2) ? 1 : 2);
-});
-
-
-},{}]},{},[1])
-(1)
+},{"./lib/babelfish":1}]},{},[])("/")
 });
