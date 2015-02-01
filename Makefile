@@ -1,5 +1,3 @@
-PATH        := $(shell pwd)/node_modules/.bin:${PATH}
-
 NPM_PACKAGE := $(shell node -e 'console.log(require("./package.json").name)')
 NPM_VERSION := $(shell node -e 'console.log(require("./package.json").version)')
 
@@ -20,7 +18,7 @@ lint:
 
 
 test: lint
-	NODE_ENV=test mocha
+	./node_modules/.bin/mocha
 
 
 coverage:
@@ -29,13 +27,8 @@ coverage:
 
 
 doc:
-	@if test ! `which ndoc` ; then \
-		echo "You need 'ndoc' installed in order to generate docs." >&2 ; \
-		echo "  $ npm install -g ndoc" >&2 ; \
-		exit 128 ; \
-		fi
 	rm -rf ./doc
-	ndoc --link-format "{package.homepage}/blob/${CURR_HEAD}/{file}#L{line}"
+	./node_modules/.bin/ndoc --link-format "{package.homepage}/blob/${CURR_HEAD}/{file}#L{line}"
 
 
 gh-pages:
@@ -57,12 +50,7 @@ gh-pages:
 
 
 parser:
-	@if test ! `which pegjs` ; then \
-		echo "You need 'pegjs' installed in order to compile parser." >&2 ; \
-		echo "  $ npm install" >&2 ; \
-		exit 128 ; \
-	fi
-	pegjs -o size src/parser.pegjs lib/parser.js
+	./node_modules/.bin/pegjs -o size src/parser.pegjs lib/parser.js
 
 
 browserify:
@@ -70,10 +58,10 @@ browserify:
 	mkdir dist
 	# Browserify
 	( echo -n "/* ${NPM_PACKAGE} ${NPM_VERSION} ${GITHUB_PROJ} */" ; \
-		browserify -r ./ -s Babelfish \
+		./node_modules/.bin/browserify -r ./ -s Babelfish \
 		) > dist/babelfish.js
 	# Minify
-	uglifyjs dist/babelfish.js -c -m \
+	./node_modules/.bin/uglifyjs dist/babelfish.js -c -m \
 		--preamble "/* ${NPM_PACKAGE} ${NPM_VERSION} ${GITHUB_PROJ} */" \
 		> dist/babelfish.min.js
 
