@@ -117,3 +117,9 @@ preserve escaping in plurals content
 #{count} one^^1
 few^^2
 .
+
+
+Empty string
+|
+|
+|

@@ -141,7 +141,7 @@ describe('Behavior and unit tests come here', function () {
       assert.strictEqual(b.t('en', 'd'), true);
 
       assert.throws(function () {
-        b.addPhrase('en', 'invalid', function () {});
+        b.addPhrase('en', 'invalid', /abc/);
       });
     });
 
