@@ -4,7 +4,6 @@
 
 var fs = require('fs');
 var p  = require('path');
-var _  = require('lodash');
 
 function parse(input, options) {
   var lines = input.split(/\r?\n/g),
@@ -113,12 +112,12 @@ function load(path, options, iterator) {
   var input, parsed,
       stat = fs.statSync(path);
 
-  if (_.isFunction(options)) {
+  if (typeof options === 'function') {
     iterator = options;
     options = { sep: [ '.' ] };
-  } else if (_.isString(options)) {
+  } else if (typeof options === 'string') {
     options = { sep: options.split('') };
-  } else if (_.isArray(options)) {
+  } else if (Array.isArray(options)) {
     options = { sep: options };
   }
 
