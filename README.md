@@ -9,8 +9,9 @@ use multiple phrases for plurals. But we define plurals inline - that's more
 compact, and easy for programmers. Also, phrases are grouped into nested scopes,
 like in Ruby.
 
-We support all pluralisation rules from [unicode CLDR](http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html),
-version [2.0.1](http://cldr.unicode.org/index/downloads).
+We support all plural rules from [unicode CLDR](http://cldr.unicode.org/index/charts)
+(via [plurals-cldr](https://github.com/nodeca/plurals-cldr)).
+
 
 ### Installation
 
