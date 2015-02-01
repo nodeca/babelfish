@@ -57,7 +57,7 @@ describe('Behavior and unit tests come here', function () {
     b.addPhrase('es-MX', 'ccc', 'ccc (es-MX)');
     b.addPhrase('es-US', 'ddd', 'ddd (es-US)');
 
-    b.setFallback('es-US', [ 'es' ]);
+    b.setFallback('es-US', 'es');
 
     it('use defaultLocale in worst case', function () {
       assert.equal(b.t('es', 'ddd'), 'ddd (en)');
@@ -100,7 +100,7 @@ describe('Behavior and unit tests come here', function () {
     var b = new BabelFish('en');
 
     it('cause exception', function () {
-      assert.throws(function () { b.setFallback('en', [ 'en-GB' ]); }, Error);
+      assert.throws(function () { b.setFallback('en', 'en-GB'); }, Error);
     });
   });
 
@@ -243,46 +243,88 @@ describe('Behavior and unit tests come here', function () {
     b.addPhrase('en', 'number', 123);
     b.addPhrase('ru', 'object', { foo: 'bar' }, 0);
 
+    b.setFallback('ua', 'ru');
+
+    var data_ua = {
+      fallback: { ua: [ 'ru' ] },
+      locales: {
+        en: { string: 'test', number: 123 },
+        ru: { object: { foo: 'bar' } }
+      }
+    };
+
     var data_ru = {
-      en: {
-        string: 'test',
-        number: 123
-      },
-      ru: {
-        object: { foo: 'bar' }
+      fallback: {},
+      locales: {
+        en: { string: 'test', number: 123 },
+        ru: { object: { foo: 'bar' } }
       }
     };
 
     var data_en = {
-      en: {
-        string: 'test',
-        number: 123
+      fallback: {},
+      locales: {
+        en: { string: 'test', number: 123 }
       }
     };
 
     it('stringify', function() {
-      assert.deepEqual(JSON.parse(b.stringify('ru')).locales, data_ru);
-      assert.deepEqual(JSON.parse(b.stringify('en')).locales, data_en);
+      assert.deepEqual(JSON.parse(b.stringify('ru')), data_ru);
+      assert.deepEqual(JSON.parse(b.stringify('en')), data_en);
     });
 
     it('load', function() {
       var b_new = new BabelFish('en');
       b_new.load(b.stringify('ru'));
-      assert.deepEqual(JSON.parse(b_new.stringify('ru')).locales, data_ru);
+      assert.deepEqual(JSON.parse(b_new.stringify('ru')), data_ru);
 
       b_new = new BabelFish('en');
       b_new.load(b.stringify('en'));
-      assert.deepEqual(JSON.parse(b_new.stringify('en')).locales, data_en);
+      assert.deepEqual(JSON.parse(b_new.stringify('en')), data_en);
     });
 
     it('load object', function() {
       var b_new = new BabelFish('en');
       b_new.load(b.stringify('ru'));
-      assert.deepEqual(JSON.parse(b_new.stringify('ru')).locales, data_ru);
+      assert.deepEqual(JSON.parse(b_new.stringify('ru')), data_ru);
 
       b_new = new BabelFish('en');
       b_new.load(JSON.parse(b.stringify('en')));
-      assert.deepEqual(JSON.parse(b_new.stringify('en')).locales, data_en);
+      assert.deepEqual(JSON.parse(b_new.stringify('en')), data_en);
+
+      b_new = new BabelFish('en');
+      b_new.load(JSON.parse(b.stringify('ua')));
+      assert.deepEqual(JSON.parse(b_new.stringify('ua')), data_ua);
+    });
+  });
+
+
+  describe('Misc', function () {
+
+    it('Unknown locale (no pluralizer)', function () {
+      var b = new BabelFish();
+
+      b.addPhrase('bad', 'test', '((1|2))');
+      assert.equal(b.t('bad', 'test', 5), '[pluralizer for "bad" locale not found]');
+    });
+
+    it('Auto add default locale to fallbacks end', function () {
+      var b1 = new BabelFish();
+      var b2 = new BabelFish();
+
+      b1.setFallback('ua', [ 'ru' ]);
+      b2.setFallback('ua', [ 'ru', 'en' ]);
+      assert.deepEqual(b1._fallbacks, b2._fallbacks);
+    });
+
+    it('Don\'t add macros from plurals to cache twice', function () {
+      var b = new BabelFish();
+
+      b.addPhrase('en', 't1', '1 ((#{count} nail|#{count} nails|=5 five [#{count}] nails))');
+      b.addPhrase('en', 't2', '2 ((#{count} nail|#{count} nails|=5 five [#{count}] nails))');
+
+      assert.equal(b.t('en', 't1', 5), '1 five [5] nails');
+      assert.equal(b.t('en', 't2', 5), '2 five [5] nails');
     });
   });
 
