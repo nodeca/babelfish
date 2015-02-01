@@ -23,7 +23,7 @@ test: lint
 
 coverage:
 	rm -rf coverage
-	./node_modules/.bin/istanbul cover node_modules/.bin/_mocha
+	./node_modules/.bin/istanbul cover -x lib/parser.js node_modules/.bin/_mocha
 
 
 doc:
