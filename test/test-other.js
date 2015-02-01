@@ -18,6 +18,8 @@ describe('API consistence tests', function () {
     it('is a constructor', function () {
       assert.ok(isFunction(BabelFish));
       assert.ok((new BabelFish()) instanceof BabelFish);
+      /*eslint-disable new-cap*/
+      assert.ok(BabelFish() instanceof BabelFish);
     });
   });
 
@@ -137,6 +139,10 @@ describe('Behavior and unit tests come here', function () {
       assert.deepEqual(b.t('en', 'b'), [ 4, 5, 6 ]);
       assert.strictEqual(b.t('en', 'c'), 123);
       assert.strictEqual(b.t('en', 'd'), true);
+
+      assert.throws(function () {
+        b.addPhrase('en', 'invalid', function () {});
+      });
     });
 
   });
@@ -166,6 +172,15 @@ describe('Behavior and unit tests come here', function () {
       var b = new BabelFish('en');
 
       b.addPhrase('en', 'test', data, 0);
+      assert.equal(b.hasPhrase('en', 'test'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), false);
+
+      b = new BabelFish('en');
+
+      b.addPhrase('en', 'test', data, false);
       assert.equal(b.hasPhrase('en', 'test'), true);
       assert.equal(b.hasPhrase('en', 'test.foo'), false);
       assert.equal(b.hasPhrase('en', 'test.foo.bar'), false);
@@ -201,6 +216,22 @@ describe('Behavior and unit tests come here', function () {
       assert.equal(b.hasPhrase('en', 'test.foo.bar'), true);
       assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
       assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), true);
+    });
+
+    it('flatten level - infinite', function () {
+      var b = new BabelFish('en');
+
+      b.addPhrase('en', 'test', data, true);
+      assert.equal(b.hasPhrase('en', 'test.foo'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.bar'), true);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz'), false);
+      assert.equal(b.hasPhrase('en', 'test.foo.baz.bad'), true);
+    });
+
+    it('invalid flatten', function () {
+      var b = new BabelFish('en');
+
+      assert.throws(function () { b.addPhrase('en', 'test', data, -1); });
     });
 
   });
@@ -241,6 +272,16 @@ describe('Behavior and unit tests come here', function () {
 
       b_new = new BabelFish('en');
       b_new.load(b.stringify('en'));
+      assert.deepEqual(JSON.parse(b_new.stringify('en')).locales, data_en);
+    });
+
+    it('load object', function() {
+      var b_new = new BabelFish('en');
+      b_new.load(b.stringify('ru'));
+      assert.deepEqual(JSON.parse(b_new.stringify('ru')).locales, data_ru);
+
+      b_new = new BabelFish('en');
+      b_new.load(JSON.parse(b.stringify('en')));
       assert.deepEqual(JSON.parse(b_new.stringify('en')).locales, data_en);
     });
   });
