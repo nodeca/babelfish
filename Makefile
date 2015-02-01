@@ -26,6 +26,10 @@ coverage:
 	./node_modules/.bin/istanbul cover -x lib/parser.js node_modules/.bin/_mocha
 
 
+test-ci: lint
+	./node_modules/.bin/istanbul cover -x lib/parser.js ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+
+
 doc:
 	rm -rf ./doc
 	./node_modules/.bin/ndoc --link-format "{package.homepage}/blob/${CURR_HEAD}/{file}#L{line}"

@@ -27,17 +27,18 @@
     "test": "make test"
   },
   "dependencies": {
-    "plurals-cldr": "~ 1.0.1"
+    "plurals-cldr": "~1.0.1"
   },
   "devDependencies": {
     "browserify": "*",
+    "coveralls": "~2.11.2",
     "eslint": "0.13.0",
     "eslint-plugin-nodeca": "~1.0.3",
     "istanbul": "*",
     "lodash": "*",
     "mocha": "*",
-    "ndoc": "~ 3.1.0",
-    "pegjs": "~ 0.8.0",
+    "ndoc": "~3.1.0",
+    "pegjs": "~0.8.0",
     "uglify-js": "*"
   }
 }

@@ -3,13 +3,15 @@ BabelFish - human friendly i18n for JS
 
 [![Build Status](https://travis-ci.org/nodeca/babelfish.svg?branch=master)](https://travis-ci.org/nodeca/babelfish)
 [![NPM version](https://img.shields.io/npm/v/babelfish.svg)](https://www.npmjs.org/package/babelfish)
+[![Coverage Status](https://img.shields.io/coveralls/nodeca/babelfish/master.svg?style=flat)](https://coveralls.io/r/nodeca/babelfish?branch=master)
 
-Internationalisation with easy syntax for node.js and browser. Classic solutions
-use multiple phrases for plurals. But we define plurals inline - that's more
-compact, and easy for programmers. Also, phrases are grouped into nested scopes,
-like in Ruby.
+> Internationalisation with easy syntax for node.js and browser.
 
-We support all plural rules from [unicode CLDR](http://cldr.unicode.org/index/charts)
+Classic solutions use multiple phrases for plurals. `Babelfish` defines plurals
+inline instead - that's more compact, and easy for programmers. Also, phrases
+are grouped into nested scopes, like in Ruby.
+
+`BabelFish` supports all plural rules from [unicode CLDR](http://cldr.unicode.org/index/charts)
 (via [plurals-cldr](https://github.com/nodeca/plurals-cldr)).
 
 
@@ -27,7 +29,7 @@ __browser:__
 $ bower install babelfish
 ```
 
-You need [es5-shim](https://github.com/es-shims/es5-shim) for old browsers
+Use [es5-shim](https://github.com/es-shims/es5-shim) for old browsers
 compatibility.
 
 
