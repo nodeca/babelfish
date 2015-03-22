@@ -93,6 +93,16 @@ describe('Behavior and unit tests come here', function () {
       assert.equal(b.t('es', 'ccc'), 'ccc (es-MX)');
       assert.equal(b.t('es', 'ddd'), 'ddd (en)');
     });
+
+    it('get real locale for requested phrase', function () {
+      assert.equal(b.getLocale('es', 'ddd'), 'en');
+      assert.equal(b.getLocale('ru', 'ddd'), 'en');
+      assert.equal(b.getLocale('es', 'invalid'), null);
+
+      assert.equal(b.getLocale('es-US', 'ccc'), 'es-MX');
+      assert.equal(b.getLocale('es-US', 'ccc', true), null);
+      assert.equal(b.getLocale('es-US', 'ddd', true), 'es-US');
+    });
   });
 
 

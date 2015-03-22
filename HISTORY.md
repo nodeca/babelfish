@@ -1,3 +1,9 @@
+1.1.1 / 2015-03-22
+------------------
+
+- Added `.getLocale()` method, to check real locale of requested phrase.
+
+
 1.1.0 / 2015-02-01
 ------------------
 
