@@ -1,4 +1,4 @@
-/* babelfish 1.1.0 nodeca/babelfish */!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Babelfish=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/* babelfish 1.1.1 nodeca/babelfish */(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Babelfish = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
  *  class BabelFish
  *
@@ -574,6 +574,28 @@ BabelFish.prototype.hasPhrase = function _hasPhrase(locale, phrase, noFallback) 
     this._storage.hasOwnProperty(makePhraseKey(locale, phrase))
   :
     searchPhraseKey(this, locale, phrase) ? true : false;
+};
+
+
+/**
+ *  BabelFish#getLocale(locale, phrase) -> String|null
+ *  - locale (String): Locale of translation
+ *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
+ *  - noFallback (Boolean): Disable search in fallbacks
+ *
+ *  Similar to [[BabelFish#hasPhrase]], but returns real locale of requested
+ *  phrase, or `null` if nothing found. Can be useful for dynamic dependencies
+ *  init. For example, when you fetch i10n config as single object and create
+ *  phrases from it's content.
+ **/
+BabelFish.prototype.getLocale = function _getLocale(locale, phrase, noFallback) {
+  if (noFallback) {
+    return this._storage.hasOwnProperty(makePhraseKey(locale, phrase)) ? locale : null;
+  }
+
+  var key = searchPhraseKey(this, locale, phrase);
+
+  return key ? key.split(keySeparator, 2)[0] : null;
 };
 
 
