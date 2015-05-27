@@ -27,7 +27,7 @@
 ------------------
 
 - Fixed partials locale for generated cache.
-- `hasPhrase()` fix for `noFollback = true`.
+- `hasPhrase()` fix for `noFallback = true`.
 
 
 1.0.0 / 2014-05-23
