@@ -133,6 +133,14 @@ describe('Behavior and unit tests come here', function () {
     it('allows specify translations as inner scope', function () {
       assert.equal(b.t('en', 'scope.phrase3'), 'foobar');
     });
+
+    it('allow empty prefix when adding phrases via object', function () {
+      b.addPhrase('en', '', { demo: { foo: 'bar' } });
+      assert.equal(b.t('en', 'demo.foo'), 'bar');
+
+      b.addPhrase('en', null, { demo: { foo2: 'bar2' } });
+      assert.equal(b.t('en', 'demo.foo2'), 'bar2');
+    });
   });
 
 
