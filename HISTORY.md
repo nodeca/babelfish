@@ -1,3 +1,11 @@
+1.1.2 / 2015-12-29
+------------------
+
+- Allow empty prefix when adding phrases via nested objects.
+- Fixed doc for `.load()` method.
+- `.addPhrase()`, `.setLocale()` & `.load()` now return `this`.
+
+
 1.1.1 / 2015-03-22
 ------------------
 
