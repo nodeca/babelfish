@@ -65,8 +65,8 @@ browserify:
 		./node_modules/.bin/browserify -r ./ -s Babelfish \
 		) > dist/babelfish.js
 	# Minify
-	./node_modules/.bin/uglifyjs dist/babelfish.js -c -m \
-		--preamble "/* ${NPM_PACKAGE} ${NPM_VERSION} ${GITHUB_PROJ} */" \
+	./node_modules/.bin/terser dist/babelfish.js -c -m \
+		-b beautify=false,preamble="'/* ${NPM_PACKAGE} ${NPM_VERSION} ${GITHUB_PROJ} */'" \
 		> dist/babelfish.min.js
 
 
