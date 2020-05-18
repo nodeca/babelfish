@@ -14,7 +14,7 @@ test-all: lint test
 
 
 lint:
-	./node_modules/.bin/eslint --reset ./
+	./node_modules/.bin/eslint .
 
 
 test: lint

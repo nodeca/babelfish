@@ -33,6 +33,7 @@ function parseLine(str) {
 //
 function addTests(path) {
 
+  /* eslint-disable max-nested-callbacks */
   load(path, '.|', function (data) {
     if (!data.fixtures.length) { return; }
 

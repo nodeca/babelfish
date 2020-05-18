@@ -6,9 +6,9 @@
 var assert = require('assert');
 var BabelFish = require('../lib/babelfish');
 
-var isFunction = function isFunction(obj) {
+function isFunction(obj) {
   return Object.prototype.toString.call(obj) === '[object Function]';
-};
+}
 
 
 describe('API consistence tests', function () {
@@ -286,12 +286,12 @@ describe('Behavior and unit tests come here', function () {
       }
     };
 
-    it('stringify', function() {
+    it('stringify', function () {
       assert.deepEqual(JSON.parse(b.stringify('ru')), data_ru);
       assert.deepEqual(JSON.parse(b.stringify('en')), data_en);
     });
 
-    it('load', function() {
+    it('load', function () {
       var b_new = new BabelFish('en');
       b_new.load(b.stringify('ru'));
       assert.deepEqual(JSON.parse(b_new.stringify('ru')), data_ru);
@@ -301,7 +301,7 @@ describe('Behavior and unit tests come here', function () {
       assert.deepEqual(JSON.parse(b_new.stringify('en')), data_en);
     });
 
-    it('load object', function() {
+    it('load object', function () {
       var b_new = new BabelFish('en');
       b_new.load(b.stringify('ru'));
       assert.deepEqual(JSON.parse(b_new.stringify('ru')), data_ru);
