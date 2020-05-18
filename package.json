@@ -6,7 +6,6 @@
     "i18n",
     "l10n"
   ],
-  "homepage": "https://github.com/nodeca/babelfish",
   "contributors": [
     "Aleksey V Zapparov <ixti@member.fsf.org> (http://www.ixti.net/)",
     "Vitaly Puzrin (https://github.com/puzrin)"
@@ -22,16 +21,16 @@
     "test": "make test"
   },
   "dependencies": {
-    "plurals-cldr": "~1.0.1"
+    "plurals-cldr": "^1.0.4"
   },
   "devDependencies": {
-    "browserify": "*",
-    "coveralls": "~2.11.2",
+    "browserify": "^16.5.1",
+    "coveralls": "^3.1.0",
     "eslint": "0.13.0",
     "eslint-plugin-nodeca": "~1.0.3",
-    "istanbul": "*",
-    "mocha": "*",
-    "ndoc": "~3.1.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^7.1.2",
+    "ndoc": "^5.0.1",
     "pegjs": "~0.8.0",
     "uglify-js": "*"
   }
