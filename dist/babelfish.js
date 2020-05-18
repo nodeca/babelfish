@@ -609,7 +609,7 @@ BabelFish.prototype.t = BabelFish.prototype.translate;
  *  BabelFish#stringify(locale) -> String
  *  - locale (String): Locale of translation
  *
- *  Returns serialized locale data, including fallbacks.
+ *  Returns serialized locale data, uncluding fallbacks.
  *  It can be loaded back via `load()` method.
  **/
 BabelFish.prototype.stringify = function _stringify(locale) {
