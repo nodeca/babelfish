@@ -1,683 +1,11 @@
-/* babelfish 1.1.1 nodeca/babelfish */(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Babelfish = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/**
- *  class BabelFish
- *
- *  Internalization and localization library that makes i18n and l10n fun again.
- *
- *  ##### Example
- *
- *  ```javascript
- *  var BabelFish = require('babelfish'),
- *      i18n = new BabelFish();
- *  ```
- *
- *  or
- *
- *  ```javascript
- *  var babelfish = require('babelfish'),
- *      i18n = babelfish();
- *  ```
- **/
+/*!
 
+babelfish
+https://github.com/nodeca/babelfish
 
-'use strict';
+*/
 
-
-var parser = require('./parser');
-var plural = require('plurals-cldr');
-
-function _class(obj) { return Object.prototype.toString.call(obj); }
-
-function isString(obj)   { return _class(obj) === '[object String]'; }
-function isNumber(obj)   { return !isNaN(obj) && isFinite(obj); }
-function isBoolean(obj)  { return obj === true || obj === false; }
-function isFunction(obj) { return _class(obj) === '[object Function]'; }
-function isObject(obj)   { return _class(obj) === '[object Object]'; }
-
-/*istanbul ignore next*/
-var isArray = Array.isArray || function _isArray(obj) {
-  return _class(obj) === '[object Array]';
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
-// The following two utilities (forEach and extend) are modified from Underscore
-//
-// http://underscorejs.org
-//
-// (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
-//
-// Underscore may be freely distributed under the MIT license
-////////////////////////////////////////////////////////////////////////////////
-
-
-var nativeForEach = Array.prototype.forEach;
-
-
-// The cornerstone, an `each` implementation, aka `forEach`.
-// Handles objects with the built-in `forEach`, arrays, and raw objects.
-// Delegates to **ECMAScript 5**'s native `forEach` if available.
-/*istanbul ignore next*/
-function forEach(obj, iterator, context) {
-  if (obj === null) {
-    return;
-  }
-  if (nativeForEach && obj.forEach === nativeForEach) {
-    obj.forEach(iterator, context);
-  } else if (obj.length === +obj.length) {
-    for (var i = 0, l = obj.length; i < l; i += 1) {
-      iterator.call(context, obj[i], i, obj);
-    }
-  } else {
-    for (var key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        iterator.call(context, obj[key], key, obj);
-      }
-    }
-  }
-}
-
-
-var formatRegExp = /%[sdj%]/g;
-
-/*istanbul ignore next*/
-function format(f) {
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') { return '%'; }
-    if (i >= len) { return x; }
-    switch (x) {
-      case '%s':
-        return String(args[i++]);
-      case '%d':
-        return Number(args[i++]);
-      case '%j':
-        return JSON.stringify(args[i++]);
-      default:
-        return x;
-    }
-  });
-  return str;
-}
-
-
-// helpers
-////////////////////////////////////////////////////////////////////////////////
-
-
-// Last resort locale, that exists for sure
-var GENERIC_LOCALE = 'en';
-
-
-// flatten(obj) -> Object
-//
-// Flattens object into one-level dictionary.
-//
-// ##### Example
-//
-//     var obj = {
-//       abc: { def: 'foo' },
-//       hij: 'bar'
-//     };
-//
-//     flatten(obj);
-//     // -> { 'abc.def': 'foo', 'hij': 'bar' };
-//
-function flatten(obj) {
-  var params = {};
-
-  forEach(obj || {}, function (val, key) {
-    if (val && typeof val === 'object') {
-      forEach(flatten(val), function (sub_val, sub_key) {
-        params[key + '.' + sub_key] = sub_val;
-      });
-      return;
-    }
-
-    params[key] = val;
-  });
-
-  return params;
-}
-
-
-var keySeparator = '#@$';
-
-function makePhraseKey(locale, phrase) {
-  return locale + keySeparator + phrase;
-}
-
-
-function searchPhraseKey(self, locale, phrase) {
-  var key = makePhraseKey(locale, phrase);
-  var storage = self._storage;
-
-  // direct search first
-  if (storage.hasOwnProperty(key)) { return key; }
-
-  // don't try follbacks for default locale
-  if (locale === self._defaultLocale) { return null; }
-
-  // search via fallback map cache
-  var fb_cache = self._fallbacks_cache;
-  if (fb_cache.hasOwnProperty(key)) { return fb_cache[key]; }
-
-  // scan fallbacks & cache result
-  var fb = self._fallbacks[locale] || [ self._defaultLocale ];
-  var fb_key;
-
-  for (var i = 0, l = fb.length; i < l; i++) {
-    fb_key = makePhraseKey(fb[i], phrase);
-    if (storage.hasOwnProperty(fb_key)) {
-      // found - update cache and return result
-      fb_cache[key] = fb_key;
-      return fb_cache[key];
-    }
-  }
-
-  // mark fb_cache entry empty for fast lookup on next request
-  fb_cache[key] = null;
-  return null;
-}
-
-
-function pluralizer(lang, val, forms) {
-  var idx = plural.indexOf(lang, val);
-
-  if (idx === -1) {
-    return format('[pluralizer for "%s" locale not found]', lang);
-  }
-
-  if (typeof forms[idx] === 'undefined') {
-    return format('[plural form %d ("%s") not found in translation]',
-                      idx, plural.forms(lang)[idx]);
-  }
-
-  return forms[idx];
-}
-
-// public api (module)
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
- *  new BabelFish([defaultLocale = 'en'])
- *
- *  Initiates new instance of BabelFish.
- *
- *  __Note!__ you can omit `new` for convenience, direct call will return
- * new instance too.
- **/
-function BabelFish(defaultLocale) {
-  if (!(this instanceof BabelFish)) { return new BabelFish(defaultLocale); }
-
-  this._defaultLocale = defaultLocale ? String(defaultLocale) : GENERIC_LOCALE;
-
-  // hash of locale => [ fallback1, fallback2, ... ] pairs
-  this._fallbacks = {};
-
-  // fallback cache for each phrase
-  //
-  // {
-  //   locale_key: fallback_key
-  // }
-  //
-  // fallback_key can be null if search failed
-  //
-  this._fallbacks_cache = {};
-
-  // storage of compiled translations
-  //
-  // {
-  //   locale + @#$ + phrase_key: {
-  //     locale:      locale name - can be different for fallbacks
-  //     translation: original translation phrase or data variable/object
-  //     raw:         true/false - does translation contain plain data or
-  //                  string to compile
-  //     compiled:    copiled translation fn or plain string
-  //   }
-  //   ...
-  // }
-  //
-  this._storage = {};
-
-  // cache for complex plural parts (with params)
-  //
-  // {
-  //   language: new BabelFish(language)
-  // }
-  //
-  this._plurals_cache = {};
-}
-
-
-// public api (instance)
-////////////////////////////////////////////////////////////////////////////////
-
-
-/**
- *  BabelFish#addPhrase(locale, phrase, translation [, flattenLevel]) -> BabelFish
- *  - locale (String): Locale of translation
- *  - phrase (String|Null): Phrase ID, e.g. `apps.forum`
- *  - translation (String|Object|Array|Number|Boolean): Translation or an object
- *    with nested phrases, or a pure object.
- *  - flattenLevel (Number|Boolean): Optional, 0..infinity. `Infinity` by default.
- *    Define "flatten" deepness for loaded object.  You can also use
- *    `true` as `0` or `false` as `Infinity`.
- *
- *
- *  ##### Flatten & using JS objects
- *
- *  By default all nested properties are normalized to strings like "foo.bar.baz",
- *  and if value is string, it will be compiled with babelfish notation.
- *  If deepness is above `flattenLevel` OR value is not object and not string,
- *  it will be used "as is". Note, only JSON stringifiable data should be used.
- *
- *  In short: you can safely pass `Array`, `Number` or `Boolean`. For objects you
- *  should define flatten level or disable it compleetely, to work with pure data.
- *
- *  Pure objects can be useful to prepare bulk data for external libraries, like
- *  calendars, time/date generators and so on.
- *
- *  ##### Example
- *
- *  ```javascript
- *  i18n.addPhrase('ru-RU',
- *    'apps.forums.replies_count',
- *    '#{count} %{ответ|ответа|ответов}:count в теме');
- *
- *  // equals to:
- *  i18n.addPhrase('ru-RU',
- *    'apps.forums',
- *    { replies_count: '#{count} %{ответ|ответа|ответов}:count в теме' });
- *  ```
- **/
-BabelFish.prototype.addPhrase = function _addPhrase(locale, phrase, translation, flattenLevel) {
-  var self = this, fl;
-
-  // Calculate flatten level. Infinity by default
-  if (isBoolean(flattenLevel)) {
-    fl = flattenLevel ? Infinity : 0;
-  } else if (isNumber(flattenLevel)) {
-    fl = Math.floor(flattenLevel);
-    if (fl < 0) {
-      throw new TypeError('Invalid flatten level (should be >= 0).');
-    }
-  } else {
-    fl = Infinity;
-  }
-
-  if (isObject(translation) && (fl > 0)) {
-    // recursive object walk, until flattenLevel allows
-    forEach(translation, function (val, key) {
-      self.addPhrase(locale, phrase + '.' + key, val, fl - 1);
-    });
-    return;
-  }
-
-  if (isString(translation)) {
-    this._storage[makePhraseKey(locale, phrase)] = {
-      translation: translation,
-      locale: locale,
-      raw: false
-    };
-  } else if (isArray(translation) ||
-             isNumber(translation) ||
-             isBoolean(translation) ||
-             (fl === 0 && isObject(translation))) {
-    // Pure objects are stored without compilation
-    // Limit allowed types.
-    this._storage[makePhraseKey(locale, phrase)] = {
-      translation: translation,
-      locale: locale,
-      raw: true
-    };
-  } else {
-    // `Regex`, `Date`, `Uint8Array` and others types will
-    //  fuckup `stringify()`. Don't allow here.
-    // `undefined` also means wrong param in real life.
-    // `null` can be allowed when examples from real life available.
-    throw new TypeError('Invalid translation - [String|Object|Array|Number|Boolean] expected.');
-  }
-
-  self._fallbacks_cache = {};
-};
-
-
-/**
- *  BabelFish#setFallback(locale, fallbacks) -> BabelFish
- *  - locale (String): Target locale
- *  - fallbacks (Array): List of fallback locales
- *
- *  Set fallbacks for given locale.
- *
- *  When `locale` has no translation for the phrase, `fallbacks[0]` will be
- *  tried, if translation still not found, then `fallbacks[1]` will be tried
- *  and so on. If none of fallbacks have translation,
- *  default locale will be tried as last resort.
- *
- *  ##### Errors
- *
- *  - throws `Error`, when `locale` equals default locale
- *
- *  ##### Example
- *
- *  ```javascript
- *  i18n.setFallback('ua-UK', ['ua', 'ru']);
- *  ```
- **/
-BabelFish.prototype.setFallback = function _setFallback(locale, fallbacks) {
-  var def = this._defaultLocale;
-
-  if (def === locale) {
-    throw new Error("Default locale can't have fallbacks");
-  }
-
-  var fb = isArray(fallbacks) ? fallbacks.slice() : [ fallbacks ];
-  if (fb[fb.length - 1] !== def) { fb.push(def); }
-
-  this._fallbacks[locale] = fb;
-  this._fallbacks_cache = {};
-};
-
-
-var CAN_HAVE_DIRECTIVES_RE = /#\{|\(\(|\\\\/;
-
-// Compiles given string into function. Used to compile phrases,
-// which contains `plurals`, `variables`, etc.
-function compile(self, str, locale) {
-  var nodes, buf, key, strict_exec, forms_exec, plurals_cache;
-
-  // Quick check to avoid parse in most cases :)
-  if (!CAN_HAVE_DIRECTIVES_RE.test(str)) { return str; }
-
-  nodes = parser.parse(str);
-
-  if (nodes.length === 1 && nodes[0].type === 'literal') {
-    return nodes[0].text;
-  }
-
-  // init cache instance for plural parts, if not exists yet.
-  if (!self._plurals_cache[locale]) {
-    self._plurals_cache[locale] = new BabelFish(locale);
-  }
-  plurals_cache = self._plurals_cache[locale];
-
-  buf = [];
-  buf.push([ 'var str = "", strict, strict_exec, forms, forms_exec, plrl, cache, loc, loc_plzr, anchor;' ]);
-  buf.push('params = flatten(params);');
-
-  forEach(nodes, function (node) {
-    if (node.type === 'literal') {
-      buf.push(format('str += %j;', node.text));
-      return;
-    }
-
-    if (node.type === 'variable') {
-      key = node.anchor;
-      buf.push(format(
-        'str += ("undefined" === typeof (params[%j])) ? "[missed variable: %s]" : params[%j];',
-        key, key, key
-      ));
-      return;
-    }
-
-    // should never happen
-    /*istanbul ignore next*/
-    if (node.type !== 'plural') { throw new Error('Unknown node type'); }
-
-    //
-    // Compile plural
-    //
-
-    key = node.anchor;
-    // check if plural parts are plain strings or executable,
-    // and add executable to "cache" instance of babelfish
-    // plural part text will be used as translation key
-    strict_exec = {};
-    forEach(node.strict, function (text, k) {
-      var parsed = parser.parse(text);
-      if (parsed.length === 1 && parsed[0].type === 'literal') {
-        strict_exec[k] = false;
-        // patch with unescaped value for direct extract
-        node.strict[k] = parsed[0].text;
-        return;
-      }
-
-      strict_exec[k] = true;
-      if (!plurals_cache.hasPhrase(locale, text, true)) {
-        plurals_cache.addPhrase(locale, text, text);
-      }
-    });
-
-    forms_exec = {};
-    forEach(node.forms, function (text, idx) {
-      var parsed = parser.parse(text), unescaped;
-      if (parsed.length === 1 && parsed[0].type === 'literal') {
-        // patch with unescaped value for direct extract
-        unescaped = parsed[0].text;
-        node.forms[idx] = unescaped;
-        forms_exec[unescaped] = false;
-        return;
-      }
-
-      forms_exec[text] = true;
-      if (!plurals_cache.hasPhrase(locale, text, true)) {
-        plurals_cache.addPhrase(locale, text, text);
-      }
-    });
-    /*eslint-disable space-in-parens*/
-    buf.push(format('loc = %j;', locale));
-    buf.push(format('loc_plzr = %j;', locale.split(/[-_]/)[0]));
-    buf.push(format('anchor = params[%j];', key));
-    buf.push(format('cache = this._plurals_cache[loc];'));
-    buf.push(format('strict = %j;', node.strict));
-    buf.push(format('strict_exec = %j;', strict_exec));
-    buf.push(format('forms = %j;', node.forms));
-    buf.push(format('forms_exec = %j;', forms_exec));
-    buf.push(       'if (+(anchor) != anchor) {');
-    buf.push(format('  str += "[invalid plurals amount: %s(" + anchor + ")]";', key));
-    buf.push(       '} else {');
-    buf.push(       '  if (strict[anchor] !== undefined) {');
-    buf.push(       '    plrl = strict[anchor];');
-    buf.push(       '    str += strict_exec[anchor] ? cache.t(loc, plrl, params) : plrl;');
-    buf.push(       '  } else {');
-    buf.push(       '    plrl = pluralizer(loc_plzr, +anchor, forms);');
-    buf.push(       '    str += forms_exec[plrl] ? cache.t(loc, plrl, params) : plrl;');
-    buf.push(       '  }');
-    buf.push(       '}');
-    return;
-  });
-
-  buf.push('return str;');
-
-  /*eslint-disable no-new-func*/
-  return new Function('params', 'flatten', 'pluralizer', buf.join('\n'));
-}
-
-
-/**
- *  BabelFish#translate(locale, phrase[, params]) -> String
- *  - locale (String): Locale of translation
- *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
- *  - params (Object|Number|String): Params for translation. `Number` & `String`
- *    will be  coerced to `{ count: X, value: X }`
- *
- *  ##### Example
- *
- *  ```javascript
- *  i18n.addPhrase('ru-RU',
- *     'apps.forums.replies_count',
- *     '#{count} ((ответ|ответа|ответов)) в теме');
- *
- *  // ...
- *
- *  i18n.translate('ru-RU', 'app.forums.replies_count', { count: 1 });
- *  i18n.translate('ru-RU', 'app.forums.replies_count', 1});
- *  // -> '1 ответ'
- *
- *  i18n.translate('ru-RU', 'app.forums.replies_count', { count: 2 });
- *  i18n.translate('ru-RU', 'app.forums.replies_count', 2);
- *  // -> '2 ответa'
- *  ```
- **/
-BabelFish.prototype.translate = function _translate(locale, phrase, params) {
-  var key = searchPhraseKey(this, locale, phrase);
-  var data;
-
-  if (!key) {
-    return locale + ': No translation for [' + phrase + ']';
-  }
-
-  data = this._storage[key];
-
-  // simple string or other pure object
-  if (data.raw) { return data.translation; }
-
-  // compile data if not done yet
-  if (!data.hasOwnProperty('compiled')) {
-    // We should use locale from phrase, because of possible fallback,
-    // to keep plural locales in sync.
-    data.compiled = compile(this, data.translation, data.locale);
-  }
-
-  // return simple string immediately
-  if (!isFunction(data.compiled)) {
-    return data.compiled;
-  }
-
-  //
-  // Generate "complex" phrase
-  //
-
-  // Sugar: coerce numbers & strings to { count: X, value: X }
-  if (isNumber(params) || isString(params)) {
-    params = { count: params, value: params };
-  }
-
-  return data.compiled.call(this, params, flatten, pluralizer);
-};
-
-
-/**
- *  BabelFish#hasPhrase(locale, phrase) -> Boolean
- *  - locale (String): Locale of translation
- *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
- *  - noFallback (Boolean): Disable search in fallbacks
- *
- *  Returns whenever or not there's a translation of a `phrase`.
- **/
-BabelFish.prototype.hasPhrase = function _hasPhrase(locale, phrase, noFallback) {
-  return noFallback ?
-    this._storage.hasOwnProperty(makePhraseKey(locale, phrase))
-  :
-    searchPhraseKey(this, locale, phrase) ? true : false;
-};
-
-
-/**
- *  BabelFish#getLocale(locale, phrase) -> String|null
- *  - locale (String): Locale of translation
- *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
- *  - noFallback (Boolean): Disable search in fallbacks
- *
- *  Similar to [[BabelFish#hasPhrase]], but returns real locale of requested
- *  phrase, or `null` if nothing found. Can be useful for dynamic dependencies
- *  init. For example, when you fetch i10n config as single object and create
- *  phrases from it's content.
- **/
-BabelFish.prototype.getLocale = function _getLocale(locale, phrase, noFallback) {
-  if (noFallback) {
-    return this._storage.hasOwnProperty(makePhraseKey(locale, phrase)) ? locale : null;
-  }
-
-  var key = searchPhraseKey(this, locale, phrase);
-
-  return key ? key.split(keySeparator, 2)[0] : null;
-};
-
-
-/** alias of: BabelFish#translate
- *  BabelFish#t(locale, phrase[, params]) -> String
- **/
-BabelFish.prototype.t = BabelFish.prototype.translate;
-
-
-/**
- *  BabelFish#stringify(locale) -> String
- *  - locale (String): Locale of translation
- *
- *  Returns serialized locale data, uncluding fallbacks.
- *  It can be loaded back via `load()` method.
- **/
-BabelFish.prototype.stringify = function _stringify(locale) {
-  var self = this;
-
-  // Collect unique keys
-  var unique = {};
-
-  forEach(this._storage, function (val, key) {
-    unique[key.split(keySeparator)[1]] = true;
-  });
-
-  // Collect phrases (with fallbacks)
-  var result = {};
-
-  forEach(unique, function(val, key) {
-    var k = searchPhraseKey(self, locale, key);
-    // if key was just a garbage from another
-    // and doesn't fit into fallback chain for current locale - skip it
-    if (!k) { return; }
-    // create namespace if not exists
-    var l = self._storage[k].locale;
-    if (!result[l]) { result[l] = {}; }
-    result[l][key] = self._storage[k].translation;
-  });
-
-  var out = {
-    fallback: {},
-    locales: result
-  };
-
-  // Get fallback rule. Cut auto-added fallback to default locale
-  var fallback = (self._fallbacks[locale] || []).slice(0, -1);
-  if (fallback.length) {
-    out.fallback[locale] = fallback;
-  }
-
-  return JSON.stringify(out);
-};
-
-
-/**
- *  BabelFish#load(data)
- *  - data (Object|String) - data from `stringify()` method, as object or string.
- *
- *  Batch load phrases data, prepared with `stringify()` method.
- *  Useful at browser side.
- **/
-BabelFish.prototype.load = function _load(data) {
-  var self = this;
-
-  if (isString(data)) { data = JSON.parse(data); }
-
-  forEach(data.locales, function (phrases, locale) {
-    forEach(phrases, function(translation, key) {
-      self.addPhrase(locale, key, translation, 0);
-    });
-  });
-
-  forEach(data.fallback, function (rule, locale) {
-    self.setFallback(locale, rule);
-  });
-};
-
-// export module
-module.exports = BabelFish;
-
-},{"./parser":2,"plurals-cldr":3}],2:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Babelfish = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 module.exports = (function() {
   /*
    * Generated by PEG.js 0.8.0.
@@ -1584,14 +912,14 @@ module.exports = (function() {
   };
 })();
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 /*
  * Plural functions support (cardinal & ordinal forms)
  *
  * Autogenerated from CLDR:
  *
- *   Version:   26
- *   $Revision: 10807 $
+ *   Version:         36
+ *   Unicode version: 12.1.0
  */
 
 'use strict';
@@ -1707,14 +1035,14 @@ function B(x, y, val) { return x <= val && val <= y && val % 1 === 0; }
 function IN(set, val) { return set.indexOf(val) >= 0; }
 
 
-add([ 'af', 'asa', 'bem', 'bez', 'bg', 'brx', 'cgg', 'chr', 'ckb', 'dv', 'ee', 'el', 'eo', 'es', 'eu', 'fo', 'fur', 'gsw', 'ha', 'haw', 'jgo', 'jmc', 'kaj', 'kcg', 'kkj', 'kl', 'ks', 'ksb', 'ku', 'ky', 'lb', 'lg', 'mas', 'mgo', 'ml', 'mn', 'nah', 'nb', 'nd', 'nn', 'nnh', 'no', 'nr', 'ny', 'nyn', 'om', 'or', 'os', 'pap', 'ps', 'rm', 'rof', 'rwk', 'saq', 'seh', 'sn', 'so', 'ss', 'ssy', 'st', 'syr', 'ta', 'te', 'teo', 'tig', 'tk', 'tn', 'tr', 'ts', 'ug', 'uz', 've', 'vo', 'vun', 'wae', 'xh', 'xog' ], {
+add([ 'af', 'an', 'asa', 'bem', 'bez', 'bg', 'brx', 'ce', 'cgg', 'chr', 'ckb', 'dv', 'ee', 'el', 'eo', 'es', 'eu', 'fo', 'fur', 'gsw', 'ha', 'haw', 'jgo', 'jmc', 'kaj', 'kcg', 'kkj', 'kl', 'ks', 'ksb', 'ku', 'ky', 'lb', 'lg', 'mas', 'mgo', 'ml', 'mn', 'nah', 'nb', 'nd', 'nn', 'nnh', 'no', 'nr', 'ny', 'nyn', 'om', 'os', 'pap', 'ps', 'rm', 'rof', 'rwk', 'saq', 'sd', 'sdh', 'seh', 'sn', 'so', 'ss', 'ssy', 'st', 'syr', 'ta', 'te', 'teo', 'tig', 'tn', 'tr', 'ts', 'ug', 'uz', 've', 'vo', 'vun', 'wae', 'xh', 'xog' ], {
   c: [ 1, 5 ],
   cFn: function (n) {
     return n === 1 ? 0 : 1;
   }
 });
 
-add([ 'ak', 'bh', 'guw', 'ln', 'mg', 'nso', 'pa', 'ti', 'wa' ], {
+add([ 'ak', 'bho', 'guw', 'ln', 'mg', 'nso', 'pa', 'ti', 'wa' ], {
   c: [ 1, 5 ],
   cFn: function (n) {
     return B(0, 1, n) ? 0 : 1;
@@ -1728,7 +1056,7 @@ add([ 'am', 'fa', 'kn', 'zu' ], {
   }
 });
 
-add([ 'ar' ], {
+add([ 'ar', 'ars' ], {
   c: [ 0, 1, 2, 3, 4, 5 ],
   cFn: function (n) {
     var n100 = n % 100;
@@ -1736,7 +1064,18 @@ add([ 'ar' ], {
   }
 });
 
-add([ 'ast', 'de', 'et', 'fi', 'fy', 'gl', 'ji', 'nl', 'sw', 'ur', 'yi' ], {
+add([ 'as', 'bn' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i) {
+    return i === 0 || n === 1 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 4, 5 ],
+  oFn: function (n) {
+    return IN([ 1, 5, 7, 8, 9, 10 ], n) ? 0 : IN([ 2, 3 ], n) ? 1 : n === 4 ? 2 : n === 6 ? 3 : 4;
+  }
+});
+
+add([ 'ast', 'de', 'et', 'fi', 'fy', 'gl', 'ia', 'io', 'ji', 'nl', 'pt-pt', 'sw', 'ur', 'yi' ], {
   c: [ 1, 5 ],
   cFn: function (n, i, v) {
     return i === 1 && v === 0 ? 0 : 1;
@@ -1760,21 +1099,15 @@ add([ 'be' ], {
   cFn: function (n) {
     var n10 = n % 10, n100 = n % 100;
     return n10 === 1 && n100 !== 11 ? 0 : B(2, 4, n10) && !B(12, 14, n100) ? 1 : n10 === 0 || B(5, 9, n10) || B(11, 14, n100) ? 2 : 3;
-  }
-});
-
-add([ 'bm', 'bo', 'dz', 'id', 'ig', 'ii', 'in', 'ja', 'jbo', 'jv', 'jw', 'kde', 'kea', 'km', 'ko', 'lkt', 'my', 'nqo', 'root', 'sah', 'ses', 'sg', 'th', 'to', 'wo', 'yo', 'zh' ], {
-});
-
-add([ 'bn' ], {
-  c: [ 1, 5 ],
-  cFn: function (n, i) {
-    return i === 0 || n === 1 ? 0 : 1;
   },
-  o: [ 1, 2, 3, 4, 5 ],
+  o: [ 3, 5 ],
   oFn: function (n) {
-    return IN([ 1, 5, 7, 8, 9, 10 ], n) ? 0 : IN([ 2, 3 ], n) ? 1 : n === 4 ? 2 : n === 6 ? 3 : 4;
+    var n10 = n % 10, n100 = n % 100;
+    return IN([ 2, 3 ], n10) && !IN([ 12, 13 ], n100) ? 0 : 1;
   }
+});
+
+add([ 'bm', 'bo', 'dz', 'id', 'ig', 'ii', 'in', 'ja', 'jbo', 'jv', 'jw', 'kde', 'kea', 'km', 'ko', 'lkt', 'my', 'nqo', 'osa', 'root', 'sah', 'ses', 'sg', 'su', 'th', 'to', 'wo', 'yo', 'yue', 'zh' ], {
 });
 
 add([ 'br' ], {
@@ -1801,6 +1134,14 @@ add([ 'ca' ], {
   o: [ 1, 2, 3, 5 ],
   oFn: function (n) {
     return IN([ 1, 3 ], n) ? 0 : n === 2 ? 1 : n === 4 ? 2 : 3;
+  }
+});
+
+add([ 'ceb' ], {
+  c: [ 1, 5 ],
+  cFn: function (n, i, v, f) {
+    var i10 = i % 10, f10 = f % 10;
+    return v === 0 && IN([ 1, 2, 3 ], i) || v === 0 && !IN([ 4, 6, 9 ], i10) || v !== 0 && !IN([ 4, 6, 9 ], f10) ? 0 : 1;
   }
 });
 
@@ -1883,6 +1224,10 @@ add([ 'ga' ], {
   c: [ 1, 2, 3, 4, 5 ],
   cFn: function (n) {
     return n === 1 ? 0 : n === 2 ? 1 : B(3, 6, n) ? 2 : B(7, 10, n) ? 3 : 4;
+  },
+  o: [ 1, 5 ],
+  oFn: function (n) {
+    return n === 1 ? 0 : 1;
   }
 });
 
@@ -1890,6 +1235,10 @@ add([ 'gd' ], {
   c: [ 1, 2, 3, 5 ],
   cFn: function (n) {
     return IN([ 1, 11 ], n) ? 0 : IN([ 2, 12 ], n) ? 1 : (B(3, 10, n) || B(13, 19, n)) ? 2 : 3;
+  },
+  o: [ 1, 2, 3, 5 ],
+  oFn: function (n) {
+    return IN([ 1, 11 ], n) ? 0 : IN([ 2, 12 ], n) ? 1 : IN([ 3, 13 ], n) ? 2 : 3;
   }
 });
 
@@ -1939,7 +1288,7 @@ add([ 'is' ], {
   }
 });
 
-add([ 'it' ], {
+add([ 'it', 'sc', 'scn' ], {
   c: [ 1, 5 ],
   cFn: function (n, i, v) {
     return i === 1 && v === 0 ? 0 : 1;
@@ -1950,7 +1299,7 @@ add([ 'it' ], {
   }
 });
 
-add([ 'iu', 'kw', 'naq', 'se', 'sma', 'smi', 'smj', 'smn', 'sms' ], {
+add([ 'iu', 'naq', 'se', 'sma', 'smi', 'smj', 'smn', 'sms' ], {
   c: [ 1, 2, 5 ],
   cFn: function (n) {
     return n === 1 ? 0 : n === 2 ? 1 : 2;
@@ -1988,6 +1337,19 @@ add([ 'ksh' ], {
   }
 });
 
+add([ 'kw' ], {
+  c: [ 0, 1, 2, 3, 4, 5 ],
+  cFn: function (n) {
+    var n100 = n % 100, n1000 = n % 1000, n100000 = n % 100000, n1000000 = n % 1000000;
+    return n === 0 ? 0 : n === 1 ? 1 : IN([ 2, 22, 42, 62, 82 ], n100) || n1000 === 0 && (B(1000, 20000, n100000) || n100000 === 40000 || n100000 === 60000 || n100000 === 80000) || n !== 0 && n1000000 === 100000 ? 2 : IN([ 3, 23, 43, 63, 83 ], n100) ? 3 : n !== 1 && IN([ 1, 21, 41, 61, 81 ], n100) ? 4 : 5;
+  },
+  o: [ 1, 4, 5 ],
+  oFn: function (n) {
+    var n100 = n % 100;
+    return B(1, 4, n) || (B(1, 4, n100) || B(21, 24, n100) || B(41, 44, n100) || B(61, 64, n100) || B(81, 84, n100)) ? 0 : n === 5 || n100 === 5 ? 1 : 2;
+  }
+});
+
 add([ 'lag' ], {
   c: [ 0, 1, 5 ],
   cFn: function (n, i) {
@@ -2021,8 +1383,8 @@ add([ 'lv', 'prg' ], {
 add([ 'mk' ], {
   c: [ 1, 5 ],
   cFn: function (n, i, v, f) {
-    var i10 = i % 10, f10 = f % 10;
-    return v === 0 && i10 === 1 || f10 === 1 ? 0 : 1;
+    var i10 = i % 10, i100 = i % 100, f10 = f % 10, f100 = f % 100;
+    return v === 0 && i10 === 1 && i100 !== 11 || f10 === 1 && f100 !== 11 ? 0 : 1;
   },
   o: [ 1, 2, 4, 5 ],
   oFn: function (n, i) {
@@ -2035,7 +1397,7 @@ add([ 'mo', 'ro' ], {
   c: [ 1, 3, 5 ],
   cFn: function (n, i, v) {
     var n100 = n % 100;
-    return i === 1 && v === 0 ? 0 : v !== 0 || n === 0 || n !== 1 && B(1, 19, n100) ? 1 : 2;
+    return i === 1 && v === 0 ? 0 : v !== 0 || n === 0 || B(2, 19, n100) ? 1 : 2;
   },
   o: [ 1, 5 ],
   oFn: function (n) {
@@ -2045,8 +1407,8 @@ add([ 'mo', 'ro' ], {
 
 add([ 'mr' ], {
   c: [ 1, 5 ],
-  cFn: function (n, i) {
-    return i === 0 || n === 1 ? 0 : 1;
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
   },
   o: [ 1, 2, 3, 5 ],
   oFn: function (n) {
@@ -2073,6 +1435,17 @@ add([ 'ne' ], {
   }
 });
 
+add([ 'or' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 1, 2, 3, 4, 5 ],
+  oFn: function (n) {
+    return (n === 1 || n === 5 || B(7, 9, n)) ? 0 : IN([ 2, 3 ], n) ? 1 : n === 4 ? 2 : n === 6 ? 3 : 4;
+  }
+});
+
 add([ 'pl' ], {
   c: [ 1, 3, 4, 5 ],
   cFn: function (n, i, v) {
@@ -2083,15 +1456,8 @@ add([ 'pl' ], {
 
 add([ 'pt' ], {
   c: [ 1, 5 ],
-  cFn: function (n) {
-    return B(0, 2, n) && n !== 2 ? 0 : 1;
-  }
-});
-
-add([ 'pt-pt' ], {
-  c: [ 1, 5 ],
-  cFn: function (n, i, v) {
-    return n === 1 && v === 0 ? 0 : 1;
+  cFn: function (n, i) {
+    return B(0, 1, i) ? 0 : 1;
   }
 });
 
@@ -2149,6 +1515,18 @@ add([ 'sv' ], {
   }
 });
 
+add([ 'tk' ], {
+  c: [ 1, 5 ],
+  cFn: function (n) {
+    return n === 1 ? 0 : 1;
+  },
+  o: [ 3, 5 ],
+  oFn: function (n) {
+    var n10 = n % 10;
+    return IN([ 6, 9 ], n10) || n === 10 ? 0 : 1;
+  }
+});
+
 add([ 'tzm' ], {
   c: [ 1, 5 ],
   cFn: function (n) {
@@ -2172,7 +1550,691 @@ add([ 'uk' ], {
 ////////////////////////////////////////////////////////////////////////////////
 
 },{}],"/":[function(require,module,exports){
-module.exports = require('./lib/babelfish');
+/**
+ *  class BabelFish
+ *
+ *  Internalization and localization library that makes i18n and l10n fun again.
+ *
+ *  ##### Example
+ *
+ *  ```javascript
+ *  var BabelFish = require('babelfish'),
+ *      i18n = new BabelFish();
+ *  ```
+ *
+ *  or
+ *
+ *  ```javascript
+ *  var babelfish = require('babelfish'),
+ *      i18n = babelfish();
+ *  ```
+ **/
 
-},{"./lib/babelfish":1}]},{},[])("/")
+
+'use strict';
+
+
+var parser = require('./lib/parser');
+var plural = require('plurals-cldr');
+
+function _class(obj) { return Object.prototype.toString.call(obj); }
+
+function isString(obj)   { return _class(obj) === '[object String]'; }
+function isNumber(obj)   { return !isNaN(obj) && isFinite(obj); }
+function isBoolean(obj)  { return obj === true || obj === false; }
+function isFunction(obj) { return _class(obj) === '[object Function]'; }
+function isObject(obj)   { return _class(obj) === '[object Object]'; }
+
+/*istanbul ignore next*/
+var isArray = Array.isArray || function _isArray(obj) {
+  return _class(obj) === '[object Array]';
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// The following two utilities (forEach and extend) are modified from Underscore
+//
+// http://underscorejs.org
+//
+// (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
+//
+// Underscore may be freely distributed under the MIT license
+////////////////////////////////////////////////////////////////////////////////
+
+
+var nativeForEach = Array.prototype.forEach;
+
+
+// The cornerstone, an `each` implementation, aka `forEach`.
+// Handles objects with the built-in `forEach`, arrays, and raw objects.
+// Delegates to **ECMAScript 5**'s native `forEach` if available.
+/*istanbul ignore next*/
+function forEach(obj, iterator, context) {
+  if (obj === null) {
+    return;
+  }
+  if (nativeForEach && obj.forEach === nativeForEach) {
+    obj.forEach(iterator, context);
+  } else if (obj.length === +obj.length) {
+    for (var i = 0, l = obj.length; i < l; i += 1) {
+      iterator.call(context, obj[i], i, obj);
+    }
+  } else {
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        iterator.call(context, obj[key], key, obj);
+      }
+    }
+  }
+}
+
+
+var formatRegExp = /%[sdj%]/g;
+
+/*istanbul ignore next*/
+function format(f) {
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function (x) {
+    if (x === '%%') { return '%'; }
+    if (i >= len) { return x; }
+    switch (x) {
+      case '%s':
+        return String(args[i++]);
+      case '%d':
+        return Number(args[i++]);
+      case '%j':
+        return JSON.stringify(args[i++]);
+      default:
+        return x;
+    }
+  });
+  return str;
+}
+
+
+// helpers
+////////////////////////////////////////////////////////////////////////////////
+
+
+// Last resort locale, that exists for sure
+var GENERIC_LOCALE = 'en';
+
+
+// flatten(obj) -> Object
+//
+// Flattens object into one-level dictionary.
+//
+// ##### Example
+//
+//     var obj = {
+//       abc: { def: 'foo' },
+//       hij: 'bar'
+//     };
+//
+//     flatten(obj);
+//     // -> { 'abc.def': 'foo', 'hij': 'bar' };
+//
+function flatten(obj) {
+  var params = {};
+
+  forEach(obj || {}, function (val, key) {
+    if (val && typeof val === 'object') {
+      forEach(flatten(val), function (sub_val, sub_key) {
+        params[key + '.' + sub_key] = sub_val;
+      });
+      return;
+    }
+
+    params[key] = val;
+  });
+
+  return params;
+}
+
+
+var keySeparator = '#@$';
+
+function makePhraseKey(locale, phrase) {
+  return locale + keySeparator + phrase;
+}
+
+
+function searchPhraseKey(self, locale, phrase) {
+  var key = makePhraseKey(locale, phrase);
+  var storage = self._storage;
+
+  // direct search first
+  if (storage.hasOwnProperty(key)) { return key; }
+
+  // don't try follbacks for default locale
+  if (locale === self._defaultLocale) { return null; }
+
+  // search via fallback map cache
+  var fb_cache = self._fallbacks_cache;
+  if (fb_cache.hasOwnProperty(key)) { return fb_cache[key]; }
+
+  // scan fallbacks & cache result
+  var fb = self._fallbacks[locale] || [ self._defaultLocale ];
+  var fb_key;
+
+  for (var i = 0, l = fb.length; i < l; i++) {
+    fb_key = makePhraseKey(fb[i], phrase);
+    if (storage.hasOwnProperty(fb_key)) {
+      // found - update cache and return result
+      fb_cache[key] = fb_key;
+      return fb_cache[key];
+    }
+  }
+
+  // mark fb_cache entry empty for fast lookup on next request
+  fb_cache[key] = null;
+  return null;
+}
+
+
+function pluralizer(lang, val, forms) {
+  var idx = plural.indexOf(lang, val);
+
+  if (idx === -1) {
+    return format('[pluralizer for "%s" locale not found]', lang);
+  }
+
+  if (typeof forms[idx] === 'undefined') {
+    return format(
+      '[plural form %d ("%s") not found in translation]',
+      idx, plural.forms(lang)[idx]
+    );
+  }
+
+  return forms[idx];
+}
+
+// public api (module)
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ *  new BabelFish([defaultLocale = 'en'])
+ *
+ *  Initiates new instance of BabelFish.
+ *
+ *  __Note!__ you can omit `new` for convenience, direct call will return
+ * new instance too.
+ **/
+function BabelFish(defaultLocale) {
+  if (!(this instanceof BabelFish)) { return new BabelFish(defaultLocale); }
+
+  this._defaultLocale = defaultLocale ? String(defaultLocale) : GENERIC_LOCALE;
+
+  // hash of locale => [ fallback1, fallback2, ... ] pairs
+  this._fallbacks = {};
+
+  // fallback cache for each phrase
+  //
+  // {
+  //   locale_key: fallback_key
+  // }
+  //
+  // fallback_key can be null if search failed
+  //
+  this._fallbacks_cache = {};
+
+  // storage of compiled translations
+  //
+  // {
+  //   locale + @#$ + phrase_key: {
+  //     locale:      locale name - can be different for fallbacks
+  //     translation: original translation phrase or data variable/object
+  //     raw:         true/false - does translation contain plain data or
+  //                  string to compile
+  //     compiled:    copiled translation fn or plain string
+  //   }
+  //   ...
+  // }
+  //
+  this._storage = {};
+
+  // cache for complex plural parts (with params)
+  //
+  // {
+  //   language: new BabelFish(language)
+  // }
+  //
+  this._plurals_cache = {};
+}
+
+
+// public api (instance)
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+ *  BabelFish#addPhrase(locale, phrase, translation [, flattenLevel]) -> BabelFish
+ *  - locale (String): Locale of translation
+ *  - phrase (String|Null): Phrase ID, e.g. `apps.forum`
+ *  - translation (String|Object|Array|Number|Boolean): Translation or an object
+ *    with nested phrases, or a pure object.
+ *  - flattenLevel (Number|Boolean): Optional, 0..infinity. `Infinity` by default.
+ *    Define "flatten" deepness for loaded object.  You can also use
+ *    `true` as `0` or `false` as `Infinity`.
+ *
+ *
+ *  ##### Flatten & using JS objects
+ *
+ *  By default all nested properties are normalized to strings like "foo.bar.baz",
+ *  and if value is string, it will be compiled with babelfish notation.
+ *  If deepness is above `flattenLevel` OR value is not object and not string,
+ *  it will be used "as is". Note, only JSON stringifiable data should be used.
+ *
+ *  In short: you can safely pass `Array`, `Number` or `Boolean`. For objects you
+ *  should define flatten level or disable it compleetely, to work with pure data.
+ *
+ *  Pure objects can be useful to prepare bulk data for external libraries, like
+ *  calendars, time/date generators and so on.
+ *
+ *  ##### Example
+ *
+ *  ```javascript
+ *  i18n.addPhrase('ru-RU',
+ *    'apps.forums.replies_count',
+ *    '#{count} %{ответ|ответа|ответов}:count в теме');
+ *
+ *  // equals to:
+ *  i18n.addPhrase('ru-RU',
+ *    'apps.forums',
+ *    { replies_count: '#{count} %{ответ|ответа|ответов}:count в теме' });
+ *  ```
+ **/
+BabelFish.prototype.addPhrase = function _addPhrase(locale, phrase, translation, flattenLevel) {
+  var self = this, fl;
+
+  // Calculate flatten level. Infinity by default
+  if (isBoolean(flattenLevel)) {
+    fl = flattenLevel ? Infinity : 0;
+  } else if (isNumber(flattenLevel)) {
+    fl = Math.floor(flattenLevel);
+    if (fl < 0) {
+      throw new TypeError('Invalid flatten level (should be >= 0).');
+    }
+  } else {
+    fl = Infinity;
+  }
+
+  if (isObject(translation) && (fl > 0)) {
+    // recursive object walk, until flattenLevel allows
+    forEach(translation, function (val, key) {
+      self.addPhrase(locale, (phrase ? phrase + '.' : '') + key, val, fl - 1);
+    });
+    return this;
+  }
+
+  if (isString(translation)) {
+    this._storage[makePhraseKey(locale, phrase)] = {
+      translation: translation,
+      locale: locale,
+      raw: false
+    };
+  } else if (isArray(translation) ||
+             isNumber(translation) ||
+             isBoolean(translation) ||
+             (fl === 0 && isObject(translation))) {
+    // Pure objects are stored without compilation
+    // Limit allowed types.
+    this._storage[makePhraseKey(locale, phrase)] = {
+      translation: translation,
+      locale: locale,
+      raw: true
+    };
+  } else {
+    // `Regex`, `Date`, `Uint8Array` and others types will
+    //  fuckup `stringify()`. Don't allow here.
+    // `undefined` also means wrong param in real life.
+    // `null` can be allowed when examples from real life available.
+    throw new TypeError('Invalid translation - [String|Object|Array|Number|Boolean] expected.');
+  }
+
+  self._fallbacks_cache = {};
+
+  return this;
+};
+
+
+/**
+ *  BabelFish#setFallback(locale, fallbacks) -> BabelFish
+ *  - locale (String): Target locale
+ *  - fallbacks (Array): List of fallback locales
+ *
+ *  Set fallbacks for given locale.
+ *
+ *  When `locale` has no translation for the phrase, `fallbacks[0]` will be
+ *  tried, if translation still not found, then `fallbacks[1]` will be tried
+ *  and so on. If none of fallbacks have translation,
+ *  default locale will be tried as last resort.
+ *
+ *  ##### Errors
+ *
+ *  - throws `Error`, when `locale` equals default locale
+ *
+ *  ##### Example
+ *
+ *  ```javascript
+ *  i18n.setFallback('ua-UK', ['ua', 'ru']);
+ *  ```
+ **/
+BabelFish.prototype.setFallback = function _setFallback(locale, fallbacks) {
+  var def = this._defaultLocale;
+
+  if (def === locale) {
+    throw new Error("Default locale can't have fallbacks");
+  }
+
+  var fb = isArray(fallbacks) ? fallbacks.slice() : [ fallbacks ];
+  if (fb[fb.length - 1] !== def) { fb.push(def); }
+
+  this._fallbacks[locale] = fb;
+  this._fallbacks_cache = {};
+
+  return this;
+};
+
+
+var CAN_HAVE_DIRECTIVES_RE = /#\{|\(\(|\\\\/;
+
+// Compiles given string into function. Used to compile phrases,
+// which contains `plurals`, `variables`, etc.
+function compile(self, str, locale) {
+  var nodes, buf, key, strict_exec, forms_exec, plurals_cache;
+
+  // Quick check to avoid parse in most cases :)
+  if (!CAN_HAVE_DIRECTIVES_RE.test(str)) { return str; }
+
+  nodes = parser.parse(str);
+
+  if (nodes.length === 1 && nodes[0].type === 'literal') {
+    return nodes[0].text;
+  }
+
+  // init cache instance for plural parts, if not exists yet.
+  if (!self._plurals_cache[locale]) {
+    self._plurals_cache[locale] = new BabelFish(locale);
+  }
+  plurals_cache = self._plurals_cache[locale];
+
+  buf = [];
+  buf.push([ 'var str = "", strict, strict_exec, forms, forms_exec, plrl, cache, loc, loc_plzr, anchor;' ]);
+  buf.push('params = flatten(params);');
+
+  forEach(nodes, function (node) {
+    if (node.type === 'literal') {
+      buf.push(format('str += %j;', node.text));
+      return;
+    }
+
+    if (node.type === 'variable') {
+      key = node.anchor;
+      buf.push(format(
+        'str += ("undefined" === typeof (params[%j])) ? "[missed variable: %s]" : params[%j];',
+        key, key, key
+      ));
+      return;
+    }
+
+    // should never happen
+    /*istanbul ignore next*/
+    if (node.type !== 'plural') { throw new Error('Unknown node type'); }
+
+    //
+    // Compile plural
+    //
+
+    key = node.anchor;
+    // check if plural parts are plain strings or executable,
+    // and add executable to "cache" instance of babelfish
+    // plural part text will be used as translation key
+    strict_exec = {};
+    forEach(node.strict, function (text, k) {
+      var parsed = parser.parse(text);
+      if (parsed.length === 1 && parsed[0].type === 'literal') {
+        strict_exec[k] = false;
+        // patch with unescaped value for direct extract
+        node.strict[k] = parsed[0].text;
+        return;
+      }
+
+      strict_exec[k] = true;
+      if (!plurals_cache.hasPhrase(locale, text, true)) {
+        plurals_cache.addPhrase(locale, text, text);
+      }
+    });
+
+    forms_exec = {};
+    forEach(node.forms, function (text, idx) {
+      var parsed = parser.parse(text), unescaped;
+      if (parsed.length === 1 && parsed[0].type === 'literal') {
+        // patch with unescaped value for direct extract
+        unescaped = parsed[0].text;
+        node.forms[idx] = unescaped;
+        forms_exec[unescaped] = false;
+        return;
+      }
+
+      forms_exec[text] = true;
+      if (!plurals_cache.hasPhrase(locale, text, true)) {
+        plurals_cache.addPhrase(locale, text, text);
+      }
+    });
+    /*eslint-disable space-in-parens*/
+    buf.push(format('loc = %j;', locale));
+    buf.push(format('loc_plzr = %j;', locale.split(/[-_]/)[0]));
+    buf.push(format('anchor = params[%j];', key));
+    buf.push(format('cache = this._plurals_cache[loc];'));
+    buf.push(format('strict = %j;', node.strict));
+    buf.push(format('strict_exec = %j;', strict_exec));
+    buf.push(format('forms = %j;', node.forms));
+    buf.push(format('forms_exec = %j;', forms_exec));
+    buf.push(       'if (+(anchor) != anchor) {');
+    buf.push(format('  str += "[invalid plurals amount: %s(" + anchor + ")]";', key));
+    buf.push(       '} else {');
+    buf.push(       '  if (strict[anchor] !== undefined) {');
+    buf.push(       '    plrl = strict[anchor];');
+    buf.push(       '    str += strict_exec[anchor] ? cache.t(loc, plrl, params) : plrl;');
+    buf.push(       '  } else {');
+    buf.push(       '    plrl = pluralizer(loc_plzr, +anchor, forms);');
+    buf.push(       '    str += forms_exec[plrl] ? cache.t(loc, plrl, params) : plrl;');
+    buf.push(       '  }');
+    buf.push(       '}');
+    return;
+  });
+
+  buf.push('return str;');
+
+  /*eslint-disable no-new-func*/
+  return new Function('params', 'flatten', 'pluralizer', buf.join('\n'));
+}
+
+
+/**
+ *  BabelFish#translate(locale, phrase[, params]) -> String
+ *  - locale (String): Locale of translation
+ *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
+ *  - params (Object|Number|String): Params for translation. `Number` & `String`
+ *    will be  coerced to `{ count: X, value: X }`
+ *
+ *  ##### Example
+ *
+ *  ```javascript
+ *  i18n.addPhrase('ru-RU',
+ *     'apps.forums.replies_count',
+ *     '#{count} ((ответ|ответа|ответов)) в теме');
+ *
+ *  // ...
+ *
+ *  i18n.translate('ru-RU', 'app.forums.replies_count', { count: 1 });
+ *  i18n.translate('ru-RU', 'app.forums.replies_count', 1});
+ *  // -> '1 ответ'
+ *
+ *  i18n.translate('ru-RU', 'app.forums.replies_count', { count: 2 });
+ *  i18n.translate('ru-RU', 'app.forums.replies_count', 2);
+ *  // -> '2 ответa'
+ *  ```
+ **/
+BabelFish.prototype.translate = function _translate(locale, phrase, params) {
+  var key = searchPhraseKey(this, locale, phrase);
+  var data;
+
+  if (!key) {
+    return locale + ': No translation for [' + phrase + ']';
+  }
+
+  data = this._storage[key];
+
+  // simple string or other pure object
+  if (data.raw) { return data.translation; }
+
+  // compile data if not done yet
+  if (!data.hasOwnProperty('compiled')) {
+    // We should use locale from phrase, because of possible fallback,
+    // to keep plural locales in sync.
+    data.compiled = compile(this, data.translation, data.locale);
+  }
+
+  // return simple string immediately
+  if (!isFunction(data.compiled)) {
+    return data.compiled;
+  }
+
+  //
+  // Generate "complex" phrase
+  //
+
+  // Sugar: coerce numbers & strings to { count: X, value: X }
+  if (isNumber(params) || isString(params)) {
+    params = { count: params, value: params };
+  }
+
+  return data.compiled.call(this, params, flatten, pluralizer);
+};
+
+
+/**
+ *  BabelFish#hasPhrase(locale, phrase) -> Boolean
+ *  - locale (String): Locale of translation
+ *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
+ *  - noFallback (Boolean): Disable search in fallbacks
+ *
+ *  Returns whenever or not there's a translation of a `phrase`.
+ **/
+BabelFish.prototype.hasPhrase = function _hasPhrase(locale, phrase, noFallback) {
+  return noFallback ?
+    this._storage.hasOwnProperty(makePhraseKey(locale, phrase))
+    :
+    searchPhraseKey(this, locale, phrase) ? true : false;
+};
+
+
+/**
+ *  BabelFish#getLocale(locale, phrase) -> String|null
+ *  - locale (String): Locale of translation
+ *  - phrase (String): Phrase ID, e.g. `app.forums.replies_count`
+ *  - noFallback (Boolean): Disable search in fallbacks
+ *
+ *  Similar to [[BabelFish#hasPhrase]], but returns real locale of requested
+ *  phrase, or `null` if nothing found. Can be useful for dynamic dependencies
+ *  init. For example, when you fetch i10n config as single object and create
+ *  phrases from it's content.
+ **/
+BabelFish.prototype.getLocale = function _getLocale(locale, phrase, noFallback) {
+  if (noFallback) {
+    return this._storage.hasOwnProperty(makePhraseKey(locale, phrase)) ? locale : null;
+  }
+
+  var key = searchPhraseKey(this, locale, phrase);
+
+  return key ? key.split(keySeparator, 2)[0] : null;
+};
+
+
+/** alias of: BabelFish#translate
+ *  BabelFish#t(locale, phrase[, params]) -> String
+ **/
+BabelFish.prototype.t = BabelFish.prototype.translate;
+
+
+/**
+ *  BabelFish#stringify(locale) -> String
+ *  - locale (String): Locale of translation
+ *
+ *  Returns serialized locale data, uncluding fallbacks.
+ *  It can be loaded back via `load()` method.
+ **/
+BabelFish.prototype.stringify = function _stringify(locale) {
+  var self = this;
+
+  // Collect unique keys
+  var unique = {};
+
+  forEach(this._storage, function (val, key) {
+    unique[key.split(keySeparator)[1]] = true;
+  });
+
+  // Collect phrases (with fallbacks)
+  var result = {};
+
+  forEach(unique, function (val, key) {
+    var k = searchPhraseKey(self, locale, key);
+    // if key was just a garbage from another
+    // and doesn't fit into fallback chain for current locale - skip it
+    if (!k) { return; }
+    // create namespace if not exists
+    var l = self._storage[k].locale;
+    if (!result[l]) { result[l] = {}; }
+    result[l][key] = self._storage[k].translation;
+  });
+
+  var out = {
+    fallback: {},
+    locales: result
+  };
+
+  // Get fallback rule. Cut auto-added fallback to default locale
+  var fallback = (self._fallbacks[locale] || []).slice(0, -1);
+  if (fallback.length) {
+    out.fallback[locale] = fallback;
+  }
+
+  return JSON.stringify(out);
+};
+
+
+/**
+ *  BabelFish#load(data) -> BabelFish
+ *  - data (Object|String): data from `stringify()` method, as object or string.
+ *
+ *  Batch load phrases data, prepared with `stringify()` method.
+ *  Useful at browser side.
+ **/
+BabelFish.prototype.load = function _load(data) {
+  var self = this;
+
+  if (isString(data)) { data = JSON.parse(data); }
+
+  forEach(data.locales, function (phrases, locale) {
+    forEach(phrases, function (translation, key) {
+      self.addPhrase(locale, key, translation, 0);
+    });
+  });
+
+  forEach(data.fallback, function (rule, locale) {
+    self.setFallback(locale, rule);
+  });
+
+  return this;
+};
+
+// export module
+module.exports = BabelFish;
+
+},{"./lib/parser":1,"plurals-cldr":2}]},{},[])("/")
 });
