@@ -1,3 +1,12 @@
+1.2.0 / 2020-05-19
+------------------
+
+- Maintenance release.
+- Dev deps bump.
+- Reorganize files.
+- Rework build scripts.
+
+
 1.1.2 / 2015-12-29
 ------------------
 
