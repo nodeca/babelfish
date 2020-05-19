@@ -10,25 +10,14 @@ CURR_HEAD   := $(firstword $(shell git show-ref --hash HEAD | cut --bytes=-6) ma
 GITHUB_PROJ := nodeca/${NPM_PACKAGE}
 
 
-test-all: lint test
-
-
 lint:
-	./node_modules/.bin/eslint .
+	npm run lint
 
-
-test: lint
-	./node_modules/.bin/mocha
-
+test:
+	npm test
 
 coverage:
-	rm -rf coverage
-	./node_modules/.bin/istanbul cover -x lib/parser.js node_modules/.bin/_mocha
-
-
-test-ci: lint
-	./node_modules/.bin/istanbul cover -x lib/parser.js ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-
+	npm run coverage
 
 doc:
 	rm -rf ./doc

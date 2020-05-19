@@ -18,7 +18,10 @@
     "dist/"
   ],
   "scripts": {
-    "test": "make test"
+    "lint": "eslint .",
+    "test": "npm run lint && nyc mocha",
+    "coverage": "npm run test && nyc report --reporter html",
+    "report-coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
     "plurals-cldr": "^1.0.4"
@@ -27,9 +30,9 @@
     "browserify": "^16.5.1",
     "coveralls": "^3.1.0",
     "eslint": "^7.0.0",
-    "istanbul": "^0.4.5",
     "mocha": "^7.1.2",
     "ndoc": "^5.0.1",
+    "nyc": "^15.0.1",
     "pegjs": "~0.8.0",
     "terser": "^4.7.0"
   }
