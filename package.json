@@ -22,16 +22,22 @@
     "test": "npm run lint && nyc mocha",
     "coverage": "npm run test && nyc report --reporter html",
     "report-coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "doc": "make doc",
+    "doc": "del doc && node support/build_doc.js",
     "gh-pages": "npm run doc && gh-pages -d doc -f",
-    "parser": "pegjs -o speed src/parser.pegjs lib/parser.js"
+    "browserify": "browserify -r ./ -s Babelfish -p [ browserify-header --file support/header.js ] > dist/babelfish.js",
+    "minify": "terser dist/babelfish.js -c -m > dist/babelfish.min.js",
+    "build": "npm run browserify && npm run minify",
+    "parser": "pegjs -o speed src/parser.pegjs lib/parser.js",
+    "prepublishOnly": "npm run gh-pages"
   },
   "dependencies": {
     "plurals-cldr": "^1.0.4"
   },
   "devDependencies": {
     "browserify": "^16.5.1",
+    "browserify-header": "^1.0.1",
     "coveralls": "^3.1.0",
+    "del-cli": "^3.0.1",
     "eslint": "^7.0.0",
     "gh-pages": "^2.2.0",
     "mocha": "^7.1.2",
