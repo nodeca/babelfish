@@ -23,27 +23,11 @@ doc:
 	rm -rf ./doc
 	./node_modules/.bin/ndoc --link-format "{package.homepage}/blob/${CURR_HEAD}/{file}#L{line}"
 
-
 gh-pages:
-	@if test -z ${REMOTE_REPO} ; then \
-		echo 'Remote repo URL not found' >&2 ; \
-		exit 128 ; \
-		fi
-	$(MAKE) doc && \
-		cp -r ./doc ${TMP_PATH} && \
-		touch ${TMP_PATH}/.nojekyll
-	cd ${TMP_PATH} && \
-		git init && \
-		git add . && \
-		git commit -q -m 'Recreated docs'
-	cd ${TMP_PATH} && \
-		git remote add remote ${REMOTE_REPO} && \
-		git push --force remote +master:gh-pages
-	rm -rf ${TMP_PATH}
-
+	npm run gh-pages
 
 parser:
-	./node_modules/.bin/pegjs -o speed src/parser.pegjs lib/parser.js
+	npm run parser
 
 
 browserify:

@@ -21,7 +21,10 @@
     "lint": "eslint .",
     "test": "npm run lint && nyc mocha",
     "coverage": "npm run test && nyc report --reporter html",
-    "report-coveralls": "nyc report --reporter=text-lcov | coveralls"
+    "report-coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "doc": "make doc",
+    "gh-pages": "npm run doc && gh-pages -d doc -f",
+    "parser": "pegjs -o speed src/parser.pegjs lib/parser.js"
   },
   "dependencies": {
     "plurals-cldr": "^1.0.4"
@@ -30,6 +33,7 @@
     "browserify": "^16.5.1",
     "coveralls": "^3.1.0",
     "eslint": "^7.0.0",
+    "gh-pages": "^2.2.0",
     "mocha": "^7.1.2",
     "ndoc": "^5.0.1",
     "nyc": "^15.0.1",
