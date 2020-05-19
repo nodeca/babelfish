@@ -4,7 +4,7 @@
 
 
 var assert = require('assert');
-var BabelFish = require('../lib/babelfish');
+var BabelFish = require('../');
 
 function isFunction(obj) {
   return Object.prototype.toString.call(obj) === '[object Function]';
