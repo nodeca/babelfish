@@ -27,7 +27,7 @@
     "browserify": "browserify -r ./ -s Babelfish -p [ browserify-header --file support/header.js ] > dist/babelfish.js",
     "minify": "terser dist/babelfish.js -c -m > dist/babelfish.min.js",
     "build": "npm run browserify && npm run minify",
-    "parser": "pegjs -o speed src/parser.pegjs lib/parser.js",
+    "parser": "pegjs -o speed support/parser.pegjs lib/parser.js",
     "prepublishOnly": "npm run gh-pages"
   },
   "dependencies": {
