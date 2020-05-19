@@ -22,7 +22,7 @@
     "test": "npm run lint && nyc mocha",
     "coverage": "npm run test && nyc report --reporter html",
     "report-coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "doc": "del doc && node support/build_doc.js",
+    "doc": "node support/build_doc.js",
     "gh-pages": "npm run doc && gh-pages -d doc -f",
     "browserify": "browserify -r ./ -s Babelfish -p [ browserify-header --file support/header.js ] > dist/babelfish.js",
     "minify": "terser dist/babelfish.js -c -m > dist/babelfish.min.js",
@@ -37,13 +37,13 @@
     "browserify": "^16.5.1",
     "browserify-header": "^1.0.1",
     "coveralls": "^3.1.0",
-    "del-cli": "^3.0.1",
     "eslint": "^7.0.0",
     "gh-pages": "^2.2.0",
     "mocha": "^7.1.2",
     "ndoc": "^5.0.1",
     "nyc": "^15.0.1",
     "pegjs": "~0.8.0",
+    "shelljs": "^0.8.4",
     "terser": "^4.7.0"
   }
 }
