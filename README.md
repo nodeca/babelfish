@@ -1,11 +1,11 @@
 BabelFish - human friendly i18n for JS
 ======================================
 
-[![Build Status](https://travis-ci.org/nodeca/babelfish.svg?branch=master)](https://travis-ci.org/nodeca/babelfish)
+[![CI](https://github.com/nodeca/babelfish/actions/workflows/ci.yml/badge.svg)](https://github.com/nodeca/babelfish/actions/workflows/ci.yml)
 [![NPM version](https://img.shields.io/npm/v/babelfish.svg?style=flat)](https://www.npmjs.org/package/babelfish)
 [![Coverage Status](https://img.shields.io/coveralls/nodeca/babelfish/master.svg?style=flat)](https://coveralls.io/r/nodeca/babelfish?branch=master)
 
-> Internationalisation with easy syntax for node.js and browser.
+> Internationalization with easy syntax for node.js and browser.
 
 Classic solutions use multiple phrases for plurals. `Babelfish` defines plurals
 inline instead - that's more compact, and easy for programmers. Also, phrases
