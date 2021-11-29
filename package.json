@@ -20,8 +20,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "npm run lint && nyc mocha",
-    "coverage": "npm run test && nyc report --reporter html",
-    "report-coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "covreport": "nyc report --reporter html && nyc report --reporter lcov",
     "doc": "node support/build_doc.js",
     "gh-pages": "npm run doc && gh-pages -d doc -f",
     "browserify": "browserify -r ./ -s Babelfish -p [ browserify-header --file support/header.js ] > dist/babelfish.js",
@@ -36,7 +35,6 @@
   "devDependencies": {
     "browserify": "^17.0.0",
     "browserify-header": "^1.0.1",
-    "coveralls": "^3.1.0",
     "eslint": "^8.3.0",
     "gh-pages": "^3.2.3",
     "mocha": "^9.1.3",
